@@ -153,7 +153,7 @@ export function PublicMobileNav() {
         )}
         style={{ bottom: "calc(env(safe-area-inset-bottom) + 12px)" }}
       >
-        <GlassSurface width="100%" height={62} borderRadius={20} backgroundOpacity={0.12} className="w-full">
+        <GlassSurface width="100%" height={62} borderRadius={20} backgroundOpacity={0.12} backdropBlur={10} className="w-full">
           <div className="flex w-full items-stretch">
             <div className="flex flex-1 items-stretch">{TABS_LEFT.map(renderTab)}</div>
             {/* spacer clears the raised FAB */}

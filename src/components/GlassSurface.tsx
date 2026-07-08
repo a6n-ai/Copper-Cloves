@@ -14,6 +14,8 @@ export interface GlassSurfaceProps {
   backgroundOpacity?: number;
   saturation?: number;
   distortionScale?: number;
+  /** Real backdrop blur (px) chained onto the distortion filter — actual frosted glass. */
+  backdropBlur?: number;
   redOffset?: number;
   greenOffset?: number;
   blueOffset?: number;
@@ -55,6 +57,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   backgroundOpacity = 0,
   saturation = 1,
   distortionScale = -180,
+  backdropBlur = 0,
   redOffset = 0,
   greenOffset = 10,
   blueOffset = 20,
@@ -208,7 +211,8 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
       return {
         ...baseStyles,
         background: isDarkMode ? `hsl(0 0% 0% / ${backgroundOpacity})` : `hsl(0 0% 100% / ${backgroundOpacity})`,
-        backdropFilter: `url(#${filterId}) saturate(${saturation})`,
+        backdropFilter: `url(#${filterId}) blur(${backdropBlur}px) saturate(${saturation})`,
+        WebkitBackdropFilter: `blur(${backdropBlur}px) saturate(${saturation})`,
         boxShadow: isDarkMode
           ? `0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset,
              0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset,

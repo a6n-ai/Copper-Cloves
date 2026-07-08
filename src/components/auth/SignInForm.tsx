@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordInput } from "@/components/ui/password-input";
 import { FormAlert } from "@/components/ui/form-alert";
-import { LayoutDashboard, Calendar, Users, ShieldCheck, Leaf, ChefHat, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, ShieldCheck, ChefHat, type LucideIcon } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 
 type Role = "admin" | "partner" | "instructor" | "user" | "chef";
 
@@ -28,6 +29,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
   const [roles, setRoles] = useState<Role[]>([]);
   const [role, setRole] = useState<Role | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [resetMsg, setResetMsg] = useState<string | null>(null);
@@ -35,6 +37,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
   // Editing the email after a check resets everything revealed below it.
   function onEmailChange(value: string) {
     setEmail(value);
+    setEmailError(null);
     if (emailChecked || role || roles.length) {
       setEmailChecked(false);
       setRoles([]);
@@ -57,7 +60,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
       const data = await res.json();
       const found = (data.roles ?? []) as Role[];
       if (found.length === 0) {
-        setError("Invalid email or password");
+        setEmailError("Couldn’t find an account with that email.");
         return;
       }
       setRoles(found);
@@ -129,18 +132,11 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
 
   return (
     <>
-      <h1 className="font-display text-3xl sm:text-5xl text-charcoal leading-[1.05] text-center">
+      <h1 className="font-display text-3xl sm:text-5xl text-charcoal leading-[1.05] text-left">
         Welcome <span className="italic text-sage">back</span>
       </h1>
 
-      {/* delicate leaf divider */}
-      <div className="my-4 flex items-center justify-center gap-3 sm:my-5" aria-hidden>
-        <span className="h-px w-10 bg-linear-to-r from-transparent to-terracotta/40" />
-        <Leaf className="h-3.5 w-3.5 text-terracotta/70" />
-        <span className="h-px w-10 bg-linear-to-l from-transparent to-terracotta/40" />
-      </div>
-
-      <p className="font-body text-sm text-charcoal/80 mb-6 text-center sm:mb-8">
+      <p className="font-body text-sm text-charcoal/80 mb-6 mt-3 text-left sm:mb-8">
         {!emailChecked
           ? "Enter your email to continue"
           : needPick
@@ -159,12 +155,29 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
             value={email}
             onChange={(e) => onEmailChange(e.target.value)}
             placeholder="you@email.com"
-            className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
+            className={cn(
+              "bg-white-warm/45 backdrop-blur-md placeholder:text-charcoal/45 h-12 rounded-xl",
+              emailError
+                ? "border-red-500/70 focus:ring-red-500"
+                : "border-white/45 focus:ring-sage",
+            )}
             required
             autoFocus
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? "signin-error" : undefined}
+            aria-invalid={emailError || error ? true : undefined}
+            aria-describedby={emailError ? "email-error" : error ? "signin-error" : undefined}
           />
+          {emailError ? (
+            <p id="email-error" aria-live="polite" className="font-body text-xs text-red-600">
+              {emailError}
+            </p>
+          ) : (
+            <a
+              href="mailto:thestudio@copperandcloves.com?subject=Lost%20access%20to%20my%20account%20email"
+              className="inline-block rounded font-body text-xs text-sage hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+            >
+              Lost access to your email?
+            </a>
+          )}
         </div>
 
         {/* Portal picker — only when this email maps to more than one portal */}
@@ -187,7 +200,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
                       type="button"
                       disabled={loading}
                       onClick={() => { setRole(r); setError(null); }}
-                      className="w-full flex items-center gap-3 rounded-xl border border-sage/20 bg-white-warm px-4 py-3 text-left transition-colors hover:border-sage hover:bg-sage/5 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
+                      className="w-full flex items-center gap-3 rounded-xl border border-white/40 bg-white-warm/40 backdrop-blur-md px-4 py-3 text-left transition-colors hover:border-sage hover:bg-sage/10 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-1"
                     >
                       <div className="h-9 w-9 rounded-full bg-sage/10 flex items-center justify-center text-sage shrink-0">
                         <p.icon className="h-4 w-4" />
@@ -238,7 +251,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
+                    className="border-white/60 bg-white-warm/45 backdrop-blur-md focus:ring-sage placeholder:text-charcoal/45 h-12 rounded-xl"
                     required
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? "signin-error" : undefined}
@@ -277,7 +290,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
 
         {/* Hide the primary button while the picker is the active choice */}
         {!needPick && (
-          <Button type="submit" variant="sage" size="lg" disabled={loading} className="w-full rounded-md text-sm uppercase tracking-[0.15em]">
+          <Button type="submit" variant="sage" size="lg" disabled={loading || !email.trim() || (role !== null && !password)} className="w-full rounded-md text-sm uppercase tracking-[0.15em]">
             {loading
               ? <><Spinner className="mr-2 size-4" />{role ? "Signing in…" : "Checking…"}</>
               : role ? "Sign In" : "Continue"}
@@ -285,12 +298,22 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
         )}
       </form>
 
-      <p className="mt-6 font-body text-sm text-charcoal/80 text-center sm:mt-8">
-        New to The Studio?{" "}
-        <Button type="button" variant="link" onClick={onSwitchToSignup} className="text-sage h-auto p-0 font-medium">
+      <div className="mt-7 space-y-3 sm:mt-8">
+        <div className="flex items-center gap-3" aria-hidden>
+          <span className="h-px flex-1 bg-charcoal/15" />
+          <span className="font-body text-xs text-charcoal/60">New to The Studio?</span>
+          <span className="h-px flex-1 bg-charcoal/15" />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          onClick={onSwitchToSignup}
+          className="w-full rounded-md border-sage/50 bg-white-warm/30 backdrop-blur-md text-sm uppercase tracking-[0.15em] text-charcoal hover:border-sage hover:bg-sage/10 hover:text-charcoal"
+        >
           Create account
         </Button>
-      </p>
+      </div>
     </>
   );
 }

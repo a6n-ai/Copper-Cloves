@@ -2,10 +2,10 @@ import * as React from "react";
 import { Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const EmailInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, ...props }, ref) => {
+const EmailInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input"> & { wrapperClassName?: string }>(
+  ({ className, wrapperClassName, ...props }, ref) => {
     return (
-      <div className="flex h-10 w-full rounded-md border border-input bg-transparent shadow-2xs transition-colors focus-within:ring-1 focus-within:ring-ring">
+      <div className={cn("flex h-10 w-full rounded-md border border-input bg-transparent shadow-2xs transition-colors focus-within:ring-1 focus-within:ring-ring", wrapperClassName)}>
         <span className="flex items-center pl-3 pr-2 text-muted-foreground shrink-0">
           <Mail className="h-4 w-4" />
         </span>

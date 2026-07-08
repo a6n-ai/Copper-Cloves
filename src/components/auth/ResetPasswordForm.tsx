@@ -10,7 +10,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { FormAlert } from "@/components/ui/form-alert";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { CheckCircle2, Leaf } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 const schema = z
   .object({
@@ -73,12 +73,7 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
         <h1 className="font-display text-4xl sm:text-5xl text-charcoal leading-[1.05]">
           Password <span className="italic text-sage">updated</span>
         </h1>
-        <div className="my-5 flex items-center justify-center gap-3" aria-hidden>
-          <span className="h-px w-10 bg-linear-to-r from-transparent to-terracotta/40" />
-          <Leaf className="h-3.5 w-3.5 text-terracotta/70" />
-          <span className="h-px w-10 bg-linear-to-l from-transparent to-terracotta/40" />
-        </div>
-        <div className="flex flex-col items-center gap-4 py-2">
+        <div className="mt-6 flex flex-col items-center gap-4 py-2">
           <CheckCircle2 className="h-14 w-14 text-sage" />
           <p className="font-body text-sm text-charcoal/60">Redirecting you to sign in…</p>
           <Link href="/login" className="font-body text-sm text-sage hover:underline">
@@ -91,17 +86,11 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
 
   return (
     <>
-      <h1 className="font-display text-4xl sm:text-5xl text-charcoal leading-[1.05] text-center">
+      <h1 className="font-display text-4xl sm:text-5xl text-charcoal leading-[1.05] text-left">
         Choose a <span className="italic text-sage">new password</span>
       </h1>
 
-      <div className="my-5 flex items-center justify-center gap-3" aria-hidden>
-        <span className="h-px w-10 bg-linear-to-r from-transparent to-terracotta/40" />
-        <Leaf className="h-3.5 w-3.5 text-terracotta/70" />
-        <span className="h-px w-10 bg-linear-to-l from-transparent to-terracotta/40" />
-      </div>
-
-      <p className="font-body text-sm text-charcoal/60 mb-8 text-center">
+      <p className="font-body text-sm text-charcoal/60 mb-8 mt-3 text-left">
         Must be at least 6 characters. You&apos;ll be signed out of all other devices.
       </p>
 
@@ -121,7 +110,7 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
             id="password"
             autoComplete="new-password"
             placeholder="••••••••"
-            className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
+            className="border-white/60 bg-white-warm/45 backdrop-blur-md focus:ring-sage placeholder:text-charcoal/45 h-12 rounded-xl"
             autoFocus
             aria-invalid={errors.password ? true : undefined}
             aria-describedby={errors.password ? "reset-password-error" : undefined}
@@ -140,7 +129,7 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
             id="confirmPassword"
             autoComplete="new-password"
             placeholder="••••••••"
-            className="border-sage/25 bg-cream focus:ring-sage placeholder:text-charcoal/40 h-12 rounded-xl"
+            className="border-white/60 bg-white-warm/45 backdrop-blur-md focus:ring-sage placeholder:text-charcoal/45 h-12 rounded-xl"
             aria-invalid={errors.confirmPassword ? true : undefined}
             aria-describedby={errors.confirmPassword ? "reset-confirm-error" : undefined}
           />
@@ -169,7 +158,7 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
         </Button>
       </form>
 
-      <p className="mt-8 font-body text-sm text-charcoal/60 text-center">
+      <p className="mt-8 font-body text-sm text-charcoal/60 text-left">
         Remembered it?{" "}
         <Link href="/login" className="text-sage hover:underline font-medium">
           Back to sign in

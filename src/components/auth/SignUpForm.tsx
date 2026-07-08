@@ -12,7 +12,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { PhoneInput, type PhoneValue } from "@/components/ui/phone-input";
 import { Label } from "@/components/ui/label";
 import { FormAlert } from "@/components/ui/form-alert";
-import { CheckCircle2, ChevronDown, Leaf, Sparkles } from "lucide-react";
+import { CheckCircle2, ChevronDown, Sparkles } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { motion, AnimatePresence } from "framer-motion";
 import { signUp } from "@/services/authService";
@@ -39,7 +39,7 @@ const signupSchema = z
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 const labelCls = "font-body text-charcoal/70 text-[11px] uppercase tracking-[0.15em]";
-const inputCls = "border-sage/25 bg-cream focus:ring-sage font-body placeholder:text-charcoal/40 h-11 rounded-xl";
+const inputCls = "border-white/60 bg-white-warm/45 backdrop-blur-md focus:ring-sage font-body placeholder:text-charcoal/45 h-11 rounded-xl";
 
 // Brand-themed, readable passphrase generator (botanical words + number + symbol).
 const PW_WORDS = ["Lotus", "Cedar", "Sage", "Willow", "Aloe", "Maple", "Jasmine", "Bloom", "Ginger", "Mint", "Olive", "Fern", "Saffron", "Meadow", "River", "Honey", "Pebble", "Clove"];
@@ -168,18 +168,11 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
 
   return (
     <>
-      <h1 className="font-display text-4xl sm:text-5xl text-charcoal leading-[1.05] text-center">
+      <h1 className="font-display text-4xl sm:text-5xl text-charcoal leading-[1.05] text-left">
         Join our <span className="italic text-sage">community</span>
       </h1>
 
-      {/* delicate leaf divider */}
-      <div className="my-5 flex items-center justify-center gap-3" aria-hidden>
-        <span className="h-px w-10 bg-linear-to-r from-transparent to-terracotta/40" />
-        <Leaf className="h-3.5 w-3.5 text-terracotta/70" />
-        <span className="h-px w-10 bg-linear-to-l from-transparent to-terracotta/40" />
-      </div>
-
-      <p className="font-body text-sm text-charcoal/60 mb-6 text-center">
+      <p className="font-body text-sm text-charcoal/60 mb-6 mt-3 text-left">
         Create your account and start your wellness journey
       </p>
 
@@ -223,7 +216,8 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                   {...register("email")}
                   id="email"
                   placeholder="you@example.com"
-                  className="border-sage/25 bg-cream placeholder:text-charcoal/40 h-11 rounded-xl"
+                  wrapperClassName="h-11 rounded-xl border-white/60 bg-white-warm/45 backdrop-blur-md focus-within:ring-sage"
+                  className="placeholder:text-charcoal/45"
                   aria-invalid={errors.email ? true : undefined}
                   aria-describedby={errors.email ? "signup-email-error" : undefined}
                 />
@@ -245,7 +239,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                       id="phone"
                       value={field.value as PhoneValue}
                       onChange={field.onChange}
-                      className="[&_input]:border-sage/25 [&_input]:bg-cream [&_input]:font-body [&_input]:h-11 [&_input]:rounded-xl [&_button]:border-sage/25 [&_button]:bg-cream [&_button]:rounded-xl"
+                      className="rounded-xl border border-white/60 bg-white-warm/45 backdrop-blur-md overflow-hidden [&_input]:!h-11 [&_input]:!border-0 [&_input]:!bg-transparent [&_input]:!rounded-none [&_input]:!ring-0 [&_input]:font-body [&_button]:!h-11 [&_button]:!border-0 [&_button]:!bg-transparent [&_button]:!rounded-none [&_button]:!ring-0"
                     />
                   )}
                 />
@@ -342,7 +336,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
               {/* Combined consent */}
               <div className="pt-2 border-t border-sage/10 space-y-3">
                 {/* Waiver inline summary (expandable) */}
-                <div className="rounded-xl border border-sage/20 overflow-hidden">
+                <div className="rounded-xl border border-white/45 overflow-hidden backdrop-blur-md">
                   <button
                     type="button"
                     onClick={() => setWaiverExpanded(v => !v)}
@@ -357,7 +351,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                     />
                   </button>
                   {waiverExpanded && (
-                    <div className="px-4 py-3 bg-cream text-xs font-body text-charcoal/70 space-y-1.5 leading-relaxed">
+                    <div className="px-4 py-3 bg-white-warm/40 text-xs font-body text-charcoal/70 space-y-1.5 leading-relaxed">
                       <p>• Physical activity carries inherent risk of injury. You participate voluntarily.</p>
                       <p>• You confirm you are medically fit to participate in studio classes.</p>
                       <p>• The Studio by Copper + Cloves is not liable for injury, illness, or loss of personal property.</p>
@@ -428,7 +422,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
         </AnimatePresence>
       </form>
 
-      <p className="mt-5 font-body text-sm text-charcoal/60 text-center">
+      <p className="mt-5 font-body text-sm text-charcoal/60 text-left">
         Already have an account?{" "}
         <Button type="button" variant="link" onClick={onSwitchToSignin} className="text-sage h-auto p-0 font-medium">
           Sign in

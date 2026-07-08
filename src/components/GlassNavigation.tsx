@@ -85,6 +85,7 @@ export function GlassNavigation({ variant = "default" }: Readonly<{ variant?: "d
         height={72}
         borderRadius={8}
         backgroundOpacity={0.18}
+        backdropBlur={10}
         blur={4}
         className="mx-auto max-w-7xl"
       >
