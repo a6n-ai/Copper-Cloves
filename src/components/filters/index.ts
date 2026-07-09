@@ -1,7 +1,7 @@
 export { FilterBar } from "./FilterBar";
 export { FilterSearch } from "./FilterSearch";
 export { FilterSelect } from "./FilterSelect";
-export { FilterDateRange } from "./FilterDateRange";
+export { FilterDateRange, type FilterPreset } from "./FilterDateRange";
 export { DatePicker } from "./DatePicker";
 export { FILTER_TRIGGER, FILTER_ICON } from "./styles";
 export { FilterReset } from "./FilterReset";

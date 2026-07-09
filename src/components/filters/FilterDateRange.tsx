@@ -16,9 +16,12 @@ import { CalendarDays, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FILTER_TRIGGER, FILTER_ICON } from "./styles";
 
-// Quick-range presets (right column). Each returns a {from,to} range; the order
-// here is the order shown. "All time" clears the filter.
-function buildPresets(): { label: string; range: DateRange }[] {
+export type FilterPreset = { label: string; range: DateRange };
+
+// Default quick-range presets (right column). Each returns a {from,to} range; the order
+// here is the order shown. "All time" clears the filter. Callers with a different
+// vocabulary (e.g. payout periods) pass their own via the `presets` prop.
+function buildDefaultPresets(): FilterPreset[] {
   const today = startOfDay(new Date());
   return [
     { label: "Today", range: { from: today, to: today } },
@@ -46,6 +49,8 @@ export function FilterDateRange({
   className,
   defaultOpen = false,
   icon: Icon = CalendarDays,
+  presets,
+  allTimeLabel = "All time",
 }: {
   value: DateRange | undefined;
   onChange: (v: DateRange | undefined) => void;
@@ -53,9 +58,11 @@ export function FilterDateRange({
   className?: string;
   defaultOpen?: boolean;
   icon?: LucideIcon;
+  presets?: FilterPreset[];
+  allTimeLabel?: string;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const presets = buildPresets();
+  const resolvedPresets = presets ?? buildDefaultPresets();
   const active = !!value?.from;
   const label = value?.from
     ? value.to
@@ -139,7 +146,7 @@ export function FilterDateRange({
             className="font-body"
           />
           <div className="flex flex-row flex-wrap gap-1 border-t border-sage/10 p-2 sm:w-40 sm:flex-col sm:flex-nowrap sm:border-t-0 sm:border-l">
-            {presets.map((p) => (
+            {resolvedPresets.map((p) => (
               <Button
                 key={p.label}
                 variant="ghost"
@@ -163,7 +170,7 @@ export function FilterDateRange({
                   setOpen(false);
                 }}
               >
-                All time
+                {allTimeLabel}
               </Button>
               <Button
                 variant="sage"
