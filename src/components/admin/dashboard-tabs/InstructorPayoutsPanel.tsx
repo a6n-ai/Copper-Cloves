@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { CalendarDays, CheckCircle2, Clock, DollarSign, Download, Loader2, Pencil, TrendingUp, User, Wallet } from "lucide-react";
+import { CheckCircle2, Clock, DollarSign, Download, Loader2, Pencil, TrendingUp, User, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -23,8 +23,13 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
-
-type PayoutWindow = "week" | "month" | "quarter" | "all";
+import type { DateRange } from "react-day-picker";
+import { windowFromRange } from "@/lib/payoutCalc";
+import {
+  PayoutPeriodPicker,
+  payoutPeriodQuery,
+  DEFAULT_PAYOUT_RANGE,
+} from "@/components/admin/PayoutPeriodPicker";
 
 type PayoutRow = {
   instructorId: string;
@@ -68,13 +73,6 @@ const EMPTY_SUMMARY: PayoutSummary = {
   periodKey: "",
 };
 
-const WINDOWS: { value: PayoutWindow; label: string }[] = [
-  { value: "week", label: "This Week" },
-  { value: "month", label: "This Month" },
-  { value: "quarter", label: "This Quarter" },
-  { value: "all", label: "All Time" },
-];
-
 function rupees(n: number): string {
   return `₹${Math.round(n).toLocaleString("en-IN")}`;
 }
@@ -89,7 +87,10 @@ function InstructorPayoutsPanelImpl() {
   const [rows, setRows] = useState<PayoutRow[]>([]);
   const [summary, setSummary] = useState<PayoutSummary>(EMPTY_SUMMARY);
   const [loading, setLoading] = useState(true);
-  const [payoutWindow, setPayoutWindow] = useState<PayoutWindow>("month");
+  const [range, setRange] = useState<DateRange | undefined>(DEFAULT_PAYOUT_RANGE);
+  // Only a monthly period may be written to — see isAdjustableWindow / the 400 from
+  // /api/admin/instructor-payout-adjustment.
+  const canRecord = windowFromRange(range) === "month";
   const [search, setSearch] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("all");
 
@@ -103,10 +104,10 @@ function InstructorPayoutsPanelImpl() {
   const [editForm, setEditForm] = useState({ extra_payable_units: "0", extra_classes: "0", override_payout: "", notes: "", paid_method: "" });
   const [editSaving, setEditSaving] = useState(false);
 
-  const fetchData = useCallback(async (w: PayoutWindow) => {
+  const fetchData = useCallback(async (r: DateRange | undefined) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/instructor-payouts?window=${encodeURIComponent(w)}`);
+      const res = await fetch(`/api/admin/instructor-payouts?${payoutPeriodQuery(r)}`);
       if (!res.ok) {
         setRows([]);
         setSummary(EMPTY_SUMMARY);
@@ -123,8 +124,10 @@ function InstructorPayoutsPanelImpl() {
   }, []);
 
   useEffect(() => {
-    void fetchData(payoutWindow);
-  }, [fetchData, payoutWindow]);
+    // A half-picked range (start chosen, end pending) would refetch as "month" and flicker.
+    if (range?.from && !range.to) return;
+    void fetchData(range);
+  }, [fetchData, range]);
 
   const instructorOptions = useMemo(
     () => Array.from(new Set(rows.map((r) => r.name))).sort((a, b) => a.localeCompare(b)),
@@ -158,7 +161,8 @@ function InstructorPayoutsPanelImpl() {
     getValue,
     defaultDirFor: (k) => (k === "name" || k === "status" ? "asc" : "desc"),
   });
-  const pg = usePagination(sorted, 10, `${search}|${instructorFilter}|${payoutWindow}|${sortKey}|${sortDir}`);
+  const rangeKey = payoutPeriodQuery(range);
+  const pg = usePagination(sorted, 10, `${search}|${instructorFilter}|${rangeKey}|${sortKey}|${sortDir}`);
 
   const togglePaid = useCallback(
     async (row: PayoutRow, paid: boolean, recordExpense: boolean) => {
@@ -167,7 +171,7 @@ function InstructorPayoutsPanelImpl() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           instructorId: row.instructorId,
-          window: payoutWindow,
+          window: "month",
           paid,
           recordExpense,
           payout_paise: Math.round(row.total * 100),
@@ -188,9 +192,9 @@ function InstructorPayoutsPanelImpl() {
         savedMsg = "Marked paid";
       }
       toast.success(savedMsg);
-      await fetchData(payoutWindow);
+      await fetchData(range);
     },
-    [payoutWindow, fetchData],
+    [range, fetchData],
   );
 
   const openEdit = useCallback((row: PayoutRow) => {
@@ -210,7 +214,7 @@ function InstructorPayoutsPanelImpl() {
     try {
       const body: Record<string, unknown> = {
         instructorId: editRow.instructorId,
-        window: payoutWindow,
+        window: "month",
         extra_payable_units: Number(editForm.extra_payable_units) || 0,
         extra_classes: Number(editForm.extra_classes) || 0,
         notes: editForm.notes,
@@ -239,11 +243,11 @@ function InstructorPayoutsPanelImpl() {
       }
       toast.success("Adjustment saved");
       setEditRow(null);
-      await fetchData(payoutWindow);
+      await fetchData(range);
     } finally {
       setEditSaving(false);
     }
-  }, [editRow, editForm, payoutWindow, fetchData]);
+  }, [editRow, editForm, range, fetchData]);
 
   const downloadCsv = useCallback(() => {
     const header = ["Instructor", "Specialties", "Classes", "Check-ins", "Payable Units", "Net per Unit", "Studio %", "Instructor %", "Total Payout INR", "Override", "Paid At", "Paid Method", "Notes"];
@@ -255,10 +259,10 @@ function InstructorPayoutsPanelImpl() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `instructor-payouts-${summary.periodKey || payoutWindow}.csv`;
+    a.download = `instructor-payouts-${summary.periodKey || rangeKey}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [sorted, summary.periodKey, payoutWindow]);
+  }, [sorted, summary.periodKey, rangeKey]);
 
   let confirmActionLabel: string;
   if (confirmSaving) {
@@ -275,8 +279,8 @@ function InstructorPayoutsPanelImpl() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <MetricCard label="Total Payouts" value={Math.round(summary.totalPayouts)} prefix="₹" icon={DollarSign} tone="sage" loading={loading} hint={`${summary.instructorsCount || rows.length} instructors`} />
-        <MetricCard label="Pending" value={Math.round(summary.pendingPayments)} prefix="₹" icon={Clock} tone="clay" loading={loading} hint={`${summary.pendingCount} pending`} />
-        <MetricCard label="Completed" value={Math.round(summary.completedPayments)} prefix="₹" icon={CheckCircle2} tone="sage" loading={loading} />
+        <MetricCard label="Pending" value={canRecord ? Math.round(summary.pendingPayments) : 0} prefix={canRecord ? "₹" : ""} icon={Clock} tone="clay" loading={loading} hint={canRecord ? `${summary.pendingCount} pending` : "Monthly period only"} />
+        <MetricCard label="Completed" value={canRecord ? Math.round(summary.completedPayments) : 0} prefix={canRecord ? "₹" : ""} icon={CheckCircle2} tone="sage" loading={loading} hint={canRecord ? undefined : "Monthly period only"} />
         <MetricCard label="Total Check-ins" value={summary.totalCheckIns} icon={TrendingUp} tone="charcoal" loading={loading} />
       </div>
 
@@ -303,13 +307,7 @@ function InstructorPayoutsPanelImpl() {
                   ...instructorOptions.map((n) => ({ value: n, label: n })),
                 ]}
               />
-              <FilterSelect
-                value={payoutWindow}
-                onChange={(v) => setPayoutWindow(v as PayoutWindow)}
-                icon={CalendarDays}
-                className="sm:w-36 shrink-0"
-                options={WINDOWS.map((w) => ({ value: w.value, label: w.label }))}
-              />
+              <PayoutPeriodPicker value={range} onChange={setRange} className="sm:w-52 shrink-0" />
               {(search || instructorFilter !== "all") && (
                 <FilterReset onReset={() => { setSearch(""); setInstructorFilter("all"); }} label="Clear" />
               )}
@@ -376,36 +374,50 @@ function InstructorPayoutsPanelImpl() {
                             {r.overrideTotal != null ? <span className="ml-1 font-body text-[10px] uppercase tracking-wide text-terracotta">ovr</span> : null}
                           </TableCell>
                           <TableCell>
-                            {r.status === "paid" ? <Pill tone="success" dot>Paid</Pill> : <Pill tone="warning" dot>Pending</Pill>}
+                            {!canRecord ? (
+                              <span className="font-body text-xs text-charcoal/35">—</span>
+                            ) : r.status === "paid" ? (
+                              <Pill tone="success" dot>Paid</Pill>
+                            ) : (
+                              <Pill tone="warning" dot>Pending</Pill>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center justify-end gap-2">
-                              {r.status === "paid" ? (
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  className="border-sage/25 text-charcoal/60 hover:bg-sage/5 font-body hover:text-charcoal!"
-                                  onClick={(e) => { e.stopPropagation(); setConfirmRecord(true); setConfirm({ row: r, paid: false }); }}
-                                >
-                                  Mark unpaid
-                                </Button>
+                              {!canRecord ? (
+                                <span className="font-body text-xs text-charcoal/40">
+                                  Switch to This Month to record payment
+                                </span>
                               ) : (
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 border-terracotta/30 text-terracotta hover:bg-terracotta/10 hover:text-terracotta!"
-                                  onClick={(e) => { e.stopPropagation(); setConfirmRecord(true); setConfirm({ row: r, paid: true }); }}
-                                  title="Add to money out"
-                                  aria-label="Add to money out"
-                                >
-                                  <Wallet className="h-4 w-4" />
-                                </Button>
+                                <>
+                                  {r.status === "paid" ? (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="border-sage/25 text-charcoal/60 hover:bg-sage/5 font-body hover:text-charcoal!"
+                                      onClick={(e) => { e.stopPropagation(); setConfirmRecord(true); setConfirm({ row: r, paid: false }); }}
+                                    >
+                                      Mark unpaid
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 border-terracotta/30 text-terracotta hover:bg-terracotta/10 hover:text-terracotta!"
+                                      onClick={(e) => { e.stopPropagation(); setConfirmRecord(true); setConfirm({ row: r, paid: true }); }}
+                                      title="Add to money out"
+                                      aria-label="Add to money out"
+                                    >
+                                      <Wallet className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0 text-charcoal/40 hover:text-sage hover:bg-sage/10" onClick={(e) => { e.stopPropagation(); openEdit(r); }} aria-label="Edit adjustment">
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                </>
                               )}
-                              <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0 text-charcoal/40 hover:text-sage hover:bg-sage/10" onClick={(e) => { e.stopPropagation(); openEdit(r); }} aria-label="Edit adjustment">
-                                <Pencil className="h-4 w-4" />
-                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
