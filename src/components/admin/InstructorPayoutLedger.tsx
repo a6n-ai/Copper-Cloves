@@ -5,10 +5,16 @@ import { Loader2, ChevronDown, ChevronUp, ChevronRight, ArrowUp, ArrowDown, Arro
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pill } from "@/components/ui/pill";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import type { DateRange } from "react-day-picker";
+import { windowFromRange } from "@/lib/payoutCalc";
+import {
+  PayoutPeriodPicker,
+  payoutPeriodQuery,
+  DEFAULT_PAYOUT_RANGE,
+} from "@/components/admin/PayoutPeriodPicker";
 
 // ── money helpers ─────────────────────────────────────────────────────────────
 const r = (paise: number) =>
@@ -76,15 +82,6 @@ type DetailResponse = {
     paidAt: string | null;
   };
 };
-
-type Win = "week" | "month" | "quarter" | "all";
-
-const WIN_OPTIONS: { value: Win; label: string }[] = [
-  { value: "week", label: "This week" },
-  { value: "month", label: "This month" },
-  { value: "quarter", label: "This quarter" },
-  { value: "all", label: "All time" },
-];
 
 // ── grouped class type ────────────────────────────────────────────────────────
 type Group = {
@@ -248,7 +245,8 @@ function RateRow({
 
 // ── main component ────────────────────────────────────────────────────────────
 export function InstructorPayoutLedger({ instructorId }: { instructorId: string }) {
-  const [win, setWin] = useState<Win>("month");
+  const [range, setRange] = useState<DateRange | undefined>(DEFAULT_PAYOUT_RANGE);
+  const canRecord = windowFromRange(range) === "month";
   const [data, setData] = useState<DetailResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -270,7 +268,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/admin/instructor-payout-detail?instructorId=${encodeURIComponent(instructorId)}&window=${win}`,
+        `/api/admin/instructor-payout-detail?instructorId=${encodeURIComponent(instructorId)}&${payoutPeriodQuery(range)}`,
       );
       if (!res.ok) {
         toast.error("Failed to load payout detail");
@@ -294,11 +292,12 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
     } finally {
       setLoading(false);
     }
-  }, [instructorId, win]);
+  }, [instructorId, range]);
 
   useEffect(() => {
+    if (range?.from && !range.to) return;
     void load();
-  }, [load]);
+  }, [load, range]);
 
   function toggleExpand(scheduleId: string) {
     setExpanded((prev) => {
@@ -333,7 +332,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           instructorId,
-          window: win,
+          window: "month",
           override_blended_rate_paise: override,
         }),
       });
@@ -383,7 +382,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
     try {
       const body: Record<string, unknown> = {
         instructorId,
-        window: win,
+        window: "month",
         paid: !isPaid,
       };
       if (!isPaid) {
@@ -430,25 +429,19 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
     <div className="space-y-5">
       {/* Controls row */}
       <div className="flex flex-wrap items-center gap-3">
-        <Select value={win} onValueChange={(v) => setWin(v as Win)}>
-          <SelectTrigger className="w-40 border-border font-body text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {WIN_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value} className="font-body text-sm">
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <PayoutPeriodPicker value={range} onChange={setRange} className="w-52" />
 
-        {data && (
+        {data && canRecord && (
           <Pill tone={isPaid ? "success" : "warning"}>
             {isPaid
               ? `Paid${data.footer.paidAt ? " · " + format(new Date(data.footer.paidAt), "dd MMM yyyy") : ""}`
               : "Pending"}
           </Pill>
+        )}
+        {data && !canRecord && (
+          <span className="font-body text-xs text-charcoal/45">
+            Switch to This Month to record payment
+          </span>
         )}
 
         {loading && <Loader2 className="h-4 w-4 animate-spin text-charcoal/40" />}
@@ -462,9 +455,11 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
               label="Total payout"
               value={r(data.footer.totalPaise)}
               pill={
-                <Pill tone={isPaid ? "success" : "warning"}>
-                  {isPaid ? "Paid" : "Pending"}
-                </Pill>
+                canRecord ? (
+                  <Pill tone={isPaid ? "success" : "warning"}>
+                    {isPaid ? "Paid" : "Pending"}
+                  </Pill>
+                ) : undefined
               }
             />
             <AnalyticsCard
@@ -690,14 +685,14 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
                       value={blendedInput}
                       onChange={(e) => setBlendedInput(e.target.value)}
                       placeholder={r(data.footer.autoBlendedRatePaise)}
-                      disabled={isPaid || saving}
+                      disabled={isPaid || saving || !canRecord}
                       className="w-36 border-border font-body text-sm h-8"
                     />
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      disabled={isPaid || saving}
+                      disabled={isPaid || saving || !canRecord}
                       onClick={() => void saveBlendedRate()}
                       className="h-8 border-sage/30 text-sage hover:bg-sage/5 font-body text-xs"
                     >
@@ -707,7 +702,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
                       <button
                         type="button"
                         className="font-body text-xs text-charcoal/40 hover:text-terracotta underline"
-                        disabled={isPaid || saving}
+                        disabled={isPaid || saving || !canRecord}
                         onClick={() => { setBlendedInput(""); void saveBlendedRate(""); }}
                       >
                         Clear
@@ -789,18 +784,20 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
           </div>
 
           {/* Mark paid / unpaid */}
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant={isPaid ? "outline" : "sage"}
-              disabled={saving}
-              onClick={() => void markPaid()}
-              className={isPaid ? "border-sage/30 text-charcoal/70 font-body" : "font-body"}
-            >
-              {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {isPaid ? "Mark unpaid" : "Mark paid"}
-            </Button>
-          </div>
+          {canRecord && (
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant={isPaid ? "outline" : "sage"}
+                disabled={saving}
+                onClick={() => void markPaid()}
+                className={isPaid ? "border-sage/30 text-charcoal/70 font-body" : "font-body"}
+              >
+                {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {isPaid ? "Mark unpaid" : "Mark paid"}
+              </Button>
+            </div>
+          )}
         </>
       )}
 
