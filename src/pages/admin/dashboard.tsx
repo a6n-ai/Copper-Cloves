@@ -232,7 +232,6 @@ export default function AdminDashboard() {
     ["overview", "finance", "meal-waitlist", "rental-inquiries", "members", "instructors", "classes"],
     "overview"
   );
-  const [dateRange, setDateRange] = useState("month");
   const [selectedMember, setSelectedMember] = useState("all");
   const [selectedInstructor, setSelectedInstructor] = useState("all");
   const [showMemberProfile, setShowMemberProfile] = useState(false);
@@ -962,17 +961,6 @@ export default function AdminDashboard() {
                 <h1 className="font-body font-semibold text-3xl md:text-4xl text-charcoal leading-tight">Dashboard</h1>
                 <p className="font-body text-charcoal/60">Welcome back, {(session?.user?.name?.trim().split(" ")[0]) || "Admin"}. Here&apos;s what&apos;s happening today.</p>
               </div>
-              <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-36 border-sage/20 font-body">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="week">This Week</SelectItem>
-                  <SelectItem value="month">This Month</SelectItem>
-                  <SelectItem value="quarter">This Quarter</SelectItem>
-                  <SelectItem value="year">This Year</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             {/* Tabs */}
