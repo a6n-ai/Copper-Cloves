@@ -1,7 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
-import { periodKeyFor, periodBoundsFor, type PayoutWindow } from "@/lib/payoutCalc";
+import {
+  periodKeyFor,
+  periodBoundsFor,
+  isAdjustableWindow,
+  type PayoutWindow,
+} from "@/lib/payoutCalc";
 import { recordPayoutExpense, removePayoutExpense } from "@/lib/expenses";
 import type { PaymentMethod } from "@/generated/prisma/client";
 import logger from "@/lib/logger";
@@ -55,8 +60,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "PUT") {
     const body = (req.body ?? {}) as Record<string, unknown>;
     const instructorId = asString(body.instructorId).trim();
-    const payoutWindow = parseWindow(body.window);
     if (!instructorId) return res.status(400).json({ error: "instructorId required" });
+
+    // Guard BEFORE parseWindow: parseWindow coerces any unknown value (including
+    // "custom") to "month", which would silently write a custom-range payout into
+    // the current month's adjustment row.
+    if (!isAdjustableWindow(body.window)) {
+      return res
+        .status(400)
+        .json({ error: "Payouts can only be recorded for a monthly period" });
+    }
+    const payoutWindow = parseWindow(body.window);
 
     const now = new Date();
     const periodKey = periodKeyFor(payoutWindow, now);
