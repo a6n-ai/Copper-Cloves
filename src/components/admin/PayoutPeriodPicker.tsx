@@ -18,7 +18,17 @@ export function payoutPresets(ref: Date = new Date()): FilterPreset[] {
   ];
 }
 
-/** Both payout surfaces open on the current month — the one window that permits payment recording. */
+/**
+ * Both payout surfaces open on the current month — the one window that permits payment recording.
+ *
+ * ponytail: evaluated once at import, while windowFromRange resolves "this month" at call time.
+ * A tab left open across a month boundary therefore degrades month -> custom, hiding mark-paid
+ * until reload. That is deliberate and fail-safe: the server keys adjustments on
+ * periodKeyFor("month", now), so a stale tab that still offered mark-paid would write the
+ * displayed month's numbers into the NEW month's period_key. Degrading to custom trips the
+ * isAdjustableWindow guard instead. Upgrade path if this ever bites: recompute on window focus —
+ * never by matching the range against the month containing range.from, which re-opens the write.
+ */
 export const DEFAULT_PAYOUT_RANGE = presetRange("month") as DateRange;
 
 /**
