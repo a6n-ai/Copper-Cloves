@@ -181,6 +181,114 @@ export function periodBoundsFor(
   return { start: monday, end: nextMonday };
 }
 
+/** The four preset windows plus the free-form calendar range. */
+export type PayoutPeriodToken = PayoutWindow | "custom";
+
+/** Structurally compatible with react-day-picker's DateRange; keeps this module dependency-free. */
+export type DayRange = { from?: Date; to?: Date };
+
+export interface ResolvedPeriod {
+  start: Date | null;
+  end: Date | null;
+  /** null for a custom range — no adjustment row can exist for it. */
+  periodKey: string | null;
+  window: PayoutPeriodToken;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const PRESET_WINDOWS: PayoutWindow[] = ["week", "month", "quarter", "all"];
+
+/** Parse `YYYY-MM-DD` to UTC midnight. Returns null on a malformed or non-existent date. */
+function parseDayUtc(raw: string | undefined): Date | null {
+  if (typeof raw !== "string") return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]) - 1;
+  const da = Number(m[3]);
+  const d = new Date(Date.UTC(y, mo, da));
+  // Rejects 2026-02-30 and friends, which Date.UTC would silently roll forward.
+  if (d.getUTCFullYear() !== y || d.getUTCMonth() !== mo || d.getUTCDate() !== da) return null;
+  return d;
+}
+
+/**
+ * Resolve a window token (+ optional custom bounds) into schedule bounds and a period key.
+ *
+ * `end` is exclusive throughout, matching the `lt` filter both payout endpoints already apply,
+ * so a custom `to` of 2026-05-22 yields an end of 2026-05-23T00:00Z and includes that whole day.
+ *
+ * A malformed, incomplete, or reversed custom range falls back to `month`: a bad querystring
+ * must not 500 the payout page.
+ */
+export function resolvePeriod(
+  windowRaw: string,
+  fromRaw?: string,
+  toRaw?: string,
+  ref: Date = new Date(),
+): ResolvedPeriod {
+  if (windowRaw === "custom") {
+    const from = parseDayUtc(fromRaw);
+    const to = parseDayUtc(toRaw);
+    if (from && to && from <= to) {
+      return {
+        start: from,
+        end: new Date(to.getTime() + DAY_MS),
+        periodKey: null,
+        window: "custom",
+      };
+    }
+    return resolvePeriod("month", undefined, undefined, ref);
+  }
+
+  const w: PayoutWindow = PRESET_WINDOWS.includes(windowRaw as PayoutWindow)
+    ? (windowRaw as PayoutWindow)
+    : "month";
+  const { start, end } = periodBoundsFor(w, ref);
+  return { start, end, periodKey: periodKeyFor(w, ref), window: w };
+}
+
+/**
+ * A preset window as an inclusive calendar range, for seeding the date picker.
+ * `to` is the last INCLUDED day (bounds.end minus one day), because a calendar
+ * highlights days, not half-open intervals. `all` has no bounds.
+ */
+export function presetRange(window: PayoutWindow, ref: Date = new Date()): DayRange {
+  const { start, end } = periodBoundsFor(window, ref);
+  if (!start || !end) return {};
+  return { from: start, to: new Date(end.getTime() - DAY_MS) };
+}
+
+/**
+ * Inverse of `presetRange`. Lets one control serve both roles: the picker's presets are
+ * generated from `presetRange`, so a preset click round-trips back to its token exactly,
+ * while a hand-drawn calendar range falls through to `custom`.
+ */
+export function windowFromRange(
+  range: DayRange | undefined,
+  ref: Date = new Date(),
+): PayoutPeriodToken {
+  if (!range?.from) return "all";
+  if (!range.to) return "custom";
+  for (const w of ["week", "month", "quarter"] as const) {
+    const p = presetRange(w, ref);
+    if (p.from?.getTime() === range.from.getTime() && p.to?.getTime() === range.to.getTime()) {
+      return w;
+    }
+  }
+  return "custom";
+}
+
+/**
+ * Payout *payment* is a monthly accounting act. Adjustment rows are keyed
+ * `@@unique([instructor_id, period_key])`, and only a month key is allowed to be written:
+ * any other window would let one instructor be "paid" for May and "pending" for an
+ * overlapping range covering the same classes, and could double-write the expense row.
+ */
+export function isAdjustableWindow(raw: unknown): boolean {
+  return raw === "month";
+}
+
 function isoWeek(date: Date): { year: number; week: number } {
   const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
   const dayNum = d.getUTCDay() || 7;
