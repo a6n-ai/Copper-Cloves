@@ -10,10 +10,8 @@ import {
   netRateBreakdown,
   effectiveBlendedRate,
   payoutForUnits,
-  periodBoundsFor,
-  periodKeyFor,
+  resolvePeriod,
   PAYOUT_ELIGIBLE_STATUSES,
-  type PayoutWindow,
   type PayableBasis,
   type RateCard,
 } from "@/lib/payoutCalc";
@@ -63,15 +61,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!instructorId) return res.status(400).json({ error: "instructorId is required" });
 
   const windowRaw = typeof req.query.window === "string" ? req.query.window : "month";
-  const payoutWindow: PayoutWindow = (["week", "month", "quarter", "all"] as const).includes(
-    windowRaw as PayoutWindow,
-  )
-    ? (windowRaw as PayoutWindow)
-    : "month";
+  const fromRaw = typeof req.query.from === "string" ? req.query.from : undefined;
+  const toRaw = typeof req.query.to === "string" ? req.query.to : undefined;
 
   const now = new Date();
-  const { start, end } = periodBoundsFor(payoutWindow, now);
-  const periodKey = periodKeyFor(payoutWindow, now);
+  const { start, end, periodKey, window: payoutWindow } = resolvePeriod(
+    windowRaw,
+    fromRaw,
+    toRaw,
+    now,
+  );
 
   const settings = await getPayoutSettings();
   const globalCard: RateCard = {
@@ -215,12 +214,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  // Load adjustment for this instructor + period.
-  const adj = await prisma.instructorPayoutAdjustment.findUnique({
-    where: {
-      instructor_id_period_key: { instructor_id: instructorId, period_key: periodKey },
-    },
-  });
+  // Load adjustment for this instructor + period. A custom range has no period key,
+  // so no adjustment can apply: extras, overrides and paid state are all absent.
+  const adj = periodKey
+    ? await prisma.instructorPayoutAdjustment.findUnique({
+        where: {
+          instructor_id_period_key: { instructor_id: instructorId, period_key: periodKey },
+        },
+      })
+    : null;
 
   // Compute footer — mirrors the aggregate endpoint exactly.
   const studioCutRaw = instructor.studio_payout_cut_percent;

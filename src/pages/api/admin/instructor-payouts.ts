@@ -5,15 +5,13 @@ import {
   instructorPctFrom,
   payableForSchedule,
   payoutForUnits,
-  periodBoundsFor,
-  periodKeyFor,
+  resolvePeriod,
   resolveRateCard,
   autoBlendedRate,
   netRateBreakdown,
   effectiveBlendedRate,
   PAYOUT_ELIGIBLE_STATUSES,
   type PayableBasis,
-  type PayoutWindow,
   type RateCard,
 } from "@/lib/payoutCalc";
 import { getPayoutSettings } from "@/lib/payoutSettings";
@@ -34,19 +32,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "GET") return res.status(405).end();
 
   const windowRaw = typeof req.query.window === "string" ? req.query.window : "month";
-  const payoutWindow: PayoutWindow = (["week", "month", "quarter", "all"] as const).includes(
-    windowRaw as PayoutWindow,
-  )
-    ? (windowRaw as PayoutWindow)
-    : "month";
+  const fromRaw = typeof req.query.from === "string" ? req.query.from : undefined;
+  const toRaw = typeof req.query.to === "string" ? req.query.to : undefined;
   const instructorFilter =
     typeof req.query.instructorId === "string" && req.query.instructorId.trim()
       ? req.query.instructorId.trim()
       : null;
 
   const now = new Date();
-  const { start, end } = periodBoundsFor(payoutWindow, now);
-  const periodKey = periodKeyFor(payoutWindow, now);
+  const { start, end, periodKey, window: payoutWindow } = resolvePeriod(
+    windowRaw,
+    fromRaw,
+    toRaw,
+    now,
+  );
 
   const settings = await getPayoutSettings();
   const globalCard: RateCard = {
@@ -176,11 +175,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const instructorIds = [...tally.keys()];
-  const adjustments = instructorIds.length
-    ? await prisma.instructorPayoutAdjustment.findMany({
-        where: { instructor_id: { in: instructorIds }, period_key: periodKey },
-      })
-    : [];
+  // A custom range has no period key, so no adjustment row can belong to it: rows are
+  // pure computed, status pending, no override merged.
+  const adjustments =
+    periodKey && instructorIds.length
+      ? await prisma.instructorPayoutAdjustment.findMany({
+          where: { instructor_id: { in: instructorIds }, period_key: periodKey },
+        })
+      : [];
   const adjByInstructor = new Map(adjustments.map((a) => [a.instructor_id, a]));
 
   const instructors = [...tally.values()].map((a) => {
