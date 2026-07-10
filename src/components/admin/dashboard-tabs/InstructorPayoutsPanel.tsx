@@ -228,6 +228,14 @@ function InstructorPayoutsPanelImpl() {
   const allVisibleSelected =
     sorted.length > 0 && sorted.every((r) => selectedIds.has(r.instructorId));
 
+  // Selection survives a filter change, so `selectedIds` can name instructors the table no longer
+  // shows. Only the visible ones are exported — so every count and every disabled guard must read
+  // this, not selectedIds.size, or the button promises 5 sheets and the workbook holds 2.
+  const exportableIds = useMemo(
+    () => sorted.filter((r) => selectedIds.has(r.instructorId)).map((r) => r.instructorId),
+    [sorted, selectedIds],
+  );
+
   const toggleAll = useCallback(() => {
     setSelectedIds((prev) => {
       if (sorted.every((r) => prev.has(r.instructorId))) return new Set();
@@ -245,7 +253,7 @@ function InstructorPayoutsPanelImpl() {
   }, []);
 
   const runExport = useCallback(async () => {
-    const ids = sorted.filter((r) => selectedIds.has(r.instructorId)).map((r) => r.instructorId);
+    const ids = exportableIds;
     if (ids.length === 0) return;
     setExportProgress({ done: 0, total: ids.length });
     try {
@@ -267,7 +275,7 @@ function InstructorPayoutsPanelImpl() {
     } finally {
       setExportProgress(null);
     }
-  }, [sorted, selectedIds, exportWindow]);
+  }, [exportableIds, exportWindow]);
 
   const saveEdit = useCallback(async () => {
     if (!editRow) return;
@@ -388,10 +396,10 @@ function InstructorPayoutsPanelImpl() {
                 size="sm"
                 className="h-9 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!"
                 onClick={() => setExportOpen(true)}
-                disabled={selectedIds.size === 0}
+                disabled={exportableIds.length === 0}
               >
                 <FileSpreadsheet className="h-4 w-4 mr-1.5" />
-                Export Excel{selectedIds.size > 0 ? ` (${selectedIds.size})` : ""}
+                Export Excel{exportableIds.length > 0 ? ` (${exportableIds.length})` : ""}
               </Button>
             </div>
           </div>
@@ -651,7 +659,7 @@ function InstructorPayoutsPanelImpl() {
                 />
               </div>
               <p className="font-body text-xs text-charcoal/55">
-                {selectedIds.size} instructor{selectedIds.size === 1 ? "" : "s"} selected. A period
+                {exportableIds.length} instructor{exportableIds.length === 1 ? "" : "s"} selected. A period
                 spanning several months produces one sheet per month.
               </p>
             </div>
@@ -670,7 +678,7 @@ function InstructorPayoutsPanelImpl() {
             <Button
               type="button"
               variant="sage"
-              disabled={!!exportProgress || selectedIds.size === 0}
+              disabled={!!exportProgress || exportableIds.length === 0}
               onClick={() => void runExport()}
             >
               {exportProgress ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 mr-2" />}
