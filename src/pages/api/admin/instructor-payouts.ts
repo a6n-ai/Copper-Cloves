@@ -17,12 +17,15 @@ import {
 import { getPayoutSettings } from "@/lib/payoutSettings";
 
 /**
- * Per-instructor payout for the requested calendar window (default current month),
- * merging admin adjustments + paid state from `instructor_payout_adjustments`.
+ * Per-instructor payout for the requested calendar window (default current month).
+ * For keyed windows (week/month/quarter/all), merges admin adjustments + paid state
+ * from `instructor_payout_adjustments`. A custom range has no period key — `resolvePeriod`
+ * returns null and the merge is skipped, so rows come back as pure computed/pending.
  *
  * Query:
- *   window=week|month|quarter|all   (default month)
- *   instructorId=<id>               (optional filter to one instructor)
+ *   window=week|month|quarter|all           (default month)
+ *   window=custom&from=YYYY-MM-DD&to=YYYY-MM-DD
+ *   instructorId=<id>                       (optional filter to one instructor)
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);

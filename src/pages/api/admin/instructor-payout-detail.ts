@@ -19,10 +19,14 @@ import { getPayoutSettings } from "@/lib/payoutSettings";
 
 /**
  * Per-attendee payout ledger for ONE instructor in a calendar window.
+ * For keyed windows (week/month/quarter/all), merges the admin adjustment row (extras,
+ * overrides, paid state) for that period. A custom range has no period key — the merge
+ * is skipped and the footer reports pure computed totals with status "pending".
  *
  * Query:
- *   instructorId=<id>              (required)
- *   window=week|month|quarter|all  (default month)
+ *   instructorId=<id>                          (required)
+ *   window=week|month|quarter|all               (default month)
+ *   window=custom&from=YYYY-MM-DD&to=YYYY-MM-DD
  *
  * Line-item count reconciliation (invariant for every basis):
  *   sum of a schedule's row counts === payableForSchedule(..., basis)

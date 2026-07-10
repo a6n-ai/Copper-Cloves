@@ -246,7 +246,12 @@ function RateRow({
 // ── main component ────────────────────────────────────────────────────────────
 export function InstructorPayoutLedger({ instructorId }: { instructorId: string }) {
   const [range, setRange] = useState<DateRange | undefined>(DEFAULT_PAYOUT_RANGE);
+  // Writes: only a monthly period may be recorded (the adjustment API 400s otherwise).
   const canRecord = windowFromRange(range) === "month";
+  // Reads: every preset window (week/month/quarter/all) has a resolvable periodKey and
+  // is backend-merged with any adjustment row; only "custom" resolves to periodKey=null
+  // and is genuinely unknown. Hiding paid state for non-custom windows would be a lie.
+  const canShowAdjustment = windowFromRange(range) !== "custom";
   const [data, setData] = useState<DetailResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -431,7 +436,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
       <div className="flex flex-wrap items-center gap-3">
         <PayoutPeriodPicker value={range} onChange={setRange} className="w-52" />
 
-        {data && canRecord && (
+        {data && canShowAdjustment && (
           <Pill tone={isPaid ? "success" : "warning"}>
             {isPaid
               ? `Paid${data.footer.paidAt ? " · " + format(new Date(data.footer.paidAt), "dd MMM yyyy") : ""}`
@@ -455,7 +460,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
               label="Total payout"
               value={r(data.footer.totalPaise)}
               pill={
-                canRecord ? (
+                canShowAdjustment ? (
                   <Pill tone={isPaid ? "success" : "warning"}>
                     {isPaid ? "Paid" : "Pending"}
                   </Pill>

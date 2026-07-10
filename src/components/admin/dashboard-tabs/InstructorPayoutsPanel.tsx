@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
+import { format } from "date-fns";
 import { CheckCircle2, Clock, DollarSign, Download, Loader2, Pencil, TrendingUp, User, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,9 +89,13 @@ function InstructorPayoutsPanelImpl() {
   const [summary, setSummary] = useState<PayoutSummary>(EMPTY_SUMMARY);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<DateRange | undefined>(DEFAULT_PAYOUT_RANGE);
-  // Only a monthly period may be written to — see isAdjustableWindow / the 400 from
+  // Writes: only a monthly period may be written to — see isAdjustableWindow / the 400 from
   // /api/admin/instructor-payout-adjustment.
   const canRecord = windowFromRange(range) === "month";
+  // Reads: every preset window (week/month/quarter/all) resolves to a real periodKey and
+  // is backend-merged with any adjustment row; only "custom" has periodKey=null, where the
+  // server genuinely skipped the merge. Hiding real paid state for non-custom windows is wrong.
+  const canShowAdjustment = windowFromRange(range) !== "custom";
   const [search, setSearch] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("all");
 
@@ -259,10 +264,17 @@ function InstructorPayoutsPanelImpl() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `instructor-payouts-${summary.periodKey || rangeKey}.csv`;
+    // A custom range has no periodKey (server skips the merge for it) — fall back to a
+    // clean date-based label instead of the raw querystring (`window=custom&from=...`).
+    const fileLabel =
+      summary.periodKey ||
+      (range?.from && range?.to
+        ? `${format(range.from, "yyyy-MM-dd")}_${format(range.to, "yyyy-MM-dd")}`
+        : rangeKey);
+    a.download = `instructor-payouts-${fileLabel}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [sorted, summary.periodKey, rangeKey]);
+  }, [sorted, summary.periodKey, rangeKey, range]);
 
   let confirmActionLabel: string;
   if (confirmSaving) {
@@ -279,8 +291,8 @@ function InstructorPayoutsPanelImpl() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <MetricCard label="Total Payouts" value={Math.round(summary.totalPayouts)} prefix="₹" icon={DollarSign} tone="sage" loading={loading} hint={`${summary.instructorsCount || rows.length} instructors`} />
-        <MetricCard label="Pending" value={canRecord ? Math.round(summary.pendingPayments) : 0} prefix={canRecord ? "₹" : ""} icon={Clock} tone="clay" loading={loading} hint={canRecord ? `${summary.pendingCount} pending` : "Monthly period only"} />
-        <MetricCard label="Completed" value={canRecord ? Math.round(summary.completedPayments) : 0} prefix={canRecord ? "₹" : ""} icon={CheckCircle2} tone="sage" loading={loading} hint={canRecord ? undefined : "Monthly period only"} />
+        <MetricCard label="Pending" value={canShowAdjustment ? Math.round(summary.pendingPayments) : 0} prefix={canShowAdjustment ? "₹" : ""} icon={Clock} tone="clay" loading={loading} hint={canShowAdjustment ? `${summary.pendingCount} pending` : "Custom range only"} />
+        <MetricCard label="Completed" value={canShowAdjustment ? Math.round(summary.completedPayments) : 0} prefix={canShowAdjustment ? "₹" : ""} icon={CheckCircle2} tone="sage" loading={loading} hint={canShowAdjustment ? undefined : "Custom range only"} />
         <MetricCard label="Total Check-ins" value={summary.totalCheckIns} icon={TrendingUp} tone="charcoal" loading={loading} />
       </div>
 
@@ -374,7 +386,7 @@ function InstructorPayoutsPanelImpl() {
                             {r.overrideTotal != null ? <span className="ml-1 font-body text-[10px] uppercase tracking-wide text-terracotta">ovr</span> : null}
                           </TableCell>
                           <TableCell>
-                            {!canRecord ? (
+                            {!canShowAdjustment ? (
                               <span className="font-body text-xs text-charcoal/35">—</span>
                             ) : r.status === "paid" ? (
                               <Pill tone="success" dot>Paid</Pill>
