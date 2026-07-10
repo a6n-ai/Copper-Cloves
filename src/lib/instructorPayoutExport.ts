@@ -234,10 +234,15 @@ export function buildPayoutSheet(
   rows.push(...rateCardRows(f));
 
   rows.push([null, null, null, "Average", rupees(f.averageNetPaise)]);
+  // In a multi-month export EVERY sheet holds one month's subtotal — including the last, whose
+  // TOTAL row is still just that month. Labelling any of them "TOTAL" makes a sheet read in
+  // isolation (printed, forwarded, opened on its own tab) misrepresent itself as the instructor's
+  // final pay. The period figure is emitted once, below, on the last sheet.
+  const totalLabel = opts.useFooterTotals ? "TOTAL" : "Month subtotal";
   rows.push([
     null, null, null,
     "Weighted average", rupees(f.blendedRatePaise),
-    "TOTAL", totalRupees,
+    totalLabel, totalRupees,
   ]);
 
   // The Count column sums line items; TOTAL reflects footer.payableUnits, which also carries
@@ -248,6 +253,11 @@ export function buildPayoutSheet(
     f.extraPayableUnits !== 0 || f.overridePayoutPaise != null || f.status === "paid";
   if (opts.isLastBucket && adjusted) {
     rows.push(...adjustmentBlock(detail, opts.computedUnitsAcrossMonths));
+  } else if (opts.isLastBucket && !opts.useFooterTotals) {
+    // Multi-month, no adjustment: the months are subtotals, so the period total must still land
+    // somewhere or the workbook never states what the instructor is actually owed.
+    rows.push([null, null, null, null, null, null]);
+    rows.push(["PERIOD TOTAL", rupees(f.totalPaise)]);
   }
 
   return rows;

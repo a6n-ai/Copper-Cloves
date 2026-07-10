@@ -354,6 +354,38 @@ async function main() {
   assert.deepEqual(out, [], "total failure returns empty array, does not reject");
 }
 
+// ── multi-month sheets are SUBTOTALS; the period total lands exactly once ─────
+// A sheet labelled "TOTAL" that holds one month's money misrepresents itself when printed
+// or forwarded alone. Only a single-bucket period may say "TOTAL".
+{
+  const d = detail({
+    window: "quarter", periodKey: "2026-Q3",
+    lineItems: [item("2026-07-02T13:00:00.000Z"), item("2026-08-02T13:00:00.000Z")],
+    footer: { ...detail().footer, computedPayableUnits: 2, payableUnits: 2, totalPaise: 93000 },
+  });
+  const buckets = splitByMonth(d);
+  const jul = buildPayoutSheet(d, buckets[0], { useFooterTotals: false, computedUnitsAcrossMonths: 2, isLastBucket: false });
+  const aug = buildPayoutSheet(d, buckets[1], { useFooterTotals: false, computedUnitsAcrossMonths: 2, isLastBucket: true });
+
+  const labelOf = (rows: ReturnType<typeof buildPayoutSheet>) =>
+    rows.find((r) => r[3] === "Weighted average")![5];
+  assert.equal(labelOf(jul), "Month subtotal", "non-last multi-month sheet is a subtotal");
+  assert.equal(labelOf(aug), "Month subtotal", "LAST multi-month sheet is also just its month");
+
+  // unadjusted multi-month: no PERIOD ADJUSTMENT block, but the period total must still appear
+  assert.ok(!aug.some((r) => r[0] === "PERIOD ADJUSTMENT"), "no block when unadjusted");
+  const pt = aug.find((r) => r[0] === "PERIOD TOTAL");
+  assert.ok(pt, "period total must land on the last sheet even with no adjustment");
+  assert.equal(pt![1], 930, "period total = footer.totalPaise / 100");
+  assert.ok(!jul.some((r) => r[0] === "PERIOD TOTAL"), "period total appears exactly once");
+}
+{
+  // single bucket keeps the authoritative "TOTAL" label
+  const d = detail();
+  const rows = buildPayoutSheet(d, splitByMonth(d)[0], { useFooterTotals: true, computedUnitsAcrossMonths: 2, isLastBucket: true });
+  assert.equal(rows.find((r) => r[3] === "Weighted average")![5], "TOTAL", "single bucket says TOTAL");
+}
+
 console.log("payoutExport tests passed");
 process.exit(0);
 }
