@@ -319,6 +319,40 @@ async function main() {
   assert.equal(out.length, 1, "failed fetch is dropped, not thrown");
   assert.equal(out[0].instructor.id, "good");
 }
+{
+  // Progress must advance on FAILED requests too, not just successful ones.
+  // Without this, `onProgress` could live in the success branch instead of `finally` and every
+  // test above would still pass — while the real dialog stalls at "3 of 10" forever the moment
+  // one instructor 500s. Covers a non-ok response AND a fetch that throws (network drop).
+  const fakeFetch = (async (url: string) => {
+    const id = new URL(url, "http://x").searchParams.get("instructorId")!;
+    if (id === "throws") throw new Error("network down");
+    if (id === "notok") return { ok: false, json: async () => ({ error: "boom" }) };
+    return { ok: true, json: async () => detail({ instructor: { ...detail().instructor, id } }) };
+  }) as unknown as typeof fetch;
+
+  const seen: number[] = [];
+  const totals: number[] = [];
+  const out = await fetchPayoutDetails(
+    ["ok1", "notok", "throws", "ok2"],
+    "month",
+    (done, total) => { seen.push(done); totals.push(total); },
+    fakeFetch,
+  );
+
+  assert.equal(out.length, 2, "two survivors");
+  assert.deepEqual(out.map((d) => d.instructor.id), ["ok1", "ok2"], "survivors keep input order");
+  assert.deepEqual(seen, [1, 2, 3, 4], "progress advances on every settled request, ok or not");
+  assert.deepEqual(totals, [4, 4, 4, 4], "total stays the count of REQUESTED instructors");
+  assert.ok(out.length < 4, "caller can detect partial failure by length, without a throw");
+}
+{
+  // Every fetch failing must resolve to [] rather than throw — Task 4 shows a toast on this,
+  // and downloadInstructorPayoutExcel silently no-ops on an empty array.
+  const fakeFetch = (async () => { throw new Error("all down"); }) as unknown as typeof fetch;
+  const out = await fetchPayoutDetails(["a", "b"], "month", () => {}, fakeFetch);
+  assert.deepEqual(out, [], "total failure returns empty array, does not reject");
+}
 
 console.log("payoutExport tests passed");
 process.exit(0);
