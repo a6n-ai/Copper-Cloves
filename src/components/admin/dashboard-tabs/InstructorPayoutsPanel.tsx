@@ -291,8 +291,8 @@ function InstructorPayoutsPanelImpl() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <MetricCard label="Total Payouts" value={Math.round(summary.totalPayouts)} prefix="₹" icon={DollarSign} tone="sage" loading={loading} hint={`${summary.instructorsCount || rows.length} instructors`} />
-        <MetricCard label="Pending" value={canShowAdjustment ? Math.round(summary.pendingPayments) : 0} prefix={canShowAdjustment ? "₹" : ""} icon={Clock} tone="clay" loading={loading} hint={canShowAdjustment ? `${summary.pendingCount} pending` : "Custom range only"} />
-        <MetricCard label="Completed" value={canShowAdjustment ? Math.round(summary.completedPayments) : 0} prefix={canShowAdjustment ? "₹" : ""} icon={CheckCircle2} tone="sage" loading={loading} hint={canShowAdjustment ? undefined : "Custom range only"} />
+        <MetricCard label="Pending" value={canShowAdjustment ? Math.round(summary.pendingPayments) : 0} prefix={canShowAdjustment ? "₹" : ""} icon={Clock} tone="clay" loading={loading} hint={canShowAdjustment ? `${summary.pendingCount} pending` : "Not tracked for custom ranges"} />
+        <MetricCard label="Completed" value={canShowAdjustment ? Math.round(summary.completedPayments) : 0} prefix={canShowAdjustment ? "₹" : ""} icon={CheckCircle2} tone="sage" loading={loading} hint={canShowAdjustment ? undefined : "Not tracked for custom ranges"} />
         <MetricCard label="Total Check-ins" value={summary.totalCheckIns} icon={TrendingUp} tone="charcoal" loading={loading} />
       </div>
 
