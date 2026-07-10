@@ -1,8 +1,13 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { format } from "date-fns";
-import { CheckCircle2, Clock, DollarSign, Download, Loader2, Pencil, TrendingUp, User, Wallet } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, DollarSign, Download, FileSpreadsheet, Loader2, Pencil, TrendingUp, User, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  fetchPayoutDetails,
+  downloadInstructorPayoutExcel,
+} from "@/lib/instructorPayoutExport";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SortableHeader, useTableSort } from "@/components/admin/sortable-table";
@@ -109,6 +114,13 @@ function InstructorPayoutsPanelImpl() {
   const [editForm, setEditForm] = useState({ extra_payable_units: "0", extra_classes: "0", override_payout: "", notes: "", paid_method: "" });
   const [editSaving, setEditSaving] = useState(false);
 
+  // Excel export. The period here is a PRESET, deliberately decoupled from the table's
+  // `range`: a custom range has no period_key, so it carries no paid state to report.
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportWindow, setExportWindow] = useState<"week" | "month" | "quarter" | "all">("month");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [exportProgress, setExportProgress] = useState<{ done: number; total: number } | null>(null);
+
   const fetchData = useCallback(async (r: DateRange | undefined) => {
     setLoading(true);
     try {
@@ -212,6 +224,50 @@ function InstructorPayoutsPanelImpl() {
       paid_method: row.paidMethod ?? "",
     });
   }, []);
+
+  const allVisibleSelected =
+    sorted.length > 0 && sorted.every((r) => selectedIds.has(r.instructorId));
+
+  const toggleAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      if (sorted.every((r) => prev.has(r.instructorId))) return new Set();
+      return new Set(sorted.map((r) => r.instructorId));
+    });
+  }, [sorted]);
+
+  const toggleOne = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const runExport = useCallback(async () => {
+    const ids = sorted.filter((r) => selectedIds.has(r.instructorId)).map((r) => r.instructorId);
+    if (ids.length === 0) return;
+    setExportProgress({ done: 0, total: ids.length });
+    try {
+      const details = await fetchPayoutDetails(ids, exportWindow, (done, total) =>
+        setExportProgress({ done, total }),
+      );
+      if (details.length === 0) {
+        toast.error("Could not load payout data for the selected instructors");
+        return;
+      }
+      if (details.length < ids.length) {
+        toast.warning(`${ids.length - details.length} instructor(s) could not be loaded`);
+      }
+      const stem = ids.length === 1 ? `payout-${details[0].instructor.name}` : "instructor-payouts";
+      await downloadInstructorPayoutExcel(details, `${stem}-${exportWindow}`);
+      setExportOpen(false);
+    } catch {
+      toast.error("Export failed");
+    } finally {
+      setExportProgress(null);
+    }
+  }, [sorted, selectedIds, exportWindow]);
 
   const saveEdit = useCallback(async () => {
     if (!editRow) return;
@@ -326,6 +382,17 @@ function InstructorPayoutsPanelImpl() {
               <Button type="button" variant="outline" size="sm" className="h-9 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={downloadCsv} disabled={sorted.length === 0}>
                 <Download className="h-4 w-4 mr-1.5" />CSV
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!"
+                onClick={() => setExportOpen(true)}
+                disabled={selectedIds.size === 0}
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-1.5" />
+                Export Excel{selectedIds.size > 0 ? ` (${selectedIds.size})` : ""}
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -345,6 +412,13 @@ function InstructorPayoutsPanelImpl() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-[44px]">
+                          <Checkbox
+                            checked={allVisibleSelected}
+                            onCheckedChange={toggleAll}
+                            aria-label="Select all instructors"
+                          />
+                        </TableHead>
                         <SortableHeader sortKey="name" active={sortKey} dir={sortDir} onToggle={toggle}>Instructor</SortableHeader>
                         <SortableHeader sortKey="classes" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[90px]">Classes</SortableHeader>
                         <SortableHeader sortKey="checkIns" active={sortKey} dir={sortDir} onToggle={toggle} className="w-[100px]">Check-ins</SortableHeader>
@@ -362,6 +436,13 @@ function InstructorPayoutsPanelImpl() {
                           className="cursor-pointer hover:bg-sage/5"
                           onClick={() => void router.push(`/admin/instructors/${r.instructorId}?tab=payout`)}
                         >
+                          <TableCell className="w-[44px]" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedIds.has(r.instructorId)}
+                              onCheckedChange={() => toggleOne(r.instructorId)}
+                              aria-label={`Select ${r.name}`}
+                            />
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-3 min-w-0">
                               <ListAvatar src={r.imageUrl} name={r.name} size="md" />
@@ -525,6 +606,75 @@ function InstructorPayoutsPanelImpl() {
             <Button type="button" variant="sage" disabled={editSaving} onClick={saveEdit}>
               {editSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Wallet className="h-4 w-4 mr-2" />}
               Save adjustment
+            </Button>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+
+      {/* Excel export */}
+      <ResponsiveDialog
+        open={exportOpen}
+        onOpenChange={(o) => { if (!exportProgress) setExportOpen(o); }}
+      >
+        <ResponsiveDialogContent className="bg-white-warm border-sage/20 sm:max-w-md">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-body font-semibold text-charcoal">
+              Export payout workbook
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
+              One sheet per instructor, per calendar month.
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+
+          {exportProgress ? (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-sage" />
+              <p className="font-body text-sm text-charcoal">
+                Building sheet {exportProgress.done} of {exportProgress.total}…
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-charcoal/60">Period</Label>
+                <FilterSelect
+                  value={exportWindow}
+                  onChange={(v) => setExportWindow(v as typeof exportWindow)}
+                  icon={CalendarDays}
+                  className="w-full"
+                  options={[
+                    { value: "week", label: "This Week" },
+                    { value: "month", label: "This Month" },
+                    { value: "quarter", label: "This Quarter" },
+                    { value: "all", label: "All Time" },
+                  ]}
+                />
+              </div>
+              <p className="font-body text-xs text-charcoal/55">
+                {selectedIds.size} instructor{selectedIds.size === 1 ? "" : "s"} selected. A period
+                spanning several months produces one sheet per month.
+              </p>
+            </div>
+          )}
+
+          <ResponsiveDialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-sage/20"
+              disabled={!!exportProgress}
+              onClick={() => setExportOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="sage"
+              disabled={!!exportProgress || selectedIds.size === 0}
+              onClick={() => void runExport()}
+            >
+              {exportProgress ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 mr-2" />}
+              Download
             </Button>
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
