@@ -301,3 +301,46 @@ export async function downloadInstructorPayoutExcel(
   const datePart = new Date().toISOString().slice(0, 10);
   XLSX.writeFile(wb, `${safeStem}_${datePart}.xlsx`);
 }
+
+/**
+ * Fetch one detail response per instructor, at most 4 in flight.
+ *
+ * Results are re-ordered to match `instructorIds` so the workbook's sheet order is the
+ * admin's selection order, not whichever request happened to finish first.
+ *
+ * A failed instructor is dropped rather than thrown: one 500 must not cost the admin
+ * the other nine sheets. `onProgress` fires once per settled request, success or not.
+ */
+export async function fetchPayoutDetails(
+  instructorIds: string[],
+  windowToken: string,
+  onProgress: (done: number, total: number) => void,
+  fetchImpl: typeof fetch = fetch,
+): Promise<PayoutDetail[]> {
+  const total = instructorIds.length;
+  const results: (PayoutDetail | null)[] = new Array(total).fill(null);
+  let done = 0;
+  let next = 0;
+
+  const worker = async (): Promise<void> => {
+    for (;;) {
+      const i = next++;
+      if (i >= total) return;
+      const id = instructorIds[i];
+      try {
+        const res = await fetchImpl(
+          `/api/admin/instructor-payout-detail?instructorId=${encodeURIComponent(id)}&window=${encodeURIComponent(windowToken)}`,
+        );
+        if (res.ok) results[i] = (await res.json()) as PayoutDetail;
+      } catch {
+        // swallow: a dropped instructor is better than a dropped workbook
+      } finally {
+        done++;
+        onProgress(done, total);
+      }
+    }
+  };
+
+  await Promise.all(Array.from({ length: Math.min(4, total) }, worker));
+  return results.filter(Boolean) as PayoutDetail[];
+}

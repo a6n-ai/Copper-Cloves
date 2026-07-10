@@ -3,6 +3,7 @@ import {
   splitByMonth,
   buildPayoutSheet,
   sheetNamesFor,
+  fetchPayoutDetails,
   type PayoutDetail,
 } from "../src/lib/instructorPayoutExport";
 
@@ -279,5 +280,48 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
   assert.equal(names[1].length, splitByMonth(multi).length);
 }
 
+// ── fetchPayoutDetails: order, concurrency cap, progress ──────────────────────
+async function main() {
+{
+  const ids = ["a", "b", "c", "d", "e", "f"];
+  let inFlight = 0;
+  let maxInFlight = 0;
+  const seen: number[] = [];
+
+  const fakeFetch = (async (url: string) => {
+    inFlight++;
+    maxInFlight = Math.max(maxInFlight, inFlight);
+    // resolve in REVERSE id order so completion order != input order
+    const id = new URL(url, "http://x").searchParams.get("instructorId")!;
+    await new Promise((r) => setTimeout(r, (ids.length - ids.indexOf(id)) * 5));
+    inFlight--;
+    return {
+      ok: true,
+      json: async () => detail({ instructor: { ...detail().instructor, id, name: id } }),
+    };
+  }) as unknown as typeof fetch;
+
+  const out = await fetchPayoutDetails(ids, "month", (done) => seen.push(done), fakeFetch);
+
+  assert.deepEqual(out.map((d) => d.instructor.id), ids, "results ordered by input, not completion");
+  assert.ok(maxInFlight <= 4, `concurrency capped at 4, saw ${maxInFlight}`);
+  assert.deepEqual(seen, [1, 2, 3, 4, 5, 6], "progress reported once per completion, monotonic");
+}
+{
+  // a failing instructor must not abort the whole export
+  const fakeFetch = (async (url: string) => {
+    const id = new URL(url, "http://x").searchParams.get("instructorId")!;
+    if (id === "bad") return { ok: false, json: async () => ({ error: "boom" }) };
+    return { ok: true, json: async () => detail({ instructor: { ...detail().instructor, id } }) };
+  }) as unknown as typeof fetch;
+
+  const out = await fetchPayoutDetails(["good", "bad"], "month", () => {}, fakeFetch);
+  assert.equal(out.length, 1, "failed fetch is dropped, not thrown");
+  assert.equal(out[0].instructor.id, "good");
+}
+
 console.log("payoutExport tests passed");
 process.exit(0);
+}
+
+main();
