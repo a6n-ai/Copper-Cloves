@@ -97,10 +97,6 @@ function InstructorPayoutsPanelImpl() {
   // Writes: only a monthly period may be written to — see isAdjustableWindow / the 400 from
   // /api/admin/instructor-payout-adjustment.
   const canRecord = windowFromRange(range) === "month";
-  // Reads: every preset window (week/month/quarter/all) resolves to a real periodKey and
-  // is backend-merged with any adjustment row; only "custom" has periodKey=null, where the
-  // server genuinely skipped the merge. Hiding real paid state for non-custom windows is wrong.
-  const canShowAdjustment = windowFromRange(range) !== "custom";
   const [search, setSearch] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("all");
 
@@ -355,8 +351,12 @@ function InstructorPayoutsPanelImpl() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <MetricCard label="Total Payouts" value={Math.round(summary.totalPayouts)} prefix="₹" icon={DollarSign} tone="sage" loading={loading} hint={`${summary.instructorsCount || rows.length} instructors`} />
-        <MetricCard label="Pending" value={canShowAdjustment ? Math.round(summary.pendingPayments) : 0} prefix={canShowAdjustment ? "₹" : ""} icon={Clock} tone="clay" loading={loading} hint={canShowAdjustment ? `${summary.pendingCount} pending` : "Not tracked for custom ranges"} />
-        <MetricCard label="Completed" value={canShowAdjustment ? Math.round(summary.completedPayments) : 0} prefix={canShowAdjustment ? "₹" : ""} icon={CheckCircle2} tone="sage" loading={loading} hint={canShowAdjustment ? undefined : "Not tracked for custom ranges"} />
+        {/* "Pending" = total minus paid, which is only meaningful where a payment can be recorded.
+            Off-month it would read as "nobody has been paid", when the truth is "this window has no
+            payment record at all". "Completed" sums rows that genuinely exist, so it stays honest
+            in every window. */}
+        <MetricCard label="Pending" value={canRecord ? Math.round(summary.pendingPayments) : 0} prefix={canRecord ? "₹" : ""} icon={Clock} tone="clay" loading={loading} hint={canRecord ? `${summary.pendingCount} pending` : "Recorded monthly"} />
+        <MetricCard label="Completed" value={Math.round(summary.completedPayments)} prefix="₹" icon={CheckCircle2} tone="sage" loading={loading} />
         <MetricCard label="Total Check-ins" value={summary.totalCheckIns} icon={TrendingUp} tone="charcoal" loading={loading} />
       </div>
 
@@ -475,12 +475,16 @@ function InstructorPayoutsPanelImpl() {
                             {r.overrideTotal != null ? <span className="ml-1 font-body text-[10px] uppercase tracking-wide text-terracotta">ovr</span> : null}
                           </TableCell>
                           <TableCell>
-                            {!canShowAdjustment ? (
-                              <span className="font-body text-xs text-charcoal/35">—</span>
-                            ) : r.status === "paid" ? (
+                            {/* Paid is always truthful: a row exists, so money moved — even under a
+                                legacy week/quarter key. Pending is only truthful where a payment
+                                COULD be recorded; anywhere else the absence of a row means "unknown",
+                                not "unpaid", because nothing ever writes that key. */}
+                            {r.status === "paid" ? (
                               <Pill tone="success" dot>Paid</Pill>
-                            ) : (
+                            ) : canRecord ? (
                               <Pill tone="warning" dot>Pending</Pill>
+                            ) : (
+                              <span className="font-body text-xs text-charcoal/35">—</span>
                             )}
                           </TableCell>
                           <TableCell>

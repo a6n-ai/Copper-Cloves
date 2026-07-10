@@ -248,10 +248,6 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
   const [range, setRange] = useState<DateRange | undefined>(DEFAULT_PAYOUT_RANGE);
   // Writes: only a monthly period may be recorded (the adjustment API 400s otherwise).
   const canRecord = windowFromRange(range) === "month";
-  // Reads: every preset window (week/month/quarter/all) has a resolvable periodKey and
-  // is backend-merged with any adjustment row; only "custom" resolves to periodKey=null
-  // and is genuinely unknown. Hiding paid state for non-custom windows would be a lie.
-  const canShowAdjustment = windowFromRange(range) !== "custom";
   const [data, setData] = useState<DetailResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -436,13 +432,15 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
       <div className="flex flex-wrap items-center gap-3">
         <PayoutPeriodPicker value={range} onChange={setRange} className="w-52" />
 
-        {data && canShowAdjustment && (
-          <Pill tone={isPaid ? "success" : "warning"}>
-            {isPaid
-              ? `Paid${data.footer.paidAt ? " · " + format(new Date(data.footer.paidAt), "dd MMM yyyy") : ""}`
-              : "Pending"}
+        {/* Paid is truthful in any window: a row exists, so money moved. Pending is only truthful
+            where a payment could be recorded — off-month the missing row means "unknown", not
+            "unpaid", because nothing ever writes that period key. */}
+        {data && isPaid && (
+          <Pill tone="success">
+            {`Paid${data.footer.paidAt ? " · " + format(new Date(data.footer.paidAt), "dd MMM yyyy") : ""}`}
           </Pill>
         )}
+        {data && !isPaid && canRecord && <Pill tone="warning">Pending</Pill>}
         {data && !canRecord && (
           <span className="font-body text-xs text-charcoal/45">
             Switch to This Month to record payment
@@ -460,10 +458,10 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
               label="Total payout"
               value={r(data.footer.totalPaise)}
               pill={
-                canShowAdjustment ? (
-                  <Pill tone={isPaid ? "success" : "warning"}>
-                    {isPaid ? "Paid" : "Pending"}
-                  </Pill>
+                isPaid ? (
+                  <Pill tone="success">Paid</Pill>
+                ) : canRecord ? (
+                  <Pill tone="warning">Pending</Pill>
                 ) : undefined
               }
             />
