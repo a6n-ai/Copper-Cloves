@@ -204,7 +204,7 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
   assert.ok(i > 0, "block present on last sheet");
   assert.equal(aug[i][1], "2026-Q3");
   const label = (s: string) => aug.slice(i).find((r) => r[0] === s);
-  assert.equal(label("Computed units across months")![1], 2);
+  assert.equal(label("Computed units")![1], 2);
   assert.equal(label("Extra payable units")![1], 7);
   assert.equal(label("Blended rate")![1], 465);
   assert.equal(label("Override payout")![1], 123456);
@@ -238,9 +238,36 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
   const rows = buildPayoutSheet(d, splitByMonth(d)[0], {
     useFooterTotals: true, computedUnitsAcrossMonths: 1, isLastBucket: true,
   });
-  assert.equal(process.env.TZ, "Asia/Kolkata", "test:payout-export must pin TZ");
-  assert.equal(rows[1][2], "18:30", "start renders studio-local, not UTC");
-  assert.equal(rows[1][3], "19:25", "end renders studio-local, not UTC");
+  assert.equal(rows[1][2], "18:30", "start renders IST regardless of machine TZ");
+  assert.equal(rows[1][3], "19:25", "end renders IST regardless of machine TZ");
+}
+
+// ── single bucket + adjusted -> block MUST still appear (Count != TOTAL otherwise) ────
+// Reviewer-found: gating on !useFooterTotals made this unreachable, so a one-month period
+// with extra units showed money for N+extra units above a visible Count of N, unexplained.
+{
+  const d = detail({
+    footer: {
+      ...detail().footer,
+      computedPayableUnits: 2, extraPayableUnits: 1, payableUnits: 3,
+      blendedRatePaise: 46500, totalPaise: 139500,
+    },
+  });
+  const buckets = splitByMonth(d);
+  assert.equal(buckets.length, 1, "single bucket");
+  const rows = buildPayoutSheet(d, buckets[0], {
+    useFooterTotals: true, computedUnitsAcrossMonths: 2, isLastBucket: true,
+  });
+  const countRow = rows.find((r) => r[0] === null && typeof r[5] === "number");
+  assert.equal(countRow![5], 2, "Count column shows line-item units");
+  const wavg = rows.find((r) => r[3] === "Weighted average");
+  assert.equal(wavg![6], 1395, "TOTAL uses footer (3 units)");
+  const i = rows.findIndex((r) => r[0] === "PERIOD ADJUSTMENT");
+  assert.ok(i > 0, "adjustment block present on a single adjusted bucket");
+  const label = (s: string) => rows.slice(i).find((r) => r[0] === s);
+  assert.equal(label("Computed units")![1], 2);
+  assert.equal(label("Extra payable units")![1], 1);
+  assert.equal(label("PERIOD TOTAL")![1], 1395);
 }
 
 console.log("payoutExport tests passed");

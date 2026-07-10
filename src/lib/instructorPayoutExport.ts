@@ -63,10 +63,11 @@ export type MonthBucket = { monthKey: string; label: string; items: PayoutLineIt
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-/** paise -> rupees, rounded to 2dp for display. */
+/**
+ * paise -> rupees. Derived values (perClass, withoutGst) are deliberately NOT passed through
+ * here — Usha.xlsx shows them unrounded (708.3333333) and so do we.
+ */
 const rupees = (paise: number): number => Math.round(paise) / 100;
-/** paise -> rupees with 2dp, for derived values that are not whole paise. */
-const rupees2 = (v: number): number => Math.round(v) / 100;
 
 function monthKeyOf(iso: string): string {
   const d = new Date(iso);
@@ -79,20 +80,27 @@ function monthLabelOf(iso: string): string {
 }
 
 /**
- * Class times render in the STUDIO'S LOCAL timezone, not UTC.
+ * Class times render in the STUDIO'S timezone, pinned to Asia/Kolkata.
  *
- * `.llm/Usha.xlsx` stores 0.7708333 for the evening class — 18:30, i.e. IST — and
- * InstructorPayoutLedger.tsx renders the same field with date-fns `format(…, "HH:mm")`,
- * which is also local. Using getUTCHours here would print 13:00 for that class and every
- * time in the workbook would be 5h30m adrift from what the admin sees on screen.
- *
- * `npm run test:payout-export` pins TZ so this cannot silently pass on a UTC CI box.
+ * `.llm/Usha.xlsx` stores 0.7708333 for the evening class — 18:30, i.e. IST. A 7pm IST class
+ * is persisted as `…T13:30:00Z`, so getUTCHours would print "13:30" and every time in the
+ * workbook would be 5h30m adrift. The machine's local zone is not a safe substitute either:
+ * the export runs in the admin's browser, which may be anywhere. Every other display path in
+ * this codebase pins the zone the same way (`fmtIstDateTime` in class-schedules.ts,
+ * adminDashboardSections.ts) — India has no DST, so the mapping is unambiguous.
  */
+const IST_TIME = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: "Asia/Kolkata",
+});
+
 function hhmm(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return IST_TIME.format(d);
 }
 
 /** Split one instructor's line items into ascending calendar-month buckets. */
@@ -167,7 +175,7 @@ function adjustmentBlock(d: PayoutDetail, computedUnitsAcrossMonths: number): Ce
   const rows: CellValue[][] = [
     [null, null, null, null, null, null],
     ["PERIOD ADJUSTMENT", d.periodKey ?? d.window],
-    ["Computed units across months", computedUnitsAcrossMonths],
+    ["Computed units", computedUnitsAcrossMonths],
     ["Extra payable units", f.extraPayableUnits],
     ["Blended rate", rupees(f.blendedRatePaise)],
   ];
@@ -215,7 +223,7 @@ export function buildPayoutSheet(
   const monthUnits = bucket.items.reduce((a, it) => a + it.count, 0);
   const totalRupees = opts.useFooterTotals
     ? rupees(f.totalPaise)
-    : rupees2(monthUnits * f.blendedRatePaise);
+    : rupees(monthUnits * f.blendedRatePaise);
 
   // total Count, in the Count column only — mirrors Usha.xlsx row 22.
   rows.push([null, null, null, null, null, null]);
@@ -232,9 +240,13 @@ export function buildPayoutSheet(
     "TOTAL", totalRupees,
   ]);
 
+  // The Count column sums line items; TOTAL reflects footer.payableUnits, which also carries
+  // extra_payable_units and any override. Whenever those differ, the sheet must say why —
+  // otherwise it shows money for 3 units above a visible count of 2 and nothing explains it.
+  // This applies to a single-bucket period too, where useFooterTotals is always true.
   const adjusted =
     f.extraPayableUnits !== 0 || f.overridePayoutPaise != null || f.status === "paid";
-  if (!opts.useFooterTotals && opts.isLastBucket && adjusted) {
+  if (opts.isLastBucket && adjusted) {
     rows.push(...adjustmentBlock(detail, opts.computedUnitsAcrossMonths));
   }
 
