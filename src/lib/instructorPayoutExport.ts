@@ -252,3 +252,52 @@ export function buildPayoutSheet(
 
   return rows;
 }
+
+/**
+ * Build and download one workbook, sheets keyed on (instructor, calendar month).
+ *
+ * `xlsx` is ~600KB raw / ~150KB gzip and is pulled in dynamically here — a top-level import
+ * would ship it to every admin page. Same pattern as `src/lib/financeReportExport.ts`.
+ */
+export async function downloadInstructorPayoutExcel(
+  details: PayoutDetail[],
+  filenameStem: string,
+): Promise<void> {
+  if (typeof window === "undefined") return;
+  if (details.length === 0) return;
+
+  const XLSX = await import("xlsx");
+  const wb = XLSX.utils.book_new();
+  const names = sheetNamesFor(details);
+
+  details.forEach((detail, di) => {
+    const buckets = splitByMonth(detail);
+
+    if (buckets.length === 0) {
+      XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.aoa_to_sheet([["No classes in this period"]]),
+        names[di][0],
+      );
+      return;
+    }
+
+    const computedUnitsAcrossMonths = buckets.reduce(
+      (a, b) => a + b.items.reduce((s, it) => s + it.count, 0),
+      0,
+    );
+
+    buckets.forEach((bucket, bi) => {
+      const rows = buildPayoutSheet(detail, bucket, {
+        useFooterTotals: buckets.length === 1,
+        computedUnitsAcrossMonths,
+        isLastBucket: bi === buckets.length - 1,
+      });
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), names[di][bi]);
+    });
+  });
+
+  const safeStem = filenameStem.replace(/[^\w.-]+/g, "_").slice(0, 80);
+  const datePart = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `${safeStem}_${datePart}.xlsx`);
+}

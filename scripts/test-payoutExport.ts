@@ -270,5 +270,14 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
   assert.equal(label("PERIOD TOTAL")![1], 1395);
 }
 
+// sheetNamesFor must return exactly one name per bucket (>=1 even with no items)
+{
+  const empty = detail({ lineItems: [] });
+  const multi = detail({ lineItems: [item("2026-07-02T13:00:00.000Z"), item("2026-08-02T13:00:00.000Z")] });
+  const names = sheetNamesFor([empty, multi]);
+  assert.equal(names[0].length, 1, "no items -> still one sheet name");
+  assert.equal(names[1].length, splitByMonth(multi).length);
+}
+
 console.log("payoutExport tests passed");
 process.exit(0);
