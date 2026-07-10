@@ -45,7 +45,7 @@
     "instructor:set-password": "tsx scripts/set-instructor-password.ts",
     "scheduler": "tsx scripts/scheduler.ts",
     "test:payout": "tsx scripts/test-payoutCalc.ts",
-    "test:payout-export": "tsx scripts/test-payoutExport.ts",
+    "test:payout-export": "TZ=Asia/Kolkata tsx scripts/test-payoutExport.ts",
     "test:ua": "tsx scripts/test-parseUserAgent.ts",
     "test:orphan": "tsx scripts/test-orphan-payments.ts",
     "test:invoice": "tsx scripts/test-invoice.ts",

@@ -78,11 +78,21 @@ function monthLabelOf(iso: string): string {
   return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
+/**
+ * Class times render in the STUDIO'S LOCAL timezone, not UTC.
+ *
+ * `.llm/Usha.xlsx` stores 0.7708333 for the evening class — 18:30, i.e. IST — and
+ * InstructorPayoutLedger.tsx renders the same field with date-fns `format(…, "HH:mm")`,
+ * which is also local. Using getUTCHours here would print 13:00 for that class and every
+ * time in the workbook would be 5h30m adrift from what the admin sees on screen.
+ *
+ * `npm run test:payout-export` pins TZ so this cannot silently pass on a UTC CI box.
+ */
 function hhmm(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 /** Split one instructor's line items into ascending calendar-month buckets. */

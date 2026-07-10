@@ -227,5 +227,21 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
   assert.equal(rows[1][3], "", "null endTime renders as empty string, never 'Invalid Date'");
 }
 
+// ── times render in STUDIO-LOCAL tz, matching Usha.xlsx and the ledger UI ─────
+// Usha.xlsx stores 0.7708333 (=18:30 IST) for the evening class. 13:00Z IS 18:30 IST.
+// If this ever reads "13:00", someone swapped getHours() back to getUTCHours().
+{
+  const d = detail({
+    lineItems: [item("2026-05-02T13:00:00.000Z", { endTime: "2026-05-02T13:55:00.000Z" })],
+    footer: { ...detail().footer, computedPayableUnits: 1, payableUnits: 1, totalPaise: 46500 },
+  });
+  const rows = buildPayoutSheet(d, splitByMonth(d)[0], {
+    useFooterTotals: true, computedUnitsAcrossMonths: 1, isLastBucket: true,
+  });
+  assert.equal(process.env.TZ, "Asia/Kolkata", "test:payout-export must pin TZ");
+  assert.equal(rows[1][2], "18:30", "start renders studio-local, not UTC");
+  assert.equal(rows[1][3], "19:25", "end renders studio-local, not UTC");
+}
+
 console.log("payoutExport tests passed");
 process.exit(0);
