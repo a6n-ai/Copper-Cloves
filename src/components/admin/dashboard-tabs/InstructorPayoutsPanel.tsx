@@ -331,7 +331,7 @@ function InstructorPayoutsPanelImpl() {
             payment record at all". "Completed" sums rows that genuinely exist, so it stays honest
             in every window. */}
         <MetricCard label="Pending" value={canRecord ? Math.round(summary.pendingPayments) : 0} prefix={canRecord ? "₹" : ""} icon={Clock} tone="clay" loading={loading} hint={canRecord ? `${summary.pendingCount} pending` : "Recorded monthly"} />
-        <MetricCard label="Completed" value={Math.round(summary.completedPayments)} prefix="₹" icon={CheckCircle2} tone="sage" loading={loading} />
+        <MetricCard label="Completed" value={canRecord ? Math.round(summary.completedPayments) : 0} prefix={canRecord ? "₹" : ""} icon={CheckCircle2} tone="sage" loading={loading} hint={canRecord ? undefined : "Recorded monthly"} />
         <MetricCard label="Total Check-ins" value={summary.totalCheckIns} icon={TrendingUp} tone="charcoal" loading={loading} />
       </div>
 
