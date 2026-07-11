@@ -220,5 +220,18 @@ assert.deepEqual(parsePayoutPeriod({}, NOW), currentMonthPeriod(NOW));
   assert.equal(r.key, "1500-01", "invalid period + ancient clock -> current month of that clock, no throw");
 }
 
+// --- write-guard building blocks (mirrors instructor-payout-adjustment.ts PUT) ---
+{
+  const now = new Date("2026-07-11T09:00:00Z");
+  // future month is rejected by the start>now check the endpoint applies
+  const future = resolvePayoutPeriod({ granularity: "month", year: 2026, index: 8 }, now);
+  assert.ok(future.start! > now, "August start is in the future relative to July");
+  // current + past months are allowed
+  assert.ok(resolvePayoutPeriod({ granularity: "month", year: 2026, index: 7 }, now).start! <= now);
+  assert.ok(resolvePayoutPeriod({ granularity: "month", year: 2026, index: 3 }, now).start! <= now);
+  // only month is adjustable
+  assert.equal(isAdjustableGranularity("quarter"), false);
+}
+
 console.log("payoutCalc tests passed");
 process.exit(0);

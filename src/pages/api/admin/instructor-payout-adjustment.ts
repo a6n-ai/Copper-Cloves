@@ -3,8 +3,10 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
   periodKeyFor,
-  periodBoundsFor,
-  isAdjustableWindow,
+  isAdjustableGranularity,
+  isValidPayoutPeriod,
+  resolvePayoutPeriod,
+  type PayoutPeriod,
   type PayoutWindow,
 } from "@/lib/payoutCalc";
 import { recordPayoutExpense, removePayoutExpense } from "@/lib/expenses";
@@ -62,19 +64,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const instructorId = asString(body.instructorId).trim();
     if (!instructorId) return res.status(400).json({ error: "instructorId required" });
 
-    // Guard BEFORE parseWindow: parseWindow coerces any unknown value (including
-    // "custom") to "month", which would silently write a custom-range payout into
-    // the current month's adjustment row.
-    if (!isAdjustableWindow(body.window)) {
+    if (!isAdjustableGranularity(body.granularity)) {
       return res
         .status(400)
         .json({ error: "Payouts can only be recorded for a monthly period" });
     }
-    const payoutWindow = parseWindow(body.window);
-
+    // Derive the key server-side from year+index — never trust a raw client key string.
+    const period: PayoutPeriod = {
+      granularity: "month",
+      year: Number(body.year),
+      index: Number(body.index),
+    };
+    if (!isValidPayoutPeriod(period)) {
+      return res.status(400).json({ error: "Invalid month" });
+    }
     const now = new Date();
-    const periodKey = periodKeyFor(payoutWindow, now);
-    const bounds = periodBoundsFor(payoutWindow, now);
+    const resolved = resolvePayoutPeriod(period, now);
+    // Cannot pay for classes that have not happened yet.
+    if (resolved.start && resolved.start > now) {
+      return res.status(400).json({ error: "Cannot record payment for a future month" });
+    }
+    const periodKey = resolved.key;
+    const bounds = { start: resolved.start, end: resolved.end };
 
     const data: {
       extra_payable_units?: number;
