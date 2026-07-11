@@ -1,20 +1,30 @@
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Loader2, ChevronDown, ChevronUp, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import {
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  FileSpreadsheet,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pill } from "@/components/ui/pill";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
-import type { DateRange } from "react-day-picker";
-import { windowFromRange } from "@/lib/payoutCalc";
 import {
-  PayoutPeriodPicker,
-  payoutPeriodQuery,
-  DEFAULT_PAYOUT_RANGE,
-} from "@/components/admin/PayoutPeriodPicker";
+  currentMonthPeriod,
+  resolvePayoutPeriod,
+  payoutPeriodToQuery,
+  type PayoutPeriod,
+} from "@/lib/payoutCalc";
+import { PayoutPeriodPicker } from "@/components/admin/PayoutPeriodPicker";
+import { downloadInstructorPayoutExcel, type PayoutDetail } from "@/lib/instructorPayoutExport";
 
 // ── money helpers ─────────────────────────────────────────────────────────────
 const r = (paise: number) =>
@@ -59,8 +69,9 @@ type DetailResponse = {
     studioCutPercent: number;
     rateOverride: RateOverride;
   };
-  window: string;
-  periodKey: string;
+  granularity: string;
+  key: string;
+  label: string;
   periodStart: string;
   periodEnd: string;
   lineItems: LineItem[];
@@ -245,12 +256,15 @@ function RateRow({
 
 // ── main component ────────────────────────────────────────────────────────────
 export function InstructorPayoutLedger({ instructorId }: { instructorId: string }) {
-  const [range, setRange] = useState<DateRange | undefined>(DEFAULT_PAYOUT_RANGE);
+  const [period, setPeriod] = useState<PayoutPeriod>(() => currentMonthPeriod());
+  const resolvedPeriod = resolvePayoutPeriod(period);
   // Writes: only a monthly period may be recorded (the adjustment API 400s otherwise).
-  const canRecord = windowFromRange(range) === "month";
+  const canRecord =
+    period.granularity === "month" && !!resolvedPeriod.start && resolvedPeriod.start <= new Date();
   const [data, setData] = useState<DetailResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   // blended rate override input (₹ string)
   const [blendedInput, setBlendedInput] = useState("");
@@ -269,7 +283,7 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/admin/instructor-payout-detail?instructorId=${encodeURIComponent(instructorId)}&${payoutPeriodQuery(range)}`,
+        `/api/admin/instructor-payout-detail?instructorId=${encodeURIComponent(instructorId)}&${payoutPeriodToQuery(period)}`,
       );
       if (!res.ok) {
         toast.error("Failed to load payout detail");
@@ -293,12 +307,11 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
     } finally {
       setLoading(false);
     }
-  }, [instructorId, range]);
+  }, [instructorId, period]);
 
   useEffect(() => {
-    if (range?.from && !range.to) return;
     void load();
-  }, [load, range]);
+  }, [load, period]);
 
   function toggleExpand(scheduleId: string) {
     setExpanded((prev) => {
@@ -333,7 +346,9 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           instructorId,
-          window: "month",
+          granularity: "month",
+          year: period.year,
+          index: period.index,
           override_blended_rate_paise: override,
         }),
       });
@@ -383,7 +398,9 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
     try {
       const body: Record<string, unknown> = {
         instructorId,
-        window: "month",
+        granularity: "month",
+        year: period.year,
+        index: period.index,
         paid: !isPaid,
       };
       if (!isPaid) {
@@ -404,6 +421,21 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
       await load();
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function downloadSheet() {
+    // All-time can span years -> dozens of sheets; match the export dialog and forbid it here too.
+    if (!data || period.granularity === "all") return;
+    setDownloading(true);
+    try {
+      // The exporter reads lineItems/footer/instructor/key; DetailResponse supplies all four.
+      await downloadInstructorPayoutExcel(
+        [data as unknown as PayoutDetail],
+        `payout-${data.instructor.name}-${resolvePayoutPeriod(period).key}`,
+      );
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -430,7 +462,23 @@ export function InstructorPayoutLedger({ instructorId }: { instructorId: string 
     <div className="space-y-5">
       {/* Controls row */}
       <div className="flex flex-wrap items-center gap-3">
-        <PayoutPeriodPicker value={range} onChange={setRange} className="w-52" />
+        <PayoutPeriodPicker value={period} onChange={setPeriod} className="w-44" />
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-9 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!"
+          onClick={() => void downloadSheet()}
+          disabled={!data || downloading || period.granularity === "all"}
+        >
+          {downloading ? (
+            <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+          ) : (
+            <FileSpreadsheet className="h-4 w-4 mr-1.5" />
+          )}
+          Download sheet
+        </Button>
 
         {/* Paid is truthful in any window: a row exists, so money moved. Pending is only truthful
             where a payment could be recorded — off-month the missing row means "unknown", not
