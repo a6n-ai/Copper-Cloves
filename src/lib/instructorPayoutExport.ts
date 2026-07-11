@@ -51,8 +51,8 @@ export type PayoutDetail = {
     studioCutPercent: number;
     rateOverride: Record<string, number | null>;
   };
-  window: string;
-  periodKey: string | null;
+  granularity: string;
+  key: string;
   periodStart: string | null;
   periodEnd: string | null;
   lineItems: PayoutLineItem[];
@@ -174,7 +174,7 @@ function adjustmentBlock(d: PayoutDetail, computedUnitsAcrossMonths: number): Ce
   const f = d.footer;
   const rows: CellValue[][] = [
     [null, null, null, null, null, null],
-    ["PERIOD ADJUSTMENT", d.periodKey ?? d.window],
+    ["PERIOD ADJUSTMENT", d.key],
     ["Computed units", computedUnitsAcrossMonths],
     ["Extra payable units", f.extraPayableUnits],
     ["Blended rate", rupees(f.blendedRatePaise)],
@@ -323,7 +323,7 @@ export async function downloadInstructorPayoutExcel(
  */
 export async function fetchPayoutDetails(
   instructorIds: string[],
-  windowToken: string,
+  periodQuery: string,
   onProgress: (done: number, total: number) => void,
   fetchImpl: typeof fetch = fetch,
 ): Promise<PayoutDetail[]> {
@@ -339,7 +339,7 @@ export async function fetchPayoutDetails(
       const id = instructorIds[i];
       try {
         const res = await fetchImpl(
-          `/api/admin/instructor-payout-detail?instructorId=${encodeURIComponent(id)}&window=${encodeURIComponent(windowToken)}`,
+          `/api/admin/instructor-payout-detail?instructorId=${encodeURIComponent(id)}&${periodQuery}`,
         );
         if (res.ok) results[i] = (await res.json()) as PayoutDetail;
       } catch {

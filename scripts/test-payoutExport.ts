@@ -31,8 +31,8 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
       studioCutPercent: 40,
       rateOverride: { rate_12_paise: null, rate_8_paise: null, rate_4_paise: null, rate_1_paise: null },
     },
-    window: "month",
-    periodKey: "2026-05",
+    granularity: "month",
+    key: "2026-05",
     periodStart: "2026-05-01T00:00:00.000Z",
     periodEnd: "2026-06-01T00:00:00.000Z",
     lineItems: [item("2026-05-02T13:00:00.000Z"), item("2026-05-09T13:00:00.000Z")],
@@ -67,7 +67,7 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
 {
   // Q3-style: items in three calendar months, ascending, correctly bucketed.
   const d = detail({
-    window: "quarter", periodKey: "2026-Q3",
+    granularity: "quarter", key: "2026-Q3",
     lineItems: [
       item("2026-09-02T13:00:00.000Z"),
       item("2026-07-02T13:00:00.000Z"),
@@ -159,7 +159,7 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
 // ── buildPayoutSheet: multi-bucket recomputes, no adjustment block ────────────
 {
   const d = detail({
-    window: "quarter", periodKey: "2026-Q3",
+    granularity: "quarter", key: "2026-Q3",
     lineItems: [item("2026-07-02T13:00:00.000Z"), item("2026-08-02T13:00:00.000Z")],
     footer: { ...detail().footer, payableUnits: 2, computedPayableUnits: 2, totalPaise: 93000 },
   });
@@ -182,7 +182,7 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
 // ── buildPayoutSheet: multi-bucket WITH adjustment -> block on LAST sheet only ─
 {
   const d = detail({
-    window: "quarter", periodKey: "2026-Q3",
+    granularity: "quarter", key: "2026-Q3",
     lineItems: [item("2026-07-02T13:00:00.000Z"), item("2026-08-02T13:00:00.000Z")],
     footer: {
       ...detail().footer,
@@ -287,8 +287,10 @@ async function main() {
   let inFlight = 0;
   let maxInFlight = 0;
   const seen: number[] = [];
+  const seenUrls: string[] = [];
 
   const fakeFetch = (async (url: string) => {
+    seenUrls.push(url);
     inFlight++;
     maxInFlight = Math.max(maxInFlight, inFlight);
     // resolve in REVERSE id order so completion order != input order
@@ -301,11 +303,22 @@ async function main() {
     };
   }) as unknown as typeof fetch;
 
-  const out = await fetchPayoutDetails(ids, "month", (done) => seen.push(done), fakeFetch);
+  const out = await fetchPayoutDetails(
+    ids,
+    "granularity=month&year=2026&index=5",
+    (done) => seen.push(done),
+    fakeFetch,
+  );
 
   assert.deepEqual(out.map((d) => d.instructor.id), ids, "results ordered by input, not completion");
   assert.ok(maxInFlight <= 4, `concurrency capped at 4, saw ${maxInFlight}`);
   assert.deepEqual(seen, [1, 2, 3, 4, 5, 6], "progress reported once per completion, monotonic");
+  // Regression guard: the fragment must land in the URL UNENCODED. If the impl ever wraps
+  // it in encodeURIComponent again, the "&"/"=" get percent-escaped and this fails.
+  assert.ok(
+    seenUrls.every((u) => u.includes("granularity=month&year=2026&index=5")),
+    "period query fragment appears verbatim, not percent-encoded",
+  );
 }
 {
   // a failing instructor must not abort the whole export
@@ -315,7 +328,7 @@ async function main() {
     return { ok: true, json: async () => detail({ instructor: { ...detail().instructor, id } }) };
   }) as unknown as typeof fetch;
 
-  const out = await fetchPayoutDetails(["good", "bad"], "month", () => {}, fakeFetch);
+  const out = await fetchPayoutDetails(["good", "bad"], "granularity=month&year=2026&index=5", () => {}, fakeFetch);
   assert.equal(out.length, 1, "failed fetch is dropped, not thrown");
   assert.equal(out[0].instructor.id, "good");
 }
@@ -335,7 +348,7 @@ async function main() {
   const totals: number[] = [];
   const out = await fetchPayoutDetails(
     ["ok1", "notok", "throws", "ok2"],
-    "month",
+    "granularity=month&year=2026&index=5",
     (done, total) => { seen.push(done); totals.push(total); },
     fakeFetch,
   );
@@ -350,7 +363,7 @@ async function main() {
   // Every fetch failing must resolve to [] rather than throw — Task 4 shows a toast on this,
   // and downloadInstructorPayoutExcel silently no-ops on an empty array.
   const fakeFetch = (async () => { throw new Error("all down"); }) as unknown as typeof fetch;
-  const out = await fetchPayoutDetails(["a", "b"], "month", () => {}, fakeFetch);
+  const out = await fetchPayoutDetails(["a", "b"], "granularity=month&year=2026&index=5", () => {}, fakeFetch);
   assert.deepEqual(out, [], "total failure returns empty array, does not reject");
 }
 
@@ -359,7 +372,7 @@ async function main() {
 // or forwarded alone. Only a single-bucket period may say "TOTAL".
 {
   const d = detail({
-    window: "quarter", periodKey: "2026-Q3",
+    granularity: "quarter", key: "2026-Q3",
     lineItems: [item("2026-07-02T13:00:00.000Z"), item("2026-08-02T13:00:00.000Z")],
     footer: { ...detail().footer, computedPayableUnits: 2, payableUnits: 2, totalPaise: 93000 },
   });
