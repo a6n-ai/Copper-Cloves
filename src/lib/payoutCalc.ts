@@ -233,10 +233,10 @@ export function isAdjustableGranularity(g: unknown): boolean {
  * `end` is exclusive throughout, matching the `lt` filter both payout endpoints apply.
  */
 export function resolvePayoutPeriod(period: PayoutPeriod, now: Date = new Date()): ResolvedPayoutPeriod {
-  if (!isValidPayoutPeriod(period)) {
-    return resolvePayoutPeriod(currentMonthPeriod(now), now);
-  }
-  const { granularity, year, index } = period;
+  // Fall back by REASSIGNING, not recursing: currentMonthPeriod(now) is itself "invalid" when
+  // now's year sits outside [2000,3000] (an absurd but non-throwing clock), and re-entering the
+  // validity gate on it would loop forever. The month branch resolves any year without throwing.
+  const { granularity, year, index } = isValidPayoutPeriod(period) ? period : currentMonthPeriod(now);
 
   if (granularity === "all") {
     return { granularity, key: "all", start: null, end: null, label: "All time" };

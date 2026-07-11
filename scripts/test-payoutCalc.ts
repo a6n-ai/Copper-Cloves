@@ -213,5 +213,12 @@ assert.deepEqual(parsePayoutPeriod({ granularity: "all" }, NOW), { granularity: 
 assert.deepEqual(parsePayoutPeriod({ granularity: "month", year: "nope", index: "3" }, NOW), currentMonthPeriod(NOW));
 assert.deepEqual(parsePayoutPeriod({}, NOW), currentMonthPeriod(NOW));
 
+// out-of-range clock must fall back without throwing or infinite-recursing (reviewer-found)
+{
+  const ancientNow = new Date("1500-01-01T00:00:00Z");
+  const r = resolvePayoutPeriod({ granularity: "month", year: 2026, index: 99 }, ancientNow);
+  assert.equal(r.key, "1500-01", "invalid period + ancient clock -> current month of that clock, no throw");
+}
+
 console.log("payoutCalc tests passed");
 process.exit(0);
