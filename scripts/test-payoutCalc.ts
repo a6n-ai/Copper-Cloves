@@ -13,6 +13,12 @@ import {
   isAdjustableWindow,
   PAYABLE_BASES,
   PAYOUT_ELIGIBLE_STATUSES,
+  resolvePayoutPeriod,
+  currentMonthPeriod,
+  isValidPayoutPeriod,
+  isAdjustableGranularity,
+  payoutPeriodToQuery,
+  parsePayoutPeriod,
   type RateCard,
   type PayableBasis,
 } from "../src/lib/payoutCalc";
@@ -129,6 +135,83 @@ assert.equal(isAdjustableWindow("month"), true);
 for (const w of ["week", "quarter", "all", "custom", "", null, undefined, 1]) {
   assert.equal(isAdjustableWindow(w), false, `${String(w)} must not be adjustable`);
 }
+
+// --- structured payout period model ---
+const NOW = new Date("2026-07-11T09:00:00Z");
+
+// month
+const pm = resolvePayoutPeriod({ granularity: "month", year: 2026, index: 3 }, NOW);
+assert.equal(pm.key, "2026-03");
+assert.equal(pm.label, "March 2026");
+assert.equal(pm.start?.toISOString(), "2026-03-01T00:00:00.000Z");
+assert.equal(pm.end?.toISOString(), "2026-04-01T00:00:00.000Z");
+
+// quarter
+const pq = resolvePayoutPeriod({ granularity: "quarter", year: 2026, index: 1 }, NOW);
+assert.equal(pq.key, "2026-Q1");
+assert.equal(pq.label, "Q1 2026");
+assert.equal(pq.start?.toISOString(), "2026-01-01T00:00:00.000Z");
+assert.equal(pq.end?.toISOString(), "2026-04-01T00:00:00.000Z");
+const pq4 = resolvePayoutPeriod({ granularity: "quarter", year: 2026, index: 4 }, NOW);
+assert.equal(pq4.key, "2026-Q4");
+assert.equal(pq4.end?.toISOString(), "2027-01-01T00:00:00.000Z"); // crosses the year boundary
+
+// year (new granularity)
+const py = resolvePayoutPeriod({ granularity: "year", year: 2026, index: 0 }, NOW);
+assert.equal(py.key, "2026");
+assert.equal(py.label, "2026");
+assert.equal(py.start?.toISOString(), "2026-01-01T00:00:00.000Z");
+assert.equal(py.end?.toISOString(), "2027-01-01T00:00:00.000Z");
+
+// all
+const pa = resolvePayoutPeriod({ granularity: "all", year: 2026, index: 0 }, NOW);
+assert.equal(pa.key, "all");
+assert.equal(pa.label, "All time");
+assert.equal(pa.start, null);
+assert.equal(pa.end, null);
+
+// exclusive end: a class at 23:59 on the last day of March is inside; 00:00 Apr 1 is not
+assert.ok(new Date("2026-03-31T23:59:00Z") < pm.end);
+assert.ok(new Date("2026-04-01T00:00:00Z") >= pm.end);
+
+// malformed period -> current month, never throws
+assert.equal(resolvePayoutPeriod({ granularity: "month", year: 2026, index: 13 }, NOW).key, "2026-07");
+assert.equal(resolvePayoutPeriod({ granularity: "month", year: 1800, index: 3 }, NOW).key, "2026-07");
+assert.equal(resolvePayoutPeriod({ granularity: "quarter", year: 2026, index: 5 }, NOW).key, "2026-07");
+// @ts-expect-error deliberately bad granularity
+assert.equal(resolvePayoutPeriod({ granularity: "bogus", year: 2026, index: 3 }, NOW).key, "2026-07");
+
+// currentMonthPeriod
+assert.deepEqual(currentMonthPeriod(NOW), { granularity: "month", year: 2026, index: 7 });
+
+// isValidPayoutPeriod
+assert.equal(isValidPayoutPeriod({ granularity: "month", year: 2026, index: 3 }), true);
+assert.equal(isValidPayoutPeriod({ granularity: "month", year: 2026, index: 0 }), false);
+assert.equal(isValidPayoutPeriod({ granularity: "month", year: 2026, index: 13 }), false);
+assert.equal(isValidPayoutPeriod({ granularity: "quarter", year: 2026, index: 4 }), true);
+assert.equal(isValidPayoutPeriod({ granularity: "quarter", year: 2026, index: 5 }), false);
+assert.equal(isValidPayoutPeriod({ granularity: "year", year: 2026, index: 0 }), true);
+assert.equal(isValidPayoutPeriod({ granularity: "all", year: 0, index: 0 }), true);
+assert.equal(isValidPayoutPeriod({ granularity: "month", year: NaN, index: 3 }), false);
+
+// isAdjustableGranularity — month only, safe on junk
+assert.equal(isAdjustableGranularity("month"), true);
+for (const g of ["quarter", "year", "all", "", null, undefined, 1]) {
+  assert.equal(isAdjustableGranularity(g), false);
+}
+
+// payoutPeriodToQuery
+assert.equal(payoutPeriodToQuery({ granularity: "month", year: 2026, index: 3 }), "granularity=month&year=2026&index=3");
+assert.equal(payoutPeriodToQuery({ granularity: "quarter", year: 2026, index: 2 }), "granularity=quarter&year=2026&index=2");
+assert.equal(payoutPeriodToQuery({ granularity: "year", year: 2026, index: 0 }), "granularity=year&year=2026");
+assert.equal(payoutPeriodToQuery({ granularity: "all", year: 2026, index: 0 }), "granularity=all");
+
+// parsePayoutPeriod — round-trips the query, falls back to current month on junk
+assert.deepEqual(parsePayoutPeriod({ granularity: "month", year: "2026", index: "3" }, NOW), { granularity: "month", year: 2026, index: 3 });
+assert.deepEqual(parsePayoutPeriod({ granularity: "year", year: "2026" }, NOW), { granularity: "year", year: 2026, index: 0 });
+assert.deepEqual(parsePayoutPeriod({ granularity: "all" }, NOW), { granularity: "all", year: NOW.getUTCFullYear(), index: 0 });
+assert.deepEqual(parsePayoutPeriod({ granularity: "month", year: "nope", index: "3" }, NOW), currentMonthPeriod(NOW));
+assert.deepEqual(parsePayoutPeriod({}, NOW), currentMonthPeriod(NOW));
 
 console.log("payoutCalc tests passed");
 process.exit(0);

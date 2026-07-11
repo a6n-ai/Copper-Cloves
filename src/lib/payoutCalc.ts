@@ -181,6 +181,120 @@ export function periodBoundsFor(
   return { start: monday, end: nextMonday };
 }
 
+// ── Structured payout period model ────────────────────────────────────────────
+// A period is an EXPLICIT (granularity, year, index) — not "the current month" — so it never
+// drifts. A tab open across a month boundary keeps its month, which simply becomes a past
+// (still-recordable) month rather than silently changing period.
+
+export type PayoutGranularity = "month" | "quarter" | "year" | "all";
+
+export interface PayoutPeriod {
+  granularity: PayoutGranularity;
+  year: number;
+  index: number; // month 1-12 | quarter 1-4; ignored for year/all
+}
+
+export interface ResolvedPayoutPeriod {
+  granularity: PayoutGranularity;
+  key: string; // "2026-03" | "2026-Q1" | "2026" | "all"
+  start: Date | null; // inclusive
+  end: Date | null; // exclusive
+  label: string;
+}
+
+const MONTH_LABELS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+export function currentMonthPeriod(now: Date = new Date()): PayoutPeriod {
+  return { granularity: "month", year: now.getUTCFullYear(), index: now.getUTCMonth() + 1 };
+}
+
+/** Strict structural validity. Writes reject on false; reads silently fall back to current month. */
+export function isValidPayoutPeriod(period: PayoutPeriod): boolean {
+  const { granularity, year, index } = period;
+  if (granularity === "all") return true;
+  if (!Number.isInteger(year) || year < 2000 || year > 3000) return false;
+  if (granularity === "year") return true;
+  if (granularity === "month") return Number.isInteger(index) && index >= 1 && index <= 12;
+  if (granularity === "quarter") return Number.isInteger(index) && index >= 1 && index <= 4;
+  return false;
+}
+
+/** Payment is monthly. Safe on any input, including non-strings. */
+export function isAdjustableGranularity(g: unknown): boolean {
+  return g === "month";
+}
+
+/**
+ * Resolve an explicit period into a key + UTC bounds + display label.
+ * A malformed period falls back to the current month — a bad querystring must not 500 the page.
+ * `end` is exclusive throughout, matching the `lt` filter both payout endpoints apply.
+ */
+export function resolvePayoutPeriod(period: PayoutPeriod, now: Date = new Date()): ResolvedPayoutPeriod {
+  if (!isValidPayoutPeriod(period)) {
+    return resolvePayoutPeriod(currentMonthPeriod(now), now);
+  }
+  const { granularity, year, index } = period;
+
+  if (granularity === "all") {
+    return { granularity, key: "all", start: null, end: null, label: "All time" };
+  }
+  if (granularity === "year") {
+    return {
+      granularity,
+      key: `${year}`,
+      start: new Date(Date.UTC(year, 0, 1)),
+      end: new Date(Date.UTC(year + 1, 0, 1)),
+      label: `${year}`,
+    };
+  }
+  if (granularity === "quarter") {
+    const qStartMonth = (index - 1) * 3;
+    return {
+      granularity,
+      key: `${year}-Q${index}`,
+      start: new Date(Date.UTC(year, qStartMonth, 1)),
+      end: new Date(Date.UTC(year, qStartMonth + 3, 1)),
+      label: `Q${index} ${year}`,
+    };
+  }
+  // month
+  return {
+    granularity,
+    key: `${year}-${String(index).padStart(2, "0")}`,
+    start: new Date(Date.UTC(year, index - 1, 1)),
+    end: new Date(Date.UTC(year, index, 1)),
+    label: `${MONTH_LABELS[index - 1]} ${year}`,
+  };
+}
+
+/** Querystring fragment for the payout read APIs. */
+export function payoutPeriodToQuery(period: PayoutPeriod): string {
+  if (period.granularity === "all") return "granularity=all";
+  if (period.granularity === "year") return `granularity=year&year=${period.year}`;
+  return `granularity=${period.granularity}&year=${period.year}&index=${period.index}`;
+}
+
+/**
+ * Parse a query/body record into a PayoutPeriod, tolerantly. Unknown granularity or non-numeric
+ * fields fall back to the current month. Reads use this directly; the WRITE path must additionally
+ * reject (not silently fall back) via isValidPayoutPeriod — see the adjustment endpoint.
+ */
+export function parsePayoutPeriod(src: Record<string, unknown>, now: Date = new Date()): PayoutPeriod {
+  const raw = String(src.granularity ?? "");
+  const granularity = (["month", "quarter", "year", "all"] as const).includes(raw as PayoutGranularity)
+    ? (raw as PayoutGranularity)
+    : "month";
+  const candidate: PayoutPeriod = {
+    granularity,
+    year: granularity === "all" ? now.getUTCFullYear() : Number(src.year),
+    index: granularity === "month" || granularity === "quarter" ? Number(src.index) : 0,
+  };
+  return isValidPayoutPeriod(candidate) ? candidate : currentMonthPeriod(now);
+}
+
 /** The four preset windows plus the free-form calendar range. */
 export type PayoutPeriodToken = PayoutWindow | "custom";
 
