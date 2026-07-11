@@ -5,7 +5,8 @@ import {
   instructorPctFrom,
   payableForSchedule,
   payoutForUnits,
-  resolvePeriod,
+  parsePayoutPeriod,
+  resolvePayoutPeriod,
   resolveRateCard,
   autoBlendedRate,
   netRateBreakdown,
@@ -17,14 +18,15 @@ import {
 import { getPayoutSettings } from "@/lib/payoutSettings";
 
 /**
- * Per-instructor payout for the requested calendar window (default current month).
- * For keyed windows (week/month/quarter/all), merges admin adjustments + paid state
- * from `instructor_payout_adjustments`. A custom range has no period key — `resolvePeriod`
- * returns null and the merge is skipped, so rows come back as pure computed/pending.
+ * Per-instructor payout for the requested structured period (default current month).
+ * Merges admin adjustments + paid state from `instructor_payout_adjustments`, keyed on
+ * the resolved period key (always a non-empty string — every period, including "all",
+ * has one).
  *
  * Query:
- *   window=week|month|quarter|all           (default month)
- *   window=custom&from=YYYY-MM-DD&to=YYYY-MM-DD
+ *   granularity=month|quarter|year|all      (default month)
+ *   year=<number>                           (required for month/quarter/year)
+ *   index=<number>                          (month 1-12, quarter 1-4; ignored for year/all)
  *   instructorId=<id>                       (optional filter to one instructor)
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -34,21 +36,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
   if (req.method !== "GET") return res.status(405).end();
 
-  const windowRaw = typeof req.query.window === "string" ? req.query.window : "month";
-  const fromRaw = typeof req.query.from === "string" ? req.query.from : undefined;
-  const toRaw = typeof req.query.to === "string" ? req.query.to : undefined;
   const instructorFilter =
     typeof req.query.instructorId === "string" && req.query.instructorId.trim()
       ? req.query.instructorId.trim()
       : null;
 
   const now = new Date();
-  const { start, end, periodKey, window: payoutWindow } = resolvePeriod(
-    windowRaw,
-    fromRaw,
-    toRaw,
-    now,
-  );
+  const period = parsePayoutPeriod(req.query as Record<string, unknown>, now);
+  const { start, end, key: periodKey } = resolvePayoutPeriod(period, now);
 
   const settings = await getPayoutSettings();
   const globalCard: RateCard = {
@@ -178,14 +173,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const instructorIds = [...tally.keys()];
-  // A custom range has no period key, so no adjustment row can belong to it: rows are
-  // pure computed, status pending, no override merged.
-  const adjustments =
-    periodKey && instructorIds.length
-      ? await prisma.instructorPayoutAdjustment.findMany({
-          where: { instructor_id: { in: instructorIds }, period_key: periodKey },
-        })
-      : [];
+  const adjustments = instructorIds.length
+    ? await prisma.instructorPayoutAdjustment.findMany({
+        where: { instructor_id: { in: instructorIds }, period_key: periodKey },
+      })
+    : [];
   const adjByInstructor = new Map(adjustments.map((a) => [a.instructor_id, a]));
 
   const instructors = [...tally.values()].map((a) => {
@@ -262,7 +254,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       totalPayableUnits: instructors.reduce((s, i) => s + i.payableUnits, 0),
       instructorsCount: instructors.length,
       pendingCount,
-      window: payoutWindow,
+      granularity: period.granularity,
       periodKey,
       periodStart: start?.toISOString() ?? null,
       periodEnd: end?.toISOString() ?? null,

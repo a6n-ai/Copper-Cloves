@@ -10,7 +10,8 @@ import {
   netRateBreakdown,
   effectiveBlendedRate,
   payoutForUnits,
-  resolvePeriod,
+  parsePayoutPeriod,
+  resolvePayoutPeriod,
   PAYOUT_ELIGIBLE_STATUSES,
   type PayableBasis,
   type RateCard,
@@ -18,15 +19,15 @@ import {
 import { getPayoutSettings } from "@/lib/payoutSettings";
 
 /**
- * Per-attendee payout ledger for ONE instructor in a calendar window.
- * For keyed windows (week/month/quarter/all), merges the admin adjustment row (extras,
- * overrides, paid state) for that period. A custom range has no period key — the merge
- * is skipped and the footer reports pure computed totals with status "pending".
+ * Per-attendee payout ledger for ONE instructor in a structured period.
+ * Merges the admin adjustment row (extras, overrides, paid state) for that period, keyed
+ * on the resolved period key (always a non-empty string — every period has one).
  *
  * Query:
  *   instructorId=<id>                          (required)
- *   window=week|month|quarter|all               (default month)
- *   window=custom&from=YYYY-MM-DD&to=YYYY-MM-DD
+ *   granularity=month|quarter|year|all          (default month)
+ *   year=<number>                               (required for month/quarter/year)
+ *   index=<number>                              (month 1-12, quarter 1-4; ignored for year/all)
  *
  * Line-item count reconciliation (invariant for every basis):
  *   sum of a schedule's row counts === payableForSchedule(..., basis)
@@ -64,17 +65,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     typeof req.query.instructorId === "string" ? req.query.instructorId.trim() : "";
   if (!instructorId) return res.status(400).json({ error: "instructorId is required" });
 
-  const windowRaw = typeof req.query.window === "string" ? req.query.window : "month";
-  const fromRaw = typeof req.query.from === "string" ? req.query.from : undefined;
-  const toRaw = typeof req.query.to === "string" ? req.query.to : undefined;
-
   const now = new Date();
-  const { start, end, periodKey, window: payoutWindow } = resolvePeriod(
-    windowRaw,
-    fromRaw,
-    toRaw,
-    now,
-  );
+  const period = parsePayoutPeriod(req.query as Record<string, unknown>, now);
+  const resolved = resolvePayoutPeriod(period, now);
+  const { start, end, key: periodKey, label } = resolved;
 
   const settings = await getPayoutSettings();
   const globalCard: RateCard = {
@@ -218,15 +212,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  // Load adjustment for this instructor + period. A custom range has no period key,
-  // so no adjustment can apply: extras, overrides and paid state are all absent.
-  const adj = periodKey
-    ? await prisma.instructorPayoutAdjustment.findUnique({
-        where: {
-          instructor_id_period_key: { instructor_id: instructorId, period_key: periodKey },
-        },
-      })
-    : null;
+  // Load adjustment for this instructor + period.
+  const adj = await prisma.instructorPayoutAdjustment.findUnique({
+    where: {
+      instructor_id_period_key: { instructor_id: instructorId, period_key: periodKey },
+    },
+  });
 
   // Compute footer — mirrors the aggregate endpoint exactly.
   const studioCutRaw = instructor.studio_payout_cut_percent;
@@ -272,8 +263,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       studioCutPercent: studioCut,
       rateOverride,
     },
-    window: payoutWindow,
-    periodKey,
+    granularity: period.granularity,
+    key: periodKey,
+    label,
     periodStart: start?.toISOString() ?? null,
     periodEnd: end?.toISOString() ?? null,
     lineItems,
