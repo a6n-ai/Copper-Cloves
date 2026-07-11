@@ -43,7 +43,11 @@ export function PayoutPeriodPicker({
     onChange({ granularity: g, year: value.year, index });
   };
 
-  const stepYear = (delta: number) => onChange({ ...value, year: value.year + delta });
+  // Clamp to isValidPayoutPeriod's window. Without this, stepping past the bounds leaves the
+  // stepper showing e.g. 1999 while resolvePayoutPeriod rejects it and the trigger label silently
+  // falls back to the current month — stepper and label would disagree and mislead the admin.
+  const stepYear = (delta: number) =>
+    onChange({ ...value, year: Math.min(3000, Math.max(2000, value.year + delta)) });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -76,9 +80,9 @@ export function PayoutPeriodPicker({
         {/* year stepper (month/quarter/year only) */}
         {value.granularity !== "all" && (
           <div className="flex items-center justify-between gap-2 font-body text-sm text-charcoal">
-            <Button type="button" size="sm" variant="ghost" onClick={() => stepYear(-1)} aria-label="Previous year">‹</Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => stepYear(-1)} disabled={value.year <= 2000} aria-label="Previous year">‹</Button>
             <span className="tabular-nums font-medium">{value.year}</span>
-            <Button type="button" size="sm" variant="ghost" onClick={() => stepYear(1)} aria-label="Next year">›</Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => stepYear(1)} disabled={value.year >= 3000} aria-label="Next year">›</Button>
           </div>
         )}
 
