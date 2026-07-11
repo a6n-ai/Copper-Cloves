@@ -1,7 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { format } from "date-fns";
-import { CalendarDays, CheckCircle2, Clock, DollarSign, Download, FileSpreadsheet, Loader2, Pencil, TrendingUp, User, Wallet } from "lucide-react";
+import { CheckCircle2, Clock, DollarSign, FileSpreadsheet, Loader2, Pencil, TrendingUp, User, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -29,13 +28,13 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
-import type { DateRange } from "react-day-picker";
-import { windowFromRange } from "@/lib/payoutCalc";
 import {
-  PayoutPeriodPicker,
-  payoutPeriodQuery,
-  DEFAULT_PAYOUT_RANGE,
-} from "@/components/admin/PayoutPeriodPicker";
+  currentMonthPeriod,
+  resolvePayoutPeriod,
+  payoutPeriodToQuery,
+  type PayoutPeriod,
+} from "@/lib/payoutCalc";
+import { PayoutPeriodPicker } from "@/components/admin/PayoutPeriodPicker";
 
 type PayoutRow = {
   instructorId: string;
@@ -83,20 +82,16 @@ function rupees(n: number): string {
   return `₹${Math.round(n).toLocaleString("en-IN")}`;
 }
 
-function csvEsc(v: string | number | null | undefined): string {
-  const s = v == null ? "" : String(v);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-
 function InstructorPayoutsPanelImpl() {
   const router = useRouter();
   const [rows, setRows] = useState<PayoutRow[]>([]);
   const [summary, setSummary] = useState<PayoutSummary>(EMPTY_SUMMARY);
   const [loading, setLoading] = useState(true);
-  const [range, setRange] = useState<DateRange | undefined>(DEFAULT_PAYOUT_RANGE);
-  // Writes: only a monthly period may be written to — see isAdjustableWindow / the 400 from
-  // /api/admin/instructor-payout-adjustment.
-  const canRecord = windowFromRange(range) === "month";
+  const [period, setPeriod] = useState<PayoutPeriod>(() => currentMonthPeriod());
+  // Recordable = a month whose start is not in the future. Past + current months qualify.
+  const resolvedPeriod = resolvePayoutPeriod(period);
+  const canRecord =
+    period.granularity === "month" && !!resolvedPeriod.start && resolvedPeriod.start <= new Date();
   const [search, setSearch] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("all");
 
@@ -110,17 +105,17 @@ function InstructorPayoutsPanelImpl() {
   const [editForm, setEditForm] = useState({ extra_payable_units: "0", extra_classes: "0", override_payout: "", notes: "", paid_method: "" });
   const [editSaving, setEditSaving] = useState(false);
 
-  // Excel export. The period here is a PRESET, deliberately decoupled from the table's
-  // `range`: a custom range has no period_key, so it carries no paid state to report.
+  // Excel export. The period here is deliberately decoupled from the table's `period`
+  // so switching the export period doesn't refetch/reset the table view.
   const [exportOpen, setExportOpen] = useState(false);
-  const [exportWindow, setExportWindow] = useState<"week" | "month" | "quarter" | "all">("month");
+  const [exportPeriod, setExportPeriod] = useState<PayoutPeriod>(() => currentMonthPeriod());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [exportProgress, setExportProgress] = useState<{ done: number; total: number } | null>(null);
 
-  const fetchData = useCallback(async (r: DateRange | undefined) => {
+  const fetchData = useCallback(async (p: PayoutPeriod) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/instructor-payouts?${payoutPeriodQuery(r)}`);
+      const res = await fetch(`/api/admin/instructor-payouts?${payoutPeriodToQuery(p)}`);
       if (!res.ok) {
         setRows([]);
         setSummary(EMPTY_SUMMARY);
@@ -137,10 +132,8 @@ function InstructorPayoutsPanelImpl() {
   }, []);
 
   useEffect(() => {
-    // A half-picked range (start chosen, end pending) would refetch as "month" and flicker.
-    if (range?.from && !range.to) return;
-    void fetchData(range);
-  }, [fetchData, range]);
+    void fetchData(period);
+  }, [fetchData, period]);
 
   const instructorOptions = useMemo(
     () => Array.from(new Set(rows.map((r) => r.name))).sort((a, b) => a.localeCompare(b)),
@@ -174,8 +167,8 @@ function InstructorPayoutsPanelImpl() {
     getValue,
     defaultDirFor: (k) => (k === "name" || k === "status" ? "asc" : "desc"),
   });
-  const rangeKey = payoutPeriodQuery(range);
-  const pg = usePagination(sorted, 10, `${search}|${instructorFilter}|${rangeKey}|${sortKey}|${sortDir}`);
+  const periodKey = payoutPeriodToQuery(period);
+  const pg = usePagination(sorted, 10, `${search}|${instructorFilter}|${periodKey}|${sortKey}|${sortDir}`);
 
   const togglePaid = useCallback(
     async (row: PayoutRow, paid: boolean, recordExpense: boolean) => {
@@ -184,7 +177,9 @@ function InstructorPayoutsPanelImpl() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           instructorId: row.instructorId,
-          window: "month",
+          granularity: "month",
+          year: period.year,
+          index: period.index,
           paid,
           recordExpense,
           payout_paise: Math.round(row.total * 100),
@@ -205,9 +200,9 @@ function InstructorPayoutsPanelImpl() {
         savedMsg = "Marked paid";
       }
       toast.success(savedMsg);
-      await fetchData(range);
+      await fetchData(period);
     },
-    [range, fetchData],
+    [period, fetchData],
   );
 
   const openEdit = useCallback((row: PayoutRow) => {
@@ -253,7 +248,7 @@ function InstructorPayoutsPanelImpl() {
     if (ids.length === 0) return;
     setExportProgress({ done: 0, total: ids.length });
     try {
-      const details = await fetchPayoutDetails(ids, exportWindow, (done, total) =>
+      const details = await fetchPayoutDetails(ids, payoutPeriodToQuery(exportPeriod), (done, total) =>
         setExportProgress({ done, total }),
       );
       if (details.length === 0) {
@@ -264,14 +259,14 @@ function InstructorPayoutsPanelImpl() {
         toast.warning(`${ids.length - details.length} instructor(s) could not be loaded`);
       }
       const stem = ids.length === 1 ? `payout-${details[0].instructor.name}` : "instructor-payouts";
-      await downloadInstructorPayoutExcel(details, `${stem}-${exportWindow}`);
+      await downloadInstructorPayoutExcel(details, `${stem}-${resolvePayoutPeriod(exportPeriod).key}`);
       setExportOpen(false);
     } catch {
       toast.error("Export failed");
     } finally {
       setExportProgress(null);
     }
-  }, [exportableIds, exportWindow]);
+  }, [exportableIds, exportPeriod]);
 
   const saveEdit = useCallback(async () => {
     if (!editRow) return;
@@ -279,7 +274,9 @@ function InstructorPayoutsPanelImpl() {
     try {
       const body: Record<string, unknown> = {
         instructorId: editRow.instructorId,
-        window: "month",
+        granularity: "month",
+        year: period.year,
+        index: period.index,
         extra_payable_units: Number(editForm.extra_payable_units) || 0,
         extra_classes: Number(editForm.extra_classes) || 0,
         notes: editForm.notes,
@@ -308,33 +305,11 @@ function InstructorPayoutsPanelImpl() {
       }
       toast.success("Adjustment saved");
       setEditRow(null);
-      await fetchData(range);
+      await fetchData(period);
     } finally {
       setEditSaving(false);
     }
-  }, [editRow, editForm, range, fetchData]);
-
-  const downloadCsv = useCallback(() => {
-    const header = ["Instructor", "Specialties", "Classes", "Check-ins", "Payable Units", "Net per Unit", "Studio %", "Instructor %", "Total Payout INR", "Override", "Paid At", "Paid Method", "Notes"];
-    const lines = [header.join(",")];
-    for (const r of sorted) {
-      lines.push([r.name, r.specialties, r.classes, r.checkIns, r.payableUnits, r.netPerUnit, r.studioCutPercent, r.percentage, r.total.toFixed(2), r.overrideTotal != null ? "yes" : "no", r.paidAt ?? "", r.paidMethod ?? "", r.notes ?? ""].map(csvEsc).join(","));
-    }
-    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    // A custom range has no periodKey (server skips the merge for it) — fall back to a
-    // clean date-based label instead of the raw querystring (`window=custom&from=...`).
-    const fileLabel =
-      summary.periodKey ||
-      (range?.from && range?.to
-        ? `${format(range.from, "yyyy-MM-dd")}_${format(range.to, "yyyy-MM-dd")}`
-        : rangeKey);
-    a.download = `instructor-payouts-${fileLabel}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [sorted, summary.periodKey, rangeKey, range]);
+  }, [editRow, editForm, period, fetchData]);
 
   let confirmActionLabel: string;
   if (confirmSaving) {
@@ -383,13 +358,10 @@ function InstructorPayoutsPanelImpl() {
                   ...instructorOptions.map((n) => ({ value: n, label: n })),
                 ]}
               />
-              <PayoutPeriodPicker value={range} onChange={setRange} className="sm:w-52 shrink-0" />
+              <PayoutPeriodPicker value={period} onChange={setPeriod} className="sm:w-44 shrink-0" />
               {(search || instructorFilter !== "all") && (
                 <FilterReset onReset={() => { setSearch(""); setInstructorFilter("all"); }} label="Clear" />
               )}
-              <Button type="button" variant="outline" size="sm" className="h-9 border-sage/20 text-sage hover:bg-sage/5 hover:text-sage!" onClick={downloadCsv} disabled={sorted.length === 0}>
-                <Download className="h-4 w-4 mr-1.5" />CSV
-              </Button>
               <Button
                 type="button"
                 variant="outline"
@@ -649,17 +621,11 @@ function InstructorPayoutsPanelImpl() {
             <div className="space-y-4 py-2">
               <div className="space-y-1.5">
                 <Label className="font-body text-xs text-charcoal/60">Period</Label>
-                <FilterSelect
-                  value={exportWindow}
-                  onChange={(v) => setExportWindow(v as typeof exportWindow)}
-                  icon={CalendarDays}
+                <PayoutPeriodPicker
+                  value={exportPeriod}
+                  onChange={setExportPeriod}
+                  allowAllTime={false}
                   className="w-full"
-                  options={[
-                    { value: "week", label: "This Week" },
-                    { value: "month", label: "This Month" },
-                    { value: "quarter", label: "This Quarter" },
-                    { value: "all", label: "All Time" },
-                  ]}
                 />
               </div>
               <p className="font-body text-xs text-charcoal/55">
