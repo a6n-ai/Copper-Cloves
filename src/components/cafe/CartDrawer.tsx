@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Check, Minus, Plus, ShoppingCart, Users, X } from "lucide-react";
 import {
@@ -74,6 +74,26 @@ export function CartDrawer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // Signature of cart contents (id:quantity pairs) — used to re-quote on any
+  // in-drawer quantity change without depending on the discount state that
+  // fetchQuote itself sets (which would loop).
+  const cartSignature = useMemo(
+    () => cart.map((item) => `${item.id}:${item.quantity}`).join(","),
+    [cart],
+  );
+
+  // Re-quote (debounced) whenever cart contents change while the drawer is
+  // open, so displayed pass/coupon discounts never drift from what the
+  // server will actually charge.
+  useEffect(() => {
+    if (!open) return;
+    const timer = setTimeout(() => {
+      void fetchQuote(couponCode);
+    }, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, cartSignature]);
+
   const getSubtotal = () =>
     cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -105,6 +125,8 @@ export function CartDrawer({
     const d = await r.json().catch(() => ({}));
     if (!r.ok) {
       setCouponError(typeof d.error === "string" ? d.error : "Could not price cart");
+      setPassDiscount(0);
+      setCouponDiscount(null);
       return;
     }
     setPassDiscount(Number(d.passDiscount) || 0);

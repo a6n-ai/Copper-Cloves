@@ -32,7 +32,7 @@ function buildPackageData(body: Record<string, unknown>, create: boolean): Prism
     data.cafe_discount_percent =
       body.cafe_discount_percent === null || body.cafe_discount_percent === ""
         ? null
-        : Number(body.cafe_discount_percent);
+        : Math.min(100, Math.max(0, Number(body.cafe_discount_percent)));
   }
   if (body.offer_label !== undefined) {
     data.offer_label =
