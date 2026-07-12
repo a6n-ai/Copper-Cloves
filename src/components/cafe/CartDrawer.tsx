@@ -48,6 +48,7 @@ export function CartDrawer({
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponDiscount, setCouponDiscount] = useState<number | null>(null);
+  const [passDiscount, setPassDiscount] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
@@ -68,7 +69,9 @@ export function CartDrawer({
       setCouponDiscount(null);
       setCouponCode("");
       setOrderError(null);
+      void fetchQuote("");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const getSubtotal = () =>
@@ -76,29 +79,43 @@ export function CartDrawer({
 
   const getFinalTotal = () => {
     const sub = getSubtotal();
-    const off = couponDiscount && couponDiscount > 0 ? couponDiscount : 0;
+    const off =
+      passDiscount + (couponDiscount && couponDiscount > 0 ? couponDiscount : 0);
     return Math.max(0, Math.round((sub - off) * 100) / 100);
   };
 
-  async function validateMenuCoupon() {
-    setCouponError(null);
+  const fetchQuote = async (code: string) => {
     const subtotal = getSubtotal();
-    if (subtotal <= 0) return;
-    const r = await fetch("/api/coupons/validate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: couponCode, context: "food", subtotal }),
-    });
-    const d = r.ok
-      ? await r.json()
-      : { valid: false, error: "Could not validate" };
-    if (!d.valid) {
+    if (subtotal <= 0) {
+      setPassDiscount(0);
       setCouponDiscount(null);
-      setCouponError(typeof d.error === "string" ? d.error : "Invalid coupon");
       return;
     }
-    setCouponDiscount(Number(d.discountInr) || 0);
-  }
+    const r = await fetch("/api/cafe/quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: cart.map((item) => ({
+          cafe_item_id: item.id,
+          quantity: item.quantity,
+        })),
+        coupon_code: code.trim() || undefined,
+      }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      setCouponError(typeof d.error === "string" ? d.error : "Could not price cart");
+      return;
+    }
+    setPassDiscount(Number(d.passDiscount) || 0);
+    if (d.couponError) {
+      setCouponError(String(d.couponError));
+      setCouponDiscount(null);
+    } else {
+      setCouponError(null);
+      setCouponDiscount(Number(d.couponDiscount) || 0);
+    }
+  };
 
   const handleGuestCountChange = (count: number) => {
     const newCount = Math.max(0, Math.min(5, count));
@@ -326,7 +343,7 @@ export function CartDrawer({
               <Button
                 type="button"
                 variant="sage-outline"
-                onClick={() => void validateMenuCoupon()}
+                onClick={() => void fetchQuote(couponCode)}
               >
                 Apply
               </Button>
@@ -360,6 +377,12 @@ export function CartDrawer({
               <span>Subtotal</span>
               <span>₹{getSubtotal()}</span>
             </div>
+            {passDiscount > 0 && (
+              <div className="flex items-center justify-between font-body text-sage">
+                <span>Pass discount</span>
+                <span>−₹{passDiscount}</span>
+              </div>
+            )}
             {couponDiscount != null && couponDiscount > 0 && (
               <div className="flex items-center justify-between font-body text-sage">
                 <span>Discount</span>
