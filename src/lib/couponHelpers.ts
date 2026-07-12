@@ -100,6 +100,49 @@ export function computeDiscountInr(
   return 0;
 }
 
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+export function combineCafeDiscount(
+  subtotal: number,
+  passPercent: number,
+  coupon: {
+    discount_type: string;
+    discount_value: number | string;
+    max_discount_inr: number | string | null;
+    stackable: boolean;
+  } | null,
+): { passDiscount: number; couponDiscount: number; total: number; couponApplies: boolean } {
+  const sub = subtotal > 0 ? subtotal : 0;
+  const pass = Math.min(sub, round2((sub * Math.max(0, passPercent)) / 100));
+
+  if (!coupon) {
+    return { passDiscount: pass, couponDiscount: 0, total: pass, couponApplies: false };
+  }
+
+  // computeDiscountInr has NO cap parameter — apply coupon.max_discount_inr here,
+  // exactly as validateAndComputeCoupon does (min against a finite, non-negative cap).
+  const capCoupon = (raw: number): number => {
+    const cap = toFiniteNumber(coupon.max_discount_inr);
+    return Number.isFinite(cap) && cap >= 0 ? Math.min(raw, cap) : raw;
+  };
+
+  if (coupon.stackable) {
+    const base = Math.max(0, sub - pass);
+    const couponDiscount = capCoupon(computeDiscountInr(base, coupon.discount_type, coupon.discount_value));
+    const total = Math.min(sub, round2(pass + couponDiscount));
+    return { passDiscount: pass, couponDiscount, total, couponApplies: couponDiscount > 0 };
+  }
+
+  // non-stackable: best-of-two on full subtotal
+  const couponRaw = capCoupon(computeDiscountInr(sub, coupon.discount_type, coupon.discount_value));
+  if (couponRaw > pass) {
+    return { passDiscount: 0, couponDiscount: couponRaw, total: Math.min(sub, couponRaw), couponApplies: true };
+  }
+  return { passDiscount: pass, couponDiscount: 0, total: pass, couponApplies: false };
+}
+
 export function isCouponActiveNow(c: {
   is_active: boolean;
   starts_at: Date | null;
