@@ -28,6 +28,12 @@ function buildPackageData(body: Record<string, unknown>, create: boolean): Prism
     data.offer_price =
       body.offer_price === null || body.offer_price === "" ? null : Number(body.offer_price);
   }
+  if (body.cafe_discount_percent !== undefined) {
+    data.cafe_discount_percent =
+      body.cafe_discount_percent === null || body.cafe_discount_percent === ""
+        ? null
+        : Number(body.cafe_discount_percent);
+  }
   if (body.offer_label !== undefined) {
     data.offer_label =
       body.offer_label === null || String(body.offer_label).trim() === "" ? null : String(body.offer_label).trim();

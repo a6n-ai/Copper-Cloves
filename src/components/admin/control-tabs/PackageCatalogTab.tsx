@@ -38,6 +38,7 @@ type PackageRow = {
   is_published: boolean;
   description: string | null;
   offer_price: number | null;
+  cafe_discount_percent: number | null;
   offer_label: string | null;
   offer_starts_at: string | null;
   offer_ends_at: string | null;
@@ -57,6 +58,7 @@ type PackageForm = {
   is_published: boolean;
   description: string;
   offer_price: string;
+  cafe_discount_percent: string;
   offer_label: string;
   offer_starts_at: string;
   offer_ends_at: string;
@@ -76,6 +78,7 @@ const EMPTY_FORM: PackageForm = {
   is_published: true,
   description: "",
   offer_price: "",
+  cafe_discount_percent: "",
   offer_label: "",
   offer_starts_at: "",
   offer_ends_at: "",
@@ -109,6 +112,7 @@ function rowToForm(p: PackageRow): PackageForm {
     is_published: p.is_published !== false,
     description: p.description ?? "",
     offer_price: p.offer_price == null ? "" : String(p.offer_price),
+    cafe_discount_percent: p.cafe_discount_percent == null ? "" : String(p.cafe_discount_percent),
     offer_label: p.offer_label ?? "",
     offer_starts_at: toDatetimeLocal(p.offer_starts_at),
     offer_ends_at: toDatetimeLocal(p.offer_ends_at),
@@ -132,7 +136,15 @@ export default function PackageCatalogTab() {
     }
     const d = await r.json();
     const list: PackageRow[] = Array.isArray(d) ? d : (d.packages ?? d.packageTypes ?? []);
-    setRows(list.map((p) => ({ ...p, price: Number(p.price), offer_price: p.offer_price == null ? null : Number(p.offer_price), benefits: p.benefits ?? [] })));
+    setRows(
+      list.map((p) => ({
+        ...p,
+        price: Number(p.price),
+        offer_price: p.offer_price == null ? null : Number(p.offer_price),
+        cafe_discount_percent: p.cafe_discount_percent == null ? null : Number(p.cafe_discount_percent),
+        benefits: p.benefits ?? [],
+      })),
+    );
   }, []);
 
   useEffect(() => {
@@ -203,6 +215,7 @@ export default function PackageCatalogTab() {
       is_published: form.is_published,
       description: form.description.trim() || null,
       offer_price: offerPriceNum,
+      cafe_discount_percent: form.cafe_discount_percent.trim() === "" ? null : Number(form.cafe_discount_percent),
       offer_label: form.offer_label.trim() || null,
       offer_starts_at: form.offer_starts_at ? new Date(form.offer_starts_at).toISOString() : null,
       offer_ends_at: form.offer_ends_at ? new Date(form.offer_ends_at).toISOString() : null,
@@ -484,6 +497,19 @@ export default function PackageCatalogTab() {
                     value={form.offer_price}
                     onChange={(e) => patch("offer_price", e.target.value)}
                     placeholder="Leave blank for no offer"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="pkg-cafe-discount">Café discount %</Label>
+                  <Input
+                    id="pkg-cafe-discount"
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="0.01"
+                    placeholder="e.g. 15"
+                    value={form.cafe_discount_percent}
+                    onChange={(e) => patch("cafe_discount_percent", e.target.value)}
                   />
                 </div>
                 <div className="grid gap-1.5">
