@@ -155,6 +155,23 @@ export function isCouponActiveNow(c: {
   return true;
 }
 
+export async function getActivePassCafePercent(
+  db: { userPackage: { findMany: (args: unknown) => Promise<unknown[]> } },
+  userId: string,
+  now: Date,
+): Promise<number> {
+  const rows = (await db.userPackage.findMany({
+    where: { user_id: userId, is_active: true, is_paused: false, expiration_date: { gt: now } },
+    select: { package_type: { select: { cafe_discount_percent: true } } },
+  })) as Array<{ package_type: { cafe_discount_percent: unknown } | null }>;
+  let max = 0;
+  for (const r of rows) {
+    const p = toFiniteNumber(r.package_type?.cafe_discount_percent);
+    if (Number.isFinite(p) && p > max) max = p;
+  }
+  return max;
+}
+
 async function checkCouponPerUserLimit(
   db: DbClient,
   coupon: Coupon,
