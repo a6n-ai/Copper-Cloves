@@ -397,6 +397,7 @@ export const ModelName = {
   ClassSchedule: 'ClassSchedule',
   PackageType: 'PackageType',
   UserPackage: 'UserPackage',
+  SharedCredit: 'SharedCredit',
   Booking: 'Booking',
   RazorpayOrder: 'RazorpayOrder',
   RazorpayPayment: 'RazorpayPayment',
@@ -445,7 +446,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "cronRun" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
+    modelProps: "profile" | "userSession" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "sharedCredit" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "cronRun" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1408,6 +1409,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserPackageCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserPackageCountAggregateOutputType> | number
+        }
+      }
+    }
+    SharedCredit: {
+      payload: Prisma.$SharedCreditPayload<ExtArgs>
+      fields: Prisma.SharedCreditFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SharedCreditFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedCreditPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SharedCreditFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedCreditPayload>
+        }
+        findFirst: {
+          args: Prisma.SharedCreditFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedCreditPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SharedCreditFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedCreditPayload>
+        }
+        findMany: {
+          args: Prisma.SharedCreditFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedCreditPayload>[]
+        }
+        create: {
+          args: Prisma.SharedCreditCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedCreditPayload>
+        }
+        createMany: {
+          args: Prisma.SharedCreditCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SharedCreditCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedCreditPayload>[]
+        }
+        delete: {
+          args: Prisma.SharedCreditDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedCreditPayload>
+        }
+        update: {
+          args: Prisma.SharedCreditUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedCreditPayload>
+        }
+        deleteMany: {
+          args: Prisma.SharedCreditDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SharedCreditUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SharedCreditUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedCreditPayload>[]
+        }
+        upsert: {
+          args: Prisma.SharedCreditUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedCreditPayload>
+        }
+        aggregate: {
+          args: Prisma.SharedCreditAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSharedCredit>
+        }
+        groupBy: {
+          args: Prisma.SharedCreditGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SharedCreditGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SharedCreditCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SharedCreditCountAggregateOutputType> | number
         }
       }
     }
@@ -4166,6 +4241,23 @@ export const UserPackageScalarFieldEnum = {
 export type UserPackageScalarFieldEnum = (typeof UserPackageScalarFieldEnum)[keyof typeof UserPackageScalarFieldEnum]
 
 
+export const SharedCreditScalarFieldEnum = {
+  id: 'id',
+  source_user_package_id: 'source_user_package_id',
+  owner_user_id: 'owner_user_id',
+  recipient_user_id: 'recipient_user_id',
+  credits_total: 'credits_total',
+  credits_remaining: 'credits_remaining',
+  status: 'status',
+  expiration_date: 'expiration_date',
+  note: 'note',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type SharedCreditScalarFieldEnum = (typeof SharedCreditScalarFieldEnum)[keyof typeof SharedCreditScalarFieldEnum]
+
+
 export const BookingScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
@@ -4195,7 +4287,8 @@ export const BookingScalarFieldEnum = {
   extra_guest_count: 'extra_guest_count',
   guest_attendees: 'guest_attendees',
   finance_snapshot: 'finance_snapshot',
-  invited_by_user_id: 'invited_by_user_id'
+  invited_by_user_id: 'invited_by_user_id',
+  shared_credit_id: 'shared_credit_id'
 } as const
 
 export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum]
@@ -4687,6 +4780,7 @@ export const StudioSettingsScalarFieldEnum = {
   cancellation_cutoff_hours: 'cancellation_cutoff_hours',
   default_package_validity_days: 'default_package_validity_days',
   cancelled_pass_validity_days: 'cancelled_pass_validity_days',
+  max_shared_percent: 'max_shared_percent',
   business_name: 'business_name',
   business_address: 'business_address',
   business_gstin: 'business_gstin',
@@ -5108,6 +5202,7 @@ export type GlobalOmitConfig = {
   classSchedule?: Prisma.ClassScheduleOmit
   packageType?: Prisma.PackageTypeOmit
   userPackage?: Prisma.UserPackageOmit
+  sharedCredit?: Prisma.SharedCreditOmit
   booking?: Prisma.BookingOmit
   razorpayOrder?: Prisma.RazorpayOrderOmit
   razorpayPayment?: Prisma.RazorpayPaymentOmit

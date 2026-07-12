@@ -344,6 +344,7 @@ export type UserPackageWhereInput = {
   payments?: Prisma.PaymentListRelationFilter
   member_tickets?: Prisma.MemberTicketListRelationFilter
   coupon_redemptions?: Prisma.CouponRedemptionListRelationFilter
+  shared_credits?: Prisma.SharedCreditListRelationFilter
 }
 
 export type UserPackageOrderByWithRelationInput = {
@@ -374,6 +375,7 @@ export type UserPackageOrderByWithRelationInput = {
   payments?: Prisma.PaymentOrderByRelationAggregateInput
   member_tickets?: Prisma.MemberTicketOrderByRelationAggregateInput
   coupon_redemptions?: Prisma.CouponRedemptionOrderByRelationAggregateInput
+  shared_credits?: Prisma.SharedCreditOrderByRelationAggregateInput
 }
 
 export type UserPackageWhereUniqueInput = Prisma.AtLeast<{
@@ -407,6 +409,7 @@ export type UserPackageWhereUniqueInput = Prisma.AtLeast<{
   payments?: Prisma.PaymentListRelationFilter
   member_tickets?: Prisma.MemberTicketListRelationFilter
   coupon_redemptions?: Prisma.CouponRedemptionListRelationFilter
+  shared_credits?: Prisma.SharedCreditListRelationFilter
 }, "id">
 
 export type UserPackageOrderByWithAggregationInput = {
@@ -486,6 +489,7 @@ export type UserPackageCreateInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageUncheckedCreateInput = {
@@ -513,6 +517,7 @@ export type UserPackageUncheckedCreateInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditUncheckedCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageUpdateInput = {
@@ -540,6 +545,7 @@ export type UserPackageUpdateInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateInput = {
@@ -567,6 +573,7 @@ export type UserPackageUncheckedUpdateInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUncheckedUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageCreateManyInput = {
@@ -725,6 +732,11 @@ export type UserPackageSumOrderByAggregateInput = {
   purchase_discount_inr?: Prisma.SortOrder
 }
 
+export type UserPackageScalarRelationFilter = {
+  is?: Prisma.UserPackageWhereInput
+  isNot?: Prisma.UserPackageWhereInput
+}
+
 export type UserPackageCreateNestedManyWithoutProfileInput = {
   create?: Prisma.XOR<Prisma.UserPackageCreateWithoutProfileInput, Prisma.UserPackageUncheckedCreateWithoutProfileInput> | Prisma.UserPackageCreateWithoutProfileInput[] | Prisma.UserPackageUncheckedCreateWithoutProfileInput[]
   connectOrCreate?: Prisma.UserPackageCreateOrConnectWithoutProfileInput | Prisma.UserPackageCreateOrConnectWithoutProfileInput[]
@@ -867,6 +879,20 @@ export type UserPackageUncheckedUpdateManyWithoutPackage_typeNestedInput = {
   deleteMany?: Prisma.UserPackageScalarWhereInput | Prisma.UserPackageScalarWhereInput[]
 }
 
+export type UserPackageCreateNestedOneWithoutShared_creditsInput = {
+  create?: Prisma.XOR<Prisma.UserPackageCreateWithoutShared_creditsInput, Prisma.UserPackageUncheckedCreateWithoutShared_creditsInput>
+  connectOrCreate?: Prisma.UserPackageCreateOrConnectWithoutShared_creditsInput
+  connect?: Prisma.UserPackageWhereUniqueInput
+}
+
+export type UserPackageUpdateOneRequiredWithoutShared_creditsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserPackageCreateWithoutShared_creditsInput, Prisma.UserPackageUncheckedCreateWithoutShared_creditsInput>
+  connectOrCreate?: Prisma.UserPackageCreateOrConnectWithoutShared_creditsInput
+  upsert?: Prisma.UserPackageUpsertWithoutShared_creditsInput
+  connect?: Prisma.UserPackageWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserPackageUpdateToOneWithWhereWithoutShared_creditsInput, Prisma.UserPackageUpdateWithoutShared_creditsInput>, Prisma.UserPackageUncheckedUpdateWithoutShared_creditsInput>
+}
+
 export type UserPackageCreateNestedOneWithoutBookingsInput = {
   create?: Prisma.XOR<Prisma.UserPackageCreateWithoutBookingsInput, Prisma.UserPackageUncheckedCreateWithoutBookingsInput>
   connectOrCreate?: Prisma.UserPackageCreateOrConnectWithoutBookingsInput
@@ -955,6 +981,7 @@ export type UserPackageCreateWithoutProfileInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageUncheckedCreateWithoutProfileInput = {
@@ -981,6 +1008,7 @@ export type UserPackageUncheckedCreateWithoutProfileInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditUncheckedCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageCreateOrConnectWithoutProfileInput = {
@@ -1058,6 +1086,7 @@ export type UserPackageCreateWithoutCouponInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageUncheckedCreateWithoutCouponInput = {
@@ -1084,6 +1113,7 @@ export type UserPackageUncheckedCreateWithoutCouponInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditUncheckedCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageCreateOrConnectWithoutCouponInput = {
@@ -1136,6 +1166,7 @@ export type UserPackageCreateWithoutCoupon_redemptionsInput = {
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageUncheckedCreateWithoutCoupon_redemptionsInput = {
@@ -1162,6 +1193,7 @@ export type UserPackageUncheckedCreateWithoutCoupon_redemptionsInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditUncheckedCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageCreateOrConnectWithoutCoupon_redemptionsInput = {
@@ -1204,6 +1236,7 @@ export type UserPackageUpdateWithoutCoupon_redemptionsInput = {
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateWithoutCoupon_redemptionsInput = {
@@ -1230,6 +1263,7 @@ export type UserPackageUncheckedUpdateWithoutCoupon_redemptionsInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUncheckedUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageCreateWithoutPackage_typeInput = {
@@ -1256,6 +1290,7 @@ export type UserPackageCreateWithoutPackage_typeInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageUncheckedCreateWithoutPackage_typeInput = {
@@ -1282,6 +1317,7 @@ export type UserPackageUncheckedCreateWithoutPackage_typeInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditUncheckedCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageCreateOrConnectWithoutPackage_typeInput = {
@@ -1310,6 +1346,130 @@ export type UserPackageUpdateManyWithWhereWithoutPackage_typeInput = {
   data: Prisma.XOR<Prisma.UserPackageUpdateManyMutationInput, Prisma.UserPackageUncheckedUpdateManyWithoutPackage_typeInput>
 }
 
+export type UserPackageCreateWithoutShared_creditsInput = {
+  id?: string
+  credits_remaining?: number | null
+  credits_total?: number | null
+  expiration_date: Date | string
+  purchase_date?: Date | string
+  is_active?: boolean
+  is_paused?: boolean
+  pause_start_date?: Date | string | null
+  pause_end_date?: Date | string | null
+  pass_type?: string | null
+  purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  is_comp?: boolean
+  grant_note?: string | null
+  origin?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  profile: Prisma.ProfileCreateNestedOneWithoutUser_packagesInput
+  package_type: Prisma.PackageTypeCreateNestedOneWithoutUser_packagesInput
+  coupon?: Prisma.CouponCreateNestedOneWithoutUser_packagesInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUser_packageInput
+  razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
+  member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutUser_packageInput
+  coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutUser_packageInput
+}
+
+export type UserPackageUncheckedCreateWithoutShared_creditsInput = {
+  id?: string
+  user_id: string
+  package_type_id: string
+  credits_remaining?: number | null
+  credits_total?: number | null
+  expiration_date: Date | string
+  purchase_date?: Date | string
+  is_active?: boolean
+  is_paused?: boolean
+  pause_start_date?: Date | string | null
+  pause_end_date?: Date | string | null
+  pass_type?: string | null
+  coupon_id?: string | null
+  purchase_discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  is_comp?: boolean
+  grant_note?: string | null
+  origin?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUser_packageInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
+  member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutUser_packageInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutUser_packageInput
+}
+
+export type UserPackageCreateOrConnectWithoutShared_creditsInput = {
+  where: Prisma.UserPackageWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserPackageCreateWithoutShared_creditsInput, Prisma.UserPackageUncheckedCreateWithoutShared_creditsInput>
+}
+
+export type UserPackageUpsertWithoutShared_creditsInput = {
+  update: Prisma.XOR<Prisma.UserPackageUpdateWithoutShared_creditsInput, Prisma.UserPackageUncheckedUpdateWithoutShared_creditsInput>
+  create: Prisma.XOR<Prisma.UserPackageCreateWithoutShared_creditsInput, Prisma.UserPackageUncheckedCreateWithoutShared_creditsInput>
+  where?: Prisma.UserPackageWhereInput
+}
+
+export type UserPackageUpdateToOneWithWhereWithoutShared_creditsInput = {
+  where?: Prisma.UserPackageWhereInput
+  data: Prisma.XOR<Prisma.UserPackageUpdateWithoutShared_creditsInput, Prisma.UserPackageUncheckedUpdateWithoutShared_creditsInput>
+}
+
+export type UserPackageUpdateWithoutShared_creditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_paused?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pause_start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pause_end_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  is_comp?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grant_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  profile?: Prisma.ProfileUpdateOneRequiredWithoutUser_packagesNestedInput
+  package_type?: Prisma.PackageTypeUpdateOneRequiredWithoutUser_packagesNestedInput
+  coupon?: Prisma.CouponUpdateOneWithoutUser_packagesNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUser_packageNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
+  member_tickets?: Prisma.MemberTicketUpdateManyWithoutUser_packageNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutUser_packageNestedInput
+}
+
+export type UserPackageUncheckedUpdateWithoutShared_creditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  package_type_id?: Prisma.StringFieldUpdateOperationsInput | string
+  credits_remaining?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  credits_total?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  expiration_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  purchase_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_paused?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pause_start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pause_end_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pass_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  purchase_discount_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  is_comp?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grant_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUser_packageNestedInput
+  razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
+  member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutUser_packageNestedInput
+  coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutUser_packageNestedInput
+}
+
 export type UserPackageCreateWithoutBookingsInput = {
   id?: string
   credits_remaining?: number | null
@@ -1334,6 +1494,7 @@ export type UserPackageCreateWithoutBookingsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageUncheckedCreateWithoutBookingsInput = {
@@ -1360,6 +1521,7 @@ export type UserPackageUncheckedCreateWithoutBookingsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditUncheckedCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageCreateOrConnectWithoutBookingsInput = {
@@ -1402,6 +1564,7 @@ export type UserPackageUpdateWithoutBookingsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateWithoutBookingsInput = {
@@ -1428,6 +1591,7 @@ export type UserPackageUncheckedUpdateWithoutBookingsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUncheckedUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageCreateWithoutRazorpay_orderInput = {
@@ -1454,6 +1618,7 @@ export type UserPackageCreateWithoutRazorpay_orderInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageUncheckedCreateWithoutRazorpay_orderInput = {
@@ -1480,6 +1645,7 @@ export type UserPackageUncheckedCreateWithoutRazorpay_orderInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditUncheckedCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageCreateOrConnectWithoutRazorpay_orderInput = {
@@ -1522,6 +1688,7 @@ export type UserPackageUpdateWithoutRazorpay_orderInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateWithoutRazorpay_orderInput = {
@@ -1548,6 +1715,7 @@ export type UserPackageUncheckedUpdateWithoutRazorpay_orderInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUncheckedUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageCreateWithoutPaymentsInput = {
@@ -1574,6 +1742,7 @@ export type UserPackageCreateWithoutPaymentsInput = {
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageUncheckedCreateWithoutPaymentsInput = {
@@ -1600,6 +1769,7 @@ export type UserPackageUncheckedCreateWithoutPaymentsInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
   member_tickets?: Prisma.MemberTicketUncheckedCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditUncheckedCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageCreateOrConnectWithoutPaymentsInput = {
@@ -1642,6 +1812,7 @@ export type UserPackageUpdateWithoutPaymentsInput = {
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateWithoutPaymentsInput = {
@@ -1668,6 +1839,7 @@ export type UserPackageUncheckedUpdateWithoutPaymentsInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUncheckedUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageCreateWithoutMember_ticketsInput = {
@@ -1694,6 +1866,7 @@ export type UserPackageCreateWithoutMember_ticketsInput = {
   razorpay_order?: Prisma.RazorpayOrderCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageUncheckedCreateWithoutMember_ticketsInput = {
@@ -1720,6 +1893,7 @@ export type UserPackageUncheckedCreateWithoutMember_ticketsInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedCreateNestedOneWithoutUser_packageInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUser_packageInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedCreateNestedManyWithoutUser_packageInput
+  shared_credits?: Prisma.SharedCreditUncheckedCreateNestedManyWithoutSource_user_packageInput
 }
 
 export type UserPackageCreateOrConnectWithoutMember_ticketsInput = {
@@ -1762,6 +1936,7 @@ export type UserPackageUpdateWithoutMember_ticketsInput = {
   razorpay_order?: Prisma.RazorpayOrderUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateWithoutMember_ticketsInput = {
@@ -1788,6 +1963,7 @@ export type UserPackageUncheckedUpdateWithoutMember_ticketsInput = {
   razorpay_order?: Prisma.RazorpayOrderUncheckedUpdateOneWithoutUser_packageNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUncheckedUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageCreateManyProfileInput = {
@@ -1835,6 +2011,7 @@ export type UserPackageUpdateWithoutProfileInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateWithoutProfileInput = {
@@ -1861,6 +2038,7 @@ export type UserPackageUncheckedUpdateWithoutProfileInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUncheckedUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateManyWithoutProfileInput = {
@@ -1929,6 +2107,7 @@ export type UserPackageUpdateWithoutCouponInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateWithoutCouponInput = {
@@ -1955,6 +2134,7 @@ export type UserPackageUncheckedUpdateWithoutCouponInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUncheckedUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateManyWithoutCouponInput = {
@@ -2023,6 +2203,7 @@ export type UserPackageUpdateWithoutPackage_typeInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateWithoutPackage_typeInput = {
@@ -2049,6 +2230,7 @@ export type UserPackageUncheckedUpdateWithoutPackage_typeInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUser_packageNestedInput
   member_tickets?: Prisma.MemberTicketUncheckedUpdateManyWithoutUser_packageNestedInput
   coupon_redemptions?: Prisma.CouponRedemptionUncheckedUpdateManyWithoutUser_packageNestedInput
+  shared_credits?: Prisma.SharedCreditUncheckedUpdateManyWithoutSource_user_packageNestedInput
 }
 
 export type UserPackageUncheckedUpdateManyWithoutPackage_typeInput = {
@@ -2082,6 +2264,7 @@ export type UserPackageCountOutputType = {
   payments: number
   member_tickets: number
   coupon_redemptions: number
+  shared_credits: number
 }
 
 export type UserPackageCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2089,6 +2272,7 @@ export type UserPackageCountOutputTypeSelect<ExtArgs extends runtime.Types.Exten
   payments?: boolean | UserPackageCountOutputTypeCountPaymentsArgs
   member_tickets?: boolean | UserPackageCountOutputTypeCountMember_ticketsArgs
   coupon_redemptions?: boolean | UserPackageCountOutputTypeCountCoupon_redemptionsArgs
+  shared_credits?: boolean | UserPackageCountOutputTypeCountShared_creditsArgs
 }
 
 /**
@@ -2129,6 +2313,13 @@ export type UserPackageCountOutputTypeCountCoupon_redemptionsArgs<ExtArgs extend
   where?: Prisma.CouponRedemptionWhereInput
 }
 
+/**
+ * UserPackageCountOutputType without action
+ */
+export type UserPackageCountOutputTypeCountShared_creditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SharedCreditWhereInput
+}
+
 
 export type UserPackageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2158,6 +2349,7 @@ export type UserPackageSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   payments?: boolean | Prisma.UserPackage$paymentsArgs<ExtArgs>
   member_tickets?: boolean | Prisma.UserPackage$member_ticketsArgs<ExtArgs>
   coupon_redemptions?: boolean | Prisma.UserPackage$coupon_redemptionsArgs<ExtArgs>
+  shared_credits?: boolean | Prisma.UserPackage$shared_creditsArgs<ExtArgs>
   _count?: boolean | Prisma.UserPackageCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userPackage"]>
 
@@ -2243,6 +2435,7 @@ export type UserPackageInclude<ExtArgs extends runtime.Types.Extensions.Internal
   payments?: boolean | Prisma.UserPackage$paymentsArgs<ExtArgs>
   member_tickets?: boolean | Prisma.UserPackage$member_ticketsArgs<ExtArgs>
   coupon_redemptions?: boolean | Prisma.UserPackage$coupon_redemptionsArgs<ExtArgs>
+  shared_credits?: boolean | Prisma.UserPackage$shared_creditsArgs<ExtArgs>
   _count?: boolean | Prisma.UserPackageCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserPackageIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2267,6 +2460,7 @@ export type $UserPackagePayload<ExtArgs extends runtime.Types.Extensions.Interna
     payments: Prisma.$PaymentPayload<ExtArgs>[]
     member_tickets: Prisma.$MemberTicketPayload<ExtArgs>[]
     coupon_redemptions: Prisma.$CouponRedemptionPayload<ExtArgs>[]
+    shared_credits: Prisma.$SharedCreditPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2699,6 +2893,7 @@ export interface Prisma__UserPackageClient<T, Null = never, ExtArgs extends runt
   payments<T extends Prisma.UserPackage$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserPackage$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   member_tickets<T extends Prisma.UserPackage$member_ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserPackage$member_ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemberTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   coupon_redemptions<T extends Prisma.UserPackage$coupon_redemptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserPackage$coupon_redemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CouponRedemptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  shared_credits<T extends Prisma.UserPackage$shared_creditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserPackage$shared_creditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SharedCreditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3279,6 +3474,30 @@ export type UserPackage$coupon_redemptionsArgs<ExtArgs extends runtime.Types.Ext
   take?: number
   skip?: number
   distinct?: Prisma.CouponRedemptionScalarFieldEnum | Prisma.CouponRedemptionScalarFieldEnum[]
+}
+
+/**
+ * UserPackage.shared_credits
+ */
+export type UserPackage$shared_creditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SharedCredit
+   */
+  select?: Prisma.SharedCreditSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SharedCredit
+   */
+  omit?: Prisma.SharedCreditOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SharedCreditInclude<ExtArgs> | null
+  where?: Prisma.SharedCreditWhereInput
+  orderBy?: Prisma.SharedCreditOrderByWithRelationInput | Prisma.SharedCreditOrderByWithRelationInput[]
+  cursor?: Prisma.SharedCreditWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SharedCreditScalarFieldEnum | Prisma.SharedCreditScalarFieldEnum[]
 }
 
 /**

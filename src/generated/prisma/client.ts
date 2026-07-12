@@ -111,6 +111,13 @@ export type PackageType = Prisma.PackageTypeModel
  */
 export type UserPackage = Prisma.UserPackageModel
 /**
+ * Model SharedCredit
+ * A grant of class-pass credits an owner shares with one friend (Friends & Family).
+ * One row = one grant. Recipients only ever redeem; they never own a pass, so a
+ * shared credit can never be re-shared (no-re-share is structural, not guarded).
+ */
+export type SharedCredit = Prisma.SharedCreditModel
+/**
  * Model Booking
  * 
  */

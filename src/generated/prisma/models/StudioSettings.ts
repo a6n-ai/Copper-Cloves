@@ -30,6 +30,7 @@ export type StudioSettingsAvgAggregateOutputType = {
   cancellation_cutoff_hours: number | null
   default_package_validity_days: number | null
   cancelled_pass_validity_days: number | null
+  max_shared_percent: number | null
   next_invoice_seq: number | null
 }
 
@@ -37,6 +38,7 @@ export type StudioSettingsSumAggregateOutputType = {
   cancellation_cutoff_hours: number | null
   default_package_validity_days: number | null
   cancelled_pass_validity_days: number | null
+  max_shared_percent: number | null
   next_invoice_seq: number | null
 }
 
@@ -45,6 +47,7 @@ export type StudioSettingsMinAggregateOutputType = {
   cancellation_cutoff_hours: number | null
   default_package_validity_days: number | null
   cancelled_pass_validity_days: number | null
+  max_shared_percent: number | null
   business_name: string | null
   business_address: string | null
   business_gstin: string | null
@@ -63,6 +66,7 @@ export type StudioSettingsMaxAggregateOutputType = {
   cancellation_cutoff_hours: number | null
   default_package_validity_days: number | null
   cancelled_pass_validity_days: number | null
+  max_shared_percent: number | null
   business_name: string | null
   business_address: string | null
   business_gstin: string | null
@@ -81,6 +85,7 @@ export type StudioSettingsCountAggregateOutputType = {
   cancellation_cutoff_hours: number
   default_package_validity_days: number
   cancelled_pass_validity_days: number
+  max_shared_percent: number
   business_name: number
   business_address: number
   business_gstin: number
@@ -100,6 +105,7 @@ export type StudioSettingsAvgAggregateInputType = {
   cancellation_cutoff_hours?: true
   default_package_validity_days?: true
   cancelled_pass_validity_days?: true
+  max_shared_percent?: true
   next_invoice_seq?: true
 }
 
@@ -107,6 +113,7 @@ export type StudioSettingsSumAggregateInputType = {
   cancellation_cutoff_hours?: true
   default_package_validity_days?: true
   cancelled_pass_validity_days?: true
+  max_shared_percent?: true
   next_invoice_seq?: true
 }
 
@@ -115,6 +122,7 @@ export type StudioSettingsMinAggregateInputType = {
   cancellation_cutoff_hours?: true
   default_package_validity_days?: true
   cancelled_pass_validity_days?: true
+  max_shared_percent?: true
   business_name?: true
   business_address?: true
   business_gstin?: true
@@ -133,6 +141,7 @@ export type StudioSettingsMaxAggregateInputType = {
   cancellation_cutoff_hours?: true
   default_package_validity_days?: true
   cancelled_pass_validity_days?: true
+  max_shared_percent?: true
   business_name?: true
   business_address?: true
   business_gstin?: true
@@ -151,6 +160,7 @@ export type StudioSettingsCountAggregateInputType = {
   cancellation_cutoff_hours?: true
   default_package_validity_days?: true
   cancelled_pass_validity_days?: true
+  max_shared_percent?: true
   business_name?: true
   business_address?: true
   business_gstin?: true
@@ -256,6 +266,7 @@ export type StudioSettingsGroupByOutputType = {
   cancellation_cutoff_hours: number
   default_package_validity_days: number
   cancelled_pass_validity_days: number
+  max_shared_percent: number
   business_name: string | null
   business_address: string | null
   business_gstin: string | null
@@ -297,6 +308,7 @@ export type StudioSettingsWhereInput = {
   cancellation_cutoff_hours?: Prisma.IntFilter<"StudioSettings"> | number
   default_package_validity_days?: Prisma.IntFilter<"StudioSettings"> | number
   cancelled_pass_validity_days?: Prisma.IntFilter<"StudioSettings"> | number
+  max_shared_percent?: Prisma.IntFilter<"StudioSettings"> | number
   business_name?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
   business_address?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
   business_gstin?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
@@ -315,6 +327,7 @@ export type StudioSettingsOrderByWithRelationInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  max_shared_percent?: Prisma.SortOrder
   business_name?: Prisma.SortOrderInput | Prisma.SortOrder
   business_address?: Prisma.SortOrderInput | Prisma.SortOrder
   business_gstin?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -336,6 +349,7 @@ export type StudioSettingsWhereUniqueInput = Prisma.AtLeast<{
   cancellation_cutoff_hours?: Prisma.IntFilter<"StudioSettings"> | number
   default_package_validity_days?: Prisma.IntFilter<"StudioSettings"> | number
   cancelled_pass_validity_days?: Prisma.IntFilter<"StudioSettings"> | number
+  max_shared_percent?: Prisma.IntFilter<"StudioSettings"> | number
   business_name?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
   business_address?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
   business_gstin?: Prisma.StringNullableFilter<"StudioSettings"> | string | null
@@ -354,6 +368,7 @@ export type StudioSettingsOrderByWithAggregationInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  max_shared_percent?: Prisma.SortOrder
   business_name?: Prisma.SortOrderInput | Prisma.SortOrder
   business_address?: Prisma.SortOrderInput | Prisma.SortOrder
   business_gstin?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -380,6 +395,7 @@ export type StudioSettingsScalarWhereWithAggregatesInput = {
   cancellation_cutoff_hours?: Prisma.IntWithAggregatesFilter<"StudioSettings"> | number
   default_package_validity_days?: Prisma.IntWithAggregatesFilter<"StudioSettings"> | number
   cancelled_pass_validity_days?: Prisma.IntWithAggregatesFilter<"StudioSettings"> | number
+  max_shared_percent?: Prisma.IntWithAggregatesFilter<"StudioSettings"> | number
   business_name?: Prisma.StringNullableWithAggregatesFilter<"StudioSettings"> | string | null
   business_address?: Prisma.StringNullableWithAggregatesFilter<"StudioSettings"> | string | null
   business_gstin?: Prisma.StringNullableWithAggregatesFilter<"StudioSettings"> | string | null
@@ -398,6 +414,7 @@ export type StudioSettingsCreateInput = {
   cancellation_cutoff_hours?: number
   default_package_validity_days?: number
   cancelled_pass_validity_days?: number
+  max_shared_percent?: number
   business_name?: string | null
   business_address?: string | null
   business_gstin?: string | null
@@ -416,6 +433,7 @@ export type StudioSettingsUncheckedCreateInput = {
   cancellation_cutoff_hours?: number
   default_package_validity_days?: number
   cancelled_pass_validity_days?: number
+  max_shared_percent?: number
   business_name?: string | null
   business_address?: string | null
   business_gstin?: string | null
@@ -434,6 +452,7 @@ export type StudioSettingsUpdateInput = {
   cancellation_cutoff_hours?: Prisma.IntFieldUpdateOperationsInput | number
   default_package_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
   cancelled_pass_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
+  max_shared_percent?: Prisma.IntFieldUpdateOperationsInput | number
   business_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   business_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   business_gstin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -452,6 +471,7 @@ export type StudioSettingsUncheckedUpdateInput = {
   cancellation_cutoff_hours?: Prisma.IntFieldUpdateOperationsInput | number
   default_package_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
   cancelled_pass_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
+  max_shared_percent?: Prisma.IntFieldUpdateOperationsInput | number
   business_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   business_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   business_gstin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -470,6 +490,7 @@ export type StudioSettingsCreateManyInput = {
   cancellation_cutoff_hours?: number
   default_package_validity_days?: number
   cancelled_pass_validity_days?: number
+  max_shared_percent?: number
   business_name?: string | null
   business_address?: string | null
   business_gstin?: string | null
@@ -488,6 +509,7 @@ export type StudioSettingsUpdateManyMutationInput = {
   cancellation_cutoff_hours?: Prisma.IntFieldUpdateOperationsInput | number
   default_package_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
   cancelled_pass_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
+  max_shared_percent?: Prisma.IntFieldUpdateOperationsInput | number
   business_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   business_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   business_gstin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -506,6 +528,7 @@ export type StudioSettingsUncheckedUpdateManyInput = {
   cancellation_cutoff_hours?: Prisma.IntFieldUpdateOperationsInput | number
   default_package_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
   cancelled_pass_validity_days?: Prisma.IntFieldUpdateOperationsInput | number
+  max_shared_percent?: Prisma.IntFieldUpdateOperationsInput | number
   business_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   business_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   business_gstin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -524,6 +547,7 @@ export type StudioSettingsCountOrderByAggregateInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  max_shared_percent?: Prisma.SortOrder
   business_name?: Prisma.SortOrder
   business_address?: Prisma.SortOrder
   business_gstin?: Prisma.SortOrder
@@ -541,6 +565,7 @@ export type StudioSettingsAvgOrderByAggregateInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  max_shared_percent?: Prisma.SortOrder
   next_invoice_seq?: Prisma.SortOrder
 }
 
@@ -549,6 +574,7 @@ export type StudioSettingsMaxOrderByAggregateInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  max_shared_percent?: Prisma.SortOrder
   business_name?: Prisma.SortOrder
   business_address?: Prisma.SortOrder
   business_gstin?: Prisma.SortOrder
@@ -567,6 +593,7 @@ export type StudioSettingsMinOrderByAggregateInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  max_shared_percent?: Prisma.SortOrder
   business_name?: Prisma.SortOrder
   business_address?: Prisma.SortOrder
   business_gstin?: Prisma.SortOrder
@@ -584,6 +611,7 @@ export type StudioSettingsSumOrderByAggregateInput = {
   cancellation_cutoff_hours?: Prisma.SortOrder
   default_package_validity_days?: Prisma.SortOrder
   cancelled_pass_validity_days?: Prisma.SortOrder
+  max_shared_percent?: Prisma.SortOrder
   next_invoice_seq?: Prisma.SortOrder
 }
 
@@ -594,6 +622,7 @@ export type StudioSettingsSelect<ExtArgs extends runtime.Types.Extensions.Intern
   cancellation_cutoff_hours?: boolean
   default_package_validity_days?: boolean
   cancelled_pass_validity_days?: boolean
+  max_shared_percent?: boolean
   business_name?: boolean
   business_address?: boolean
   business_gstin?: boolean
@@ -612,6 +641,7 @@ export type StudioSettingsSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   cancellation_cutoff_hours?: boolean
   default_package_validity_days?: boolean
   cancelled_pass_validity_days?: boolean
+  max_shared_percent?: boolean
   business_name?: boolean
   business_address?: boolean
   business_gstin?: boolean
@@ -630,6 +660,7 @@ export type StudioSettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   cancellation_cutoff_hours?: boolean
   default_package_validity_days?: boolean
   cancelled_pass_validity_days?: boolean
+  max_shared_percent?: boolean
   business_name?: boolean
   business_address?: boolean
   business_gstin?: boolean
@@ -648,6 +679,7 @@ export type StudioSettingsSelectScalar = {
   cancellation_cutoff_hours?: boolean
   default_package_validity_days?: boolean
   cancelled_pass_validity_days?: boolean
+  max_shared_percent?: boolean
   business_name?: boolean
   business_address?: boolean
   business_gstin?: boolean
@@ -661,7 +693,7 @@ export type StudioSettingsSelectScalar = {
   updated_at?: boolean
 }
 
-export type StudioSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "cancellation_cutoff_hours" | "default_package_validity_days" | "cancelled_pass_validity_days" | "business_name" | "business_address" | "business_gstin" | "business_email" | "business_phone" | "business_logo_url" | "invoice_prefix" | "next_invoice_seq" | "invoice_footer_note" | "created_at" | "updated_at", ExtArgs["result"]["studioSettings"]>
+export type StudioSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "cancellation_cutoff_hours" | "default_package_validity_days" | "cancelled_pass_validity_days" | "max_shared_percent" | "business_name" | "business_address" | "business_gstin" | "business_email" | "business_phone" | "business_logo_url" | "invoice_prefix" | "next_invoice_seq" | "invoice_footer_note" | "created_at" | "updated_at", ExtArgs["result"]["studioSettings"]>
 
 export type $StudioSettingsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "StudioSettings"
@@ -680,6 +712,10 @@ export type $StudioSettingsPayload<ExtArgs extends runtime.Types.Extensions.Inte
      * Validity (days) of the 1 Class Pass granted on a cancelled class.
      */
     cancelled_pass_validity_days: number
+    /**
+     * Max % of a pass's credits an owner may share with Friends & Family. Range 75–100.
+     */
+    max_shared_percent: number
     /**
      * Invoice / legal business identity (editable in admin control panel).
      */
@@ -1121,6 +1157,7 @@ export interface StudioSettingsFieldRefs {
   readonly cancellation_cutoff_hours: Prisma.FieldRef<"StudioSettings", 'Int'>
   readonly default_package_validity_days: Prisma.FieldRef<"StudioSettings", 'Int'>
   readonly cancelled_pass_validity_days: Prisma.FieldRef<"StudioSettings", 'Int'>
+  readonly max_shared_percent: Prisma.FieldRef<"StudioSettings", 'Int'>
   readonly business_name: Prisma.FieldRef<"StudioSettings", 'String'>
   readonly business_address: Prisma.FieldRef<"StudioSettings", 'String'>
   readonly business_gstin: Prisma.FieldRef<"StudioSettings", 'String'>

@@ -35,6 +35,8 @@ model Profile {
   partner_memberships PartnerMember[]
   bookings          Booking[]
   sent_invites        Booking[]  @relation("BookingInvites")
+  shared_by_me     SharedCredit[] @relation("SharedByMe")
+  shared_with_me   SharedCredit[] @relation("SharedWithMe")
   friendships_a       Friendship[] @relation("FriendshipA")
   friendships_b       Friendship[] @relation("FriendshipB")
   cafe_orders       CafeOrder[]
@@ -398,6 +400,7 @@ model UserPackage {
   payments         Payment[]
   member_tickets   MemberTicket[]
   coupon_redemptions CouponRedemption[]
+  shared_credits   SharedCredit[]
 
   @@index([user_id])
   @@index([package_type_id])
@@ -405,6 +408,33 @@ model UserPackage {
   @@index([expiration_date])
   @@index([is_active, expiration_date])
   @@map("user_packages")
+}
+
+/// A grant of class-pass credits an owner shares with one friend (Friends & Family).
+/// One row = one grant. Recipients only ever redeem; they never own a pass, so a
+/// shared credit can never be re-shared (no-re-share is structural, not guarded).
+model SharedCredit {
+  id                     String   @id @default(uuid())
+  source_user_package_id String   // owner's pass the credits are carved from
+  owner_user_id          String   // pass owner (sharer)
+  recipient_user_id      String   // friend who redeems
+  credits_total          Int      // credits granted
+  credits_remaining      Int      // decrements as the friend books
+  status                 String   @default("active") // active | revoked | expired
+  expiration_date        DateTime // = source pass expiry at grant time
+  note                   String?
+  created_at             DateTime @default(now())
+  updated_at             DateTime @default(now()) @updatedAt
+
+  source_user_package UserPackage @relation(fields: [source_user_package_id], references: [id], onDelete: Cascade)
+  owner     Profile @relation("SharedByMe",   fields: [owner_user_id],     references: [id], onDelete: Cascade)
+  recipient Profile @relation("SharedWithMe", fields: [recipient_user_id], references: [id], onDelete: Cascade)
+  bookings  Booking[]
+
+  @@index([recipient_user_id, status])
+  @@index([owner_user_id, status])
+  @@index([source_user_package_id])
+  @@map("shared_credits")
 }
 
 model Booking {
@@ -454,6 +484,9 @@ model Booking {
   /// Set when this booking was created on behalf of this user by another member.
   invited_by_user_id  String?
   invited_by          Profile?  @relation("BookingInvites", fields: [invited_by_user_id], references: [id], onDelete: SetNull)
+  /// Set when this booking was paid by a shared credit (friend attends at ₹0).
+  shared_credit_id  String?
+  shared_credit     SharedCredit? @relation(fields: [shared_credit_id], references: [id], onDelete: SetNull)
 
   profile        Profile        @relation(fields: [user_id], references: [id], onDelete: Cascade)
   class_schedule ClassSchedule? @relation(fields: [class_schedule_id], references: [id], onDelete: Cascade)
@@ -1150,6 +1183,8 @@ model StudioSettings {
   default_package_validity_days Int      @default(30)
   /// Validity (days) of the 1 Class Pass granted on a cancelled class.
   cancelled_pass_validity_days  Int      @default(7)
+  /// Max % of a pass's credits an owner may share with Friends & Family. Range 75–100.
+  max_shared_percent            Int      @default(75)
   /// Invoice / legal business identity (editable in admin control panel).
   business_name        String?
   business_address     String?
