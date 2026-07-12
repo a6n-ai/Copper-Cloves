@@ -12,6 +12,7 @@ export const STUDIO_SETTINGS_DEFAULTS = {
   cancellation_cutoff_hours: 6,
   default_package_validity_days: 30,
   cancelled_pass_validity_days: 7,
+  max_shared_percent: 75,
 } as const;
 
 /**

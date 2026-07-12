@@ -8,6 +8,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getStudioSettings, STUDIO_SETTINGS_ID, STUDIO_SETTINGS_DEFAULTS } from "@/lib/studioSettings";
+import { SHARE_PERCENT_MIN, SHARE_PERCENT_MAX } from "@/lib/sharedCredits";
 
 /** Returns a positive integer or null if the value is missing/invalid. */
 function posInt(v: unknown): number | null {
@@ -75,6 +76,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const seq = posInt(body.next_invoice_seq);
       if (seq === null) return res.status(400).json({ error: "next_invoice_seq must be a positive integer" });
       (data as Record<string, unknown>)["next_invoice_seq"] = seq;
+    }
+
+    if (body.max_shared_percent !== undefined) {
+      const pct = Number(body.max_shared_percent);
+      if (!Number.isInteger(pct) || pct < SHARE_PERCENT_MIN || pct > SHARE_PERCENT_MAX) {
+        return res.status(400).json({ error: `max_shared_percent must be an integer ${SHARE_PERCENT_MIN}–${SHARE_PERCENT_MAX}` });
+      }
+      data.max_shared_percent = pct;
     }
 
     const settings = await prisma.studioSettings.upsert({
