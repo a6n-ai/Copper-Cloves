@@ -5,6 +5,8 @@ import { apiError } from "@/lib/apiError";
 import type { Coupon } from "@/generated/prisma/client";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
+  combineCafeDiscount,
+  getActivePassCafePercent,
   incrementCouponAndRecordRedemption,
   validateAndComputeCoupon,
 } from "@/lib/couponHelpers";
@@ -48,21 +50,6 @@ async function resolveBookingId(
     orderBy: { created_at: "desc" },
   });
   return booking?.id ?? null;
-}
-
-async function applyCoupon(
-  tx: TxClient,
-  couponCode: string,
-  subtotal: number,
-  userId: string,
-): Promise<{ coupon: Coupon | null; discountTotal: number }> {
-  if (!couponCode.trim()) return { coupon: null, discountTotal: 0 };
-  const v = await validateAndComputeCoupon(tx, couponCode, "food", subtotal, {
-    userId,
-    guestEmail: null,
-  });
-  if ("error" in v) throw new Error(`COUPON:${v.error}`);
-  return { coupon: v.coupon, discountTotal: v.discountInr };
 }
 
 async function createOrderRows(
@@ -149,29 +136,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const lines = await buildOrderLines(tx, items);
 
       const subtotal = lines.reduce((s, l) => s + l.lineSubtotal, 0);
-      const { coupon, discountTotal } = await applyCoupon(tx, couponCode, subtotal, userId);
+
+      const now = new Date();
+      const passPercent = await getActivePassCafePercent(tx, userId, now);
+
+      // Validate coupon (does not itself decide the final amount — helper combines).
+      let coupon: Coupon | null = null;
+      if (couponCode.trim()) {
+        const v = await validateAndComputeCoupon(tx, couponCode, "food", subtotal, {
+          userId,
+          guestEmail: null,
+        });
+        if ("error" in v) throw new Error(`COUPON:${v.error}`);
+        coupon = v.coupon;
+      }
+
+      const combined = combineCafeDiscount(
+        subtotal,
+        passPercent,
+        coupon
+          ? {
+              discount_type: coupon.discount_type,
+              discount_value: coupon.discount_value.toString(),
+              max_discount_inr: coupon.max_discount_inr?.toString() ?? null,
+              stackable: coupon.stackable,
+            }
+          : null,
+      );
+      // Only attribute the coupon (persist id + record redemption) when it actually applied.
+      const appliedCouponId = combined.couponApplies ? coupon?.id ?? null : null;
+      const couponContribution = combined.couponApplies ? combined.couponDiscount : 0;
 
       const resolvedBookingId = await resolveBookingId(tx, userId, addToClass, classScheduleId);
 
       const batchId = randomUUID();
-      const discounts = splitDiscountAcrossLines(lines.map((l) => l.lineSubtotal), discountTotal);
+      const discounts = splitDiscountAcrossLines(lines.map((l) => l.lineSubtotal), combined.total);
 
       await createOrderRows(tx, lines, discounts, {
         userId,
         resolvedBookingId,
         paymentMethod,
-        couponId: coupon?.id ?? null,
+        couponId: appliedCouponId,
         batchId,
       });
 
-      if (coupon && discountTotal > 0) {
-        await incrementCouponAndRecordRedemption(tx, coupon, discountTotal, "food", {
+      if (coupon && combined.couponApplies && couponContribution > 0) {
+        await incrementCouponAndRecordRedemption(tx, coupon, couponContribution, "food", {
           userId,
           guestEmail: null,
         });
       }
 
-      return { batchId, subtotal, discountInr: discountTotal, finalInr: subtotal - discountTotal };
+      return { batchId, subtotal, discountInr: combined.total, finalInr: subtotal - combined.total };
     });
 
     return res.status(201).json(result);
