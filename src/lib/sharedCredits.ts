@@ -23,8 +23,9 @@ export function maxShareableCredits(creditsTotal: number | null, maxSharedPercen
 export function canShare(input: {
   creditsTotal: number | null;
   creditsRemaining: number;
-  alreadyShared: number;
   requested: number;
+  /** Sum of credits_total over the pass's ACTIVE grants only — NOT lifetime. Revoked grants free their credits to be re-shared. */
+  alreadyShared: number;
   maxSharedPercent: number;
 }): { ok: boolean; reason?: ShareDenyReason } {
   const { creditsTotal, creditsRemaining, alreadyShared, requested, maxSharedPercent } = input;
