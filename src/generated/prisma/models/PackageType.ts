@@ -32,6 +32,7 @@ export type PackageTypeAvgAggregateOutputType = {
   price: runtime.Decimal | null
   display_order: number | null
   offer_price: runtime.Decimal | null
+  cafe_discount_percent: runtime.Decimal | null
 }
 
 export type PackageTypeSumAggregateOutputType = {
@@ -40,6 +41,7 @@ export type PackageTypeSumAggregateOutputType = {
   price: runtime.Decimal | null
   display_order: number | null
   offer_price: runtime.Decimal | null
+  cafe_discount_percent: runtime.Decimal | null
 }
 
 export type PackageTypeMinAggregateOutputType = {
@@ -60,6 +62,7 @@ export type PackageTypeMinAggregateOutputType = {
   offer_label: string | null
   offer_starts_at: Date | null
   offer_ends_at: Date | null
+  cafe_discount_percent: runtime.Decimal | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -82,6 +85,7 @@ export type PackageTypeMaxAggregateOutputType = {
   offer_label: string | null
   offer_starts_at: Date | null
   offer_ends_at: Date | null
+  cafe_discount_percent: runtime.Decimal | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -105,6 +109,7 @@ export type PackageTypeCountAggregateOutputType = {
   offer_label: number
   offer_starts_at: number
   offer_ends_at: number
+  cafe_discount_percent: number
   created_at: number
   updated_at: number
   _all: number
@@ -117,6 +122,7 @@ export type PackageTypeAvgAggregateInputType = {
   price?: true
   display_order?: true
   offer_price?: true
+  cafe_discount_percent?: true
 }
 
 export type PackageTypeSumAggregateInputType = {
@@ -125,6 +131,7 @@ export type PackageTypeSumAggregateInputType = {
   price?: true
   display_order?: true
   offer_price?: true
+  cafe_discount_percent?: true
 }
 
 export type PackageTypeMinAggregateInputType = {
@@ -145,6 +152,7 @@ export type PackageTypeMinAggregateInputType = {
   offer_label?: true
   offer_starts_at?: true
   offer_ends_at?: true
+  cafe_discount_percent?: true
   created_at?: true
   updated_at?: true
 }
@@ -167,6 +175,7 @@ export type PackageTypeMaxAggregateInputType = {
   offer_label?: true
   offer_starts_at?: true
   offer_ends_at?: true
+  cafe_discount_percent?: true
   created_at?: true
   updated_at?: true
 }
@@ -190,6 +199,7 @@ export type PackageTypeCountAggregateInputType = {
   offer_label?: true
   offer_starts_at?: true
   offer_ends_at?: true
+  cafe_discount_percent?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -300,6 +310,7 @@ export type PackageTypeGroupByOutputType = {
   offer_label: string | null
   offer_starts_at: Date | null
   offer_ends_at: Date | null
+  cafe_discount_percent: runtime.Decimal | null
   created_at: Date
   updated_at: Date
   _count: PackageTypeCountAggregateOutputType | null
@@ -346,6 +357,7 @@ export type PackageTypeWhereInput = {
   offer_label?: Prisma.StringNullableFilter<"PackageType"> | string | null
   offer_starts_at?: Prisma.DateTimeNullableFilter<"PackageType"> | Date | string | null
   offer_ends_at?: Prisma.DateTimeNullableFilter<"PackageType"> | Date | string | null
+  cafe_discount_percent?: Prisma.DecimalNullableFilter<"PackageType"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   user_packages?: Prisma.UserPackageListRelationFilter
@@ -370,6 +382,7 @@ export type PackageTypeOrderByWithRelationInput = {
   offer_label?: Prisma.SortOrderInput | Prisma.SortOrder
   offer_starts_at?: Prisma.SortOrderInput | Prisma.SortOrder
   offer_ends_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  cafe_discount_percent?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   user_packages?: Prisma.UserPackageOrderByRelationAggregateInput
@@ -397,6 +410,7 @@ export type PackageTypeWhereUniqueInput = Prisma.AtLeast<{
   offer_label?: Prisma.StringNullableFilter<"PackageType"> | string | null
   offer_starts_at?: Prisma.DateTimeNullableFilter<"PackageType"> | Date | string | null
   offer_ends_at?: Prisma.DateTimeNullableFilter<"PackageType"> | Date | string | null
+  cafe_discount_percent?: Prisma.DecimalNullableFilter<"PackageType"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"PackageType"> | Date | string
   user_packages?: Prisma.UserPackageListRelationFilter
@@ -421,6 +435,7 @@ export type PackageTypeOrderByWithAggregationInput = {
   offer_label?: Prisma.SortOrderInput | Prisma.SortOrder
   offer_starts_at?: Prisma.SortOrderInput | Prisma.SortOrder
   offer_ends_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  cafe_discount_percent?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.PackageTypeCountOrderByAggregateInput
@@ -452,6 +467,7 @@ export type PackageTypeScalarWhereWithAggregatesInput = {
   offer_label?: Prisma.StringNullableWithAggregatesFilter<"PackageType"> | string | null
   offer_starts_at?: Prisma.DateTimeNullableWithAggregatesFilter<"PackageType"> | Date | string | null
   offer_ends_at?: Prisma.DateTimeNullableWithAggregatesFilter<"PackageType"> | Date | string | null
+  cafe_discount_percent?: Prisma.DecimalNullableWithAggregatesFilter<"PackageType"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"PackageType"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"PackageType"> | Date | string
 }
@@ -475,6 +491,7 @@ export type PackageTypeCreateInput = {
   offer_label?: string | null
   offer_starts_at?: Date | string | null
   offer_ends_at?: Date | string | null
+  cafe_discount_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
   updated_at?: Date | string
   user_packages?: Prisma.UserPackageCreateNestedManyWithoutPackage_typeInput
@@ -499,6 +516,7 @@ export type PackageTypeUncheckedCreateInput = {
   offer_label?: string | null
   offer_starts_at?: Date | string | null
   offer_ends_at?: Date | string | null
+  cafe_discount_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
   updated_at?: Date | string
   user_packages?: Prisma.UserPackageUncheckedCreateNestedManyWithoutPackage_typeInput
@@ -523,6 +541,7 @@ export type PackageTypeUpdateInput = {
   offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cafe_discount_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_packages?: Prisma.UserPackageUpdateManyWithoutPackage_typeNestedInput
@@ -547,6 +566,7 @@ export type PackageTypeUncheckedUpdateInput = {
   offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cafe_discount_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_packages?: Prisma.UserPackageUncheckedUpdateManyWithoutPackage_typeNestedInput
@@ -571,6 +591,7 @@ export type PackageTypeCreateManyInput = {
   offer_label?: string | null
   offer_starts_at?: Date | string | null
   offer_ends_at?: Date | string | null
+  cafe_discount_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -594,6 +615,7 @@ export type PackageTypeUpdateManyMutationInput = {
   offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cafe_discount_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -617,6 +639,7 @@ export type PackageTypeUncheckedUpdateManyInput = {
   offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cafe_discount_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -640,6 +663,7 @@ export type PackageTypeCountOrderByAggregateInput = {
   offer_label?: Prisma.SortOrder
   offer_starts_at?: Prisma.SortOrder
   offer_ends_at?: Prisma.SortOrder
+  cafe_discount_percent?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -650,6 +674,7 @@ export type PackageTypeAvgOrderByAggregateInput = {
   price?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
   offer_price?: Prisma.SortOrder
+  cafe_discount_percent?: Prisma.SortOrder
 }
 
 export type PackageTypeMaxOrderByAggregateInput = {
@@ -670,6 +695,7 @@ export type PackageTypeMaxOrderByAggregateInput = {
   offer_label?: Prisma.SortOrder
   offer_starts_at?: Prisma.SortOrder
   offer_ends_at?: Prisma.SortOrder
+  cafe_discount_percent?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -692,6 +718,7 @@ export type PackageTypeMinOrderByAggregateInput = {
   offer_label?: Prisma.SortOrder
   offer_starts_at?: Prisma.SortOrder
   offer_ends_at?: Prisma.SortOrder
+  cafe_discount_percent?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -702,6 +729,7 @@ export type PackageTypeSumOrderByAggregateInput = {
   price?: Prisma.SortOrder
   display_order?: Prisma.SortOrder
   offer_price?: Prisma.SortOrder
+  cafe_discount_percent?: Prisma.SortOrder
 }
 
 export type PackageTypeScalarRelationFilter = {
@@ -751,6 +779,7 @@ export type PackageTypeCreateWithoutUser_packagesInput = {
   offer_label?: string | null
   offer_starts_at?: Date | string | null
   offer_ends_at?: Date | string | null
+  cafe_discount_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -774,6 +803,7 @@ export type PackageTypeUncheckedCreateWithoutUser_packagesInput = {
   offer_label?: string | null
   offer_starts_at?: Date | string | null
   offer_ends_at?: Date | string | null
+  cafe_discount_percent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -813,6 +843,7 @@ export type PackageTypeUpdateWithoutUser_packagesInput = {
   offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cafe_discount_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -836,6 +867,7 @@ export type PackageTypeUncheckedUpdateWithoutUser_packagesInput = {
   offer_label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   offer_starts_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   offer_ends_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cafe_discount_percent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -890,6 +922,7 @@ export type PackageTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   offer_label?: boolean
   offer_starts_at?: boolean
   offer_ends_at?: boolean
+  cafe_discount_percent?: boolean
   created_at?: boolean
   updated_at?: boolean
   user_packages?: boolean | Prisma.PackageType$user_packagesArgs<ExtArgs>
@@ -915,6 +948,7 @@ export type PackageTypeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   offer_label?: boolean
   offer_starts_at?: boolean
   offer_ends_at?: boolean
+  cafe_discount_percent?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["packageType"]>
@@ -938,6 +972,7 @@ export type PackageTypeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   offer_label?: boolean
   offer_starts_at?: boolean
   offer_ends_at?: boolean
+  cafe_discount_percent?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["packageType"]>
@@ -961,11 +996,12 @@ export type PackageTypeSelectScalar = {
   offer_label?: boolean
   offer_starts_at?: boolean
   offer_ends_at?: boolean
+  cafe_discount_percent?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type PackageTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "type" | "class_count" | "duration_months" | "price" | "includes_physique_57" | "is_unlimited" | "description" | "benefits" | "featured" | "badge" | "display_order" | "is_published" | "offer_price" | "offer_label" | "offer_starts_at" | "offer_ends_at" | "created_at" | "updated_at", ExtArgs["result"]["packageType"]>
+export type PackageTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "type" | "class_count" | "duration_months" | "price" | "includes_physique_57" | "is_unlimited" | "description" | "benefits" | "featured" | "badge" | "display_order" | "is_published" | "offer_price" | "offer_label" | "offer_starts_at" | "offer_ends_at" | "cafe_discount_percent" | "created_at" | "updated_at", ExtArgs["result"]["packageType"]>
 export type PackageTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user_packages?: boolean | Prisma.PackageType$user_packagesArgs<ExtArgs>
   _count?: boolean | Prisma.PackageTypeCountOutputTypeDefaultArgs<ExtArgs>
@@ -1024,6 +1060,10 @@ export type $PackageTypePayload<ExtArgs extends runtime.Types.Extensions.Interna
      * Offer expires after this time. Null = no expiry.
      */
     offer_ends_at: Date | null
+    /**
+     * Percent discount on café items for members holding this active pass. Null = no café perk.
+     */
+    cafe_discount_percent: runtime.Decimal | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["packageType"]>
@@ -1468,6 +1508,7 @@ export interface PackageTypeFieldRefs {
   readonly offer_label: Prisma.FieldRef<"PackageType", 'String'>
   readonly offer_starts_at: Prisma.FieldRef<"PackageType", 'DateTime'>
   readonly offer_ends_at: Prisma.FieldRef<"PackageType", 'DateTime'>
+  readonly cafe_discount_percent: Prisma.FieldRef<"PackageType", 'Decimal'>
   readonly created_at: Prisma.FieldRef<"PackageType", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"PackageType", 'DateTime'>
 }

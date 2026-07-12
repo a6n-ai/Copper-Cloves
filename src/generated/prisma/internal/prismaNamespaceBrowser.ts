@@ -358,6 +358,7 @@ export const PackageTypeScalarFieldEnum = {
   offer_label: 'offer_label',
   offer_starts_at: 'offer_starts_at',
   offer_ends_at: 'offer_ends_at',
+  cafe_discount_percent: 'cafe_discount_percent',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

@@ -360,6 +360,8 @@ model PackageType {
   offer_starts_at     DateTime?
   /// Offer expires after this time. Null = no expiry.
   offer_ends_at       DateTime?
+  /// Percent discount on café items for members holding this active pass. Null = no café perk.
+  cafe_discount_percent Decimal? @db.Decimal(5, 2)
   created_at          DateTime @default(now())
   updated_at          DateTime @default(now()) @updatedAt
 
