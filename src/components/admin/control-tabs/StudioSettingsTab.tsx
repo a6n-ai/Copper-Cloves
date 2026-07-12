@@ -12,6 +12,7 @@ type StudioForm = {
   cancellation_cutoff_hours: string;
   default_package_validity_days: string;
   cancelled_pass_validity_days: string;
+  max_shared_percent: string;
   business_name: string;
   business_address: string;
   business_gstin: string;
@@ -26,6 +27,7 @@ const INT_KEYS = [
   "cancellation_cutoff_hours",
   "default_package_validity_days",
   "cancelled_pass_validity_days",
+  "max_shared_percent",
 ] as const;
 
 export default function StudioSettingsTab() {
@@ -45,6 +47,7 @@ export default function StudioSettingsTab() {
       cancellation_cutoff_hours: String(s.cancellation_cutoff_hours ?? ""),
       default_package_validity_days: String(s.default_package_validity_days ?? ""),
       cancelled_pass_validity_days: String(s.cancelled_pass_validity_days ?? ""),
+      max_shared_percent: String(s.max_shared_percent ?? "75"),
       business_name: String(s.business_name ?? ""),
       business_address: String(s.business_address ?? ""),
       business_gstin: String(s.business_gstin ?? ""),
@@ -80,6 +83,11 @@ export default function StudioSettingsTab() {
         return;
       }
     }
+    const pct = Number(form.max_shared_percent);
+    if (!Number.isInteger(pct) || pct < 75 || pct > 100) {
+      toast.error("Max shareable % must be an integer between 75 and 100.");
+      return;
+    }
     setSaving(true);
     try {
       const r = await fetch("/api/admin/studio-settings", {
@@ -89,6 +97,7 @@ export default function StudioSettingsTab() {
           cancellation_cutoff_hours: Number(form.cancellation_cutoff_hours),
           default_package_validity_days: Number(form.default_package_validity_days),
           cancelled_pass_validity_days: Number(form.cancelled_pass_validity_days),
+          max_shared_percent: Number(form.max_shared_percent),
           business_name: form.business_name,
           business_address: form.business_address,
           business_gstin: form.business_gstin,
@@ -167,6 +176,22 @@ export default function StudioSettingsTab() {
               />
               <p className="font-body text-xs text-charcoal/50">
                 Validity of the 1 Class Pass granted when a class is cancelled.
+              </p>
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="set-max-shared-percent">Max shareable % (Friends & Family)</Label>
+              <Input
+                id="set-max-shared-percent"
+                type="number"
+                min="75"
+                max="100"
+                inputMode="numeric"
+                value={form.max_shared_percent}
+                onChange={(e) => patch("max_shared_percent", e.target.value)}
+              />
+              <p className="font-body text-xs text-charcoal/50">
+                Ceiling on how many of a pass's classes a member may share with Friends & Family. 75–100. A 75% cap lets a 12-class pass share up to 9 classes.
               </p>
             </div>
 
