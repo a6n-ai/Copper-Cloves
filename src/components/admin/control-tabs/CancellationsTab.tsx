@@ -6,8 +6,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/responsive/ResponsiveDialog";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
+import { Pagination, usePagination } from "@/components/Pagination";
 
 type CancellationRequestRow = {
   id: string;
@@ -41,6 +50,10 @@ export default function CancellationsTab() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<(typeof REQUEST_STATUS_FILTERS)[number]>("open");
   const [actingId, setActingId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const { page, setPage, pageItems, total, pageSize } = usePagination(rows, 10, statusFilter);
+  const selected = rows.find((r) => r.id === selectedId) ?? null;
 
   const load = useCallback(async (filter: (typeof REQUEST_STATUS_FILTERS)[number]) => {
     const qs = filter === "all" ? "" : `?status=${filter}`;
@@ -88,6 +101,7 @@ export default function CancellationsTab() {
           return;
         }
         toast.success(action === "approve" ? "Cancellation approved." : "Request denied.");
+        setSelectedId(null);
         await load(statusFilter);
       } finally {
         setActingId(null);
@@ -109,6 +123,48 @@ export default function CancellationsTab() {
     },
     [decide],
   );
+
+  const renderActions = (req: CancellationRequestRow) => {
+    if (req.status !== "open") {
+      return <span className="font-body text-xs text-charcoal/40">{fmtDateTime(req.decided_at)}</span>;
+    }
+    return (
+      <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+        {req.kind === "refund" ? (
+          <>
+            <Button type="button" variant="sage" size="sm" disabled={actingId === req.id}
+              onClick={() => decide(req.id, "approve", { refund_type: "class_pass" })} className="gap-1">
+              {actingId === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+              Pass
+            </Button>
+            <Button type="button" variant="outline" size="sm" disabled={actingId === req.id}
+              onClick={() => approveRefundMoney(req.id)} className="gap-1 border-sage/30 text-sage">
+              ₹ Refund
+            </Button>
+          </>
+        ) : (
+          <Button type="button" variant="sage" size="sm" disabled={actingId === req.id}
+            onClick={() => decide(req.id, "approve")} className="gap-1">
+            {actingId === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+            Approve
+          </Button>
+        )}
+        <Button type="button" variant="ghost" size="sm" disabled={actingId === req.id}
+          onClick={() => decide(req.id, "deny")} className="gap-1">
+          <X className="h-3.5 w-3.5" /> Deny
+        </Button>
+      </div>
+    );
+  };
+
+  const statusPill = (status: string) =>
+    status === "open" ? (
+      <Pill tone="warning" size="sm">Open</Pill>
+    ) : status === "approved" ? (
+      <Pill tone="success" size="sm">Approved</Pill>
+    ) : (
+      <Pill tone="danger" size="sm">Denied</Pill>
+    );
 
   return (
     <Card className="border-sage/20 bg-white-warm">
@@ -156,19 +212,23 @@ export default function CancellationsTab() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((req) => {
+                  {pageItems.map((req) => {
                     const className =
                       req.class_schedule?.class_model?.name ?? req.booking?.class_name ?? "Class";
                     const classTime = req.class_schedule?.start_time ?? req.booking?.class_time ?? null;
                     return (
-                      <TableRow key={req.id}>
+                      <TableRow
+                        key={req.id}
+                        onClick={() => setSelectedId(req.id)}
+                        className="h-16 cursor-pointer transition-colors hover:bg-sage/5"
+                      >
                         <TableCell className="font-body text-sm text-charcoal">
-                          <div className="font-medium">{req.profile?.full_name ?? req.profile?.email ?? "Member"}</div>
+                          <div className="truncate font-medium">{req.profile?.full_name ?? req.profile?.email ?? "Member"}</div>
                           {req.profile?.email && (
-                            <div className="font-body text-xs text-charcoal/50">{req.profile.email}</div>
+                            <div className="truncate font-body text-xs text-charcoal/50">{req.profile.email}</div>
                           )}
                         </TableCell>
-                        <TableCell className="font-body text-sm text-charcoal/70">{className}</TableCell>
+                        <TableCell className="truncate font-body text-sm text-charcoal/70">{className}</TableCell>
                         <TableCell>
                           {req.kind === "refund" ? (
                             <Pill tone="warning" size="sm">Refund</Pill>
@@ -177,58 +237,82 @@ export default function CancellationsTab() {
                           )}
                         </TableCell>
                         <TableCell className="font-body text-xs text-charcoal/60">{fmtDateTime(classTime)}</TableCell>
-                        <TableCell className="max-w-[220px] font-body text-xs text-charcoal/60">
+                        <TableCell className="max-w-[220px] truncate font-body text-xs text-charcoal/60">
                           {req.reason?.trim() || "—"}
                         </TableCell>
-                        <TableCell>
-                          {req.status === "open" ? (
-                            <Pill tone="warning" size="sm">Open</Pill>
-                          ) : req.status === "approved" ? (
-                            <Pill tone="success" size="sm">Approved</Pill>
-                          ) : (
-                            <Pill tone="danger" size="sm">Denied</Pill>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {req.status === "open" ? (
-                            <div className="flex items-center justify-end gap-1">
-                              {req.kind === "refund" ? (
-                                <>
-                                  <Button type="button" variant="sage" size="sm" disabled={actingId === req.id}
-                                    onClick={() => decide(req.id, "approve", { refund_type: "class_pass" })} className="gap-1">
-                                    {actingId === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                                    Pass
-                                  </Button>
-                                  <Button type="button" variant="outline" size="sm" disabled={actingId === req.id}
-                                    onClick={() => approveRefundMoney(req.id)} className="gap-1 border-sage/30 text-sage">
-                                    ₹ Refund
-                                  </Button>
-                                </>
-                              ) : (
-                                <Button type="button" variant="sage" size="sm" disabled={actingId === req.id}
-                                  onClick={() => decide(req.id, "approve")} className="gap-1">
-                                  {actingId === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                                  Approve
-                                </Button>
-                              )}
-                              <Button type="button" variant="ghost" size="sm" disabled={actingId === req.id}
-                                onClick={() => decide(req.id, "deny")} className="gap-1">
-                                <X className="h-3.5 w-3.5" /> Deny
-                              </Button>
-                            </div>
-                          ) : (
-                            <span className="font-body text-xs text-charcoal/40">{fmtDateTime(req.decided_at)}</span>
-                          )}
-                        </TableCell>
+                        <TableCell>{statusPill(req.status)}</TableCell>
+                        <TableCell className="text-right">{renderActions(req)}</TableCell>
                       </TableRow>
                     );
                   })}
                 </TableBody>
               </Table>
             </ResponsiveTable>
+            <Pagination page={page} total={total} pageSize={pageSize} onChange={setPage} className="px-4 pb-3" />
           </div>
         )}
       </CardContent>
+
+      <ResponsiveDialog open={selected != null} onOpenChange={(o) => !o && setSelectedId(null)}>
+        <ResponsiveDialogContent className="max-w-lg">
+          {selected && (
+            <>
+              <ResponsiveDialogHeader>
+                <ResponsiveDialogTitle className="flex items-center gap-2 font-body">
+                  {selected.kind === "refund" ? "Refund request" : "Late-cancel request"}
+                  {statusPill(selected.status)}
+                </ResponsiveDialogTitle>
+                <ResponsiveDialogDescription className="font-body">
+                  Requested {fmtDateTime(selected.created_at)}
+                </ResponsiveDialogDescription>
+              </ResponsiveDialogHeader>
+
+              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 py-2 font-body text-sm">
+                <dt className="text-charcoal/50">Member</dt>
+                <dd className="text-charcoal">
+                  <div className="font-medium">{selected.profile?.full_name ?? "—"}</div>
+                  {selected.profile?.email && <div className="text-xs text-charcoal/50">{selected.profile.email}</div>}
+                </dd>
+
+                <dt className="text-charcoal/50">Class</dt>
+                <dd className="text-charcoal">
+                  {selected.class_schedule?.class_model?.name ?? selected.booking?.class_name ?? "Class"}
+                </dd>
+
+                <dt className="text-charcoal/50">Class time</dt>
+                <dd className="text-charcoal">
+                  {fmtDateTime(selected.class_schedule?.start_time ?? selected.booking?.class_time ?? null)}
+                </dd>
+
+                <dt className="text-charcoal/50">Reason</dt>
+                <dd className="whitespace-pre-wrap text-charcoal">{selected.reason?.trim() || "—"}</dd>
+
+                {selected.refund_type && (
+                  <>
+                    <dt className="text-charcoal/50">Refund</dt>
+                    <dd className="text-charcoal">
+                      {selected.refund_type === "amount"
+                        ? `₹${((selected.refund_amount_paise ?? 0) / 100).toLocaleString("en-IN")}`
+                        : "Class pass"}
+                    </dd>
+                  </>
+                )}
+
+                {selected.decided_at && (
+                  <>
+                    <dt className="text-charcoal/50">Decided</dt>
+                    <dd className="text-charcoal">{fmtDateTime(selected.decided_at)}</dd>
+                  </>
+                )}
+              </dl>
+
+              {selected.status === "open" && (
+                <ResponsiveDialogFooter>{renderActions(selected)}</ResponsiveDialogFooter>
+              )}
+            </>
+          )}
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </Card>
   );
 }
