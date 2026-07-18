@@ -2,14 +2,31 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { apiError } from "@/lib/apiError";
+import { passCategoryForPackageType } from "@/lib/couponHelpers";
+import { cafeDiscountPercent } from "@/lib/cafeDiscount";
 
 async function handleGet(res: NextApiResponse, userId: string, isStaff: boolean) {
   const where = isStaff ? {} : { user_id: userId };
+  const now = new Date();
   const orders = await prisma.cafeOrder.findMany({
     where,
     include: {
       cafe_item: true,
-      profile: { select: { id: true, full_name: true, email: true } },
+      profile: {
+        select: {
+          id: true,
+          full_name: true,
+          email: true,
+          // Active pass drives the member's food discount so the kitchen sees the
+          // same rate the member is charged at checkout (cafeDiscount.ts).
+          user_packages: {
+            where: { is_active: true, expiration_date: { gt: now } },
+            orderBy: { purchase_date: "desc" },
+            take: 1,
+            select: { package_type: { select: { name: true, type: true, is_unlimited: true } } },
+          },
+        },
+      },
       booking: {
         include: {
           class_schedule: { include: { class_model: true, instructor: true } },
@@ -18,7 +35,16 @@ async function handleGet(res: NextApiResponse, userId: string, isStaff: boolean)
     },
     orderBy: { order_date: "desc" },
   });
-  return res.json(orders);
+
+  const withDiscount = orders.map((o) => {
+    const pt = o.profile?.user_packages?.[0]?.package_type ?? null;
+    const passName = pt?.name ?? null;
+    const cafe_discount_percent = pt
+      ? cafeDiscountPercent({ category: passCategoryForPackageType(pt), packageName: passName })
+      : 0;
+    return { ...o, member_pass_name: passName, member_cafe_discount_percent: cafe_discount_percent };
+  });
+  return res.json(withDiscount);
 }
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse, userId: string) {

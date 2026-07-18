@@ -36,6 +36,7 @@ import {
   Tags,
   ClipboardList,
   Clock,
+  CalendarClock,
 } from "lucide-react";
 import { FilterBar, FilterSearch } from "@/components/filters";
 import {
@@ -229,7 +230,7 @@ function getOrderAlertLevel(order: CafeOrder, now: Date) {
     if (minutesSinceOrder >= 45) {
       return {
         level: "red",
-        message: `${minutesSinceOrder} min waiting!`,
+        message: `${formatDuration(minutesSinceOrder * 60, 3).replace(/ 0s$/, "")} waiting!`,
         readyBy: "ASAP",
         blink: true,
         critical: true
@@ -239,7 +240,7 @@ function getOrderAlertLevel(order: CafeOrder, now: Date) {
     else if (minutesSinceOrder >= 30) {
       return {
         level: "orange",
-        message: `${minutesSinceOrder} min waiting`,
+        message: `${formatDuration(minutesSinceOrder * 60, 3).replace(/ 0s$/, "")} waiting`,
         readyBy: "ASAP",
         blink: false,
         critical: false
@@ -249,7 +250,7 @@ function getOrderAlertLevel(order: CafeOrder, now: Date) {
     else if (minutesSinceOrder >= 15) {
       return {
         level: "yellow",
-        message: `${minutesSinceOrder} min waiting`,
+        message: `${formatDuration(minutesSinceOrder * 60, 3).replace(/ 0s$/, "")} waiting`,
         readyBy: "Soon",
         blink: false,
         critical: false
@@ -268,10 +269,10 @@ function formatTimeRemaining(classStartTime: string | undefined, now: Date) {
   const classEndTime = new Date(start.getTime() + classDuration);
   const remaining = Math.floor((classEndTime.getTime() - now.getTime()) / 1000); // seconds remaining
 
-  // Class hasn't started yet
+  // Class hasn't started yet — orders can land days ahead, so show d/h/m not raw minutes.
   if (now < start) {
-    const minutesUntil = Math.abs(Math.floor((start.getTime() - now.getTime()) / (1000 * 60)));
-    return `Starts in ${minutesUntil} min`;
+    const secUntil = Math.floor((start.getTime() - now.getTime()) / 1000);
+    return `In ${formatDuration(secUntil, 2)}`;
   }
 
   // Class is over
@@ -285,6 +286,24 @@ function formatTimeRemaining(classStartTime: string | undefined, now: Date) {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
+/**
+ * Break a second-count into "2d 5h 3m 10s", dropping leading-zero units. Orders
+ * can be placed long before a class, so minutes alone is useless. `maxUnits`
+ * caps the most-significant segments — the small ring uses 2, the meta row the full spread.
+ */
+function formatDuration(totalSec: number, maxUnits = 4) {
+  const s = Math.max(0, Math.floor(totalSec));
+  const units: Array<[number, string]> = [
+    [Math.floor(s / 86400), "d"],
+    [Math.floor((s % 86400) / 3600), "h"],
+    [Math.floor((s % 3600) / 60), "m"],
+    [s % 60, "s"],
+  ];
+  let start = 0;
+  while (start < units.length - 1 && units[start][0] === 0) start++;
+  return units.slice(start, start + maxUnits).map(([v, u]) => `${v}${u}`).join(" ");
+}
+
 // Active-order card. Owns its OWN 1s tick so only this cell re-renders each
 // second — the ticking countdown/alert no longer forces a full-page re-render.
 const OrderCard = memo(function OrderCard({
@@ -295,7 +314,11 @@ const OrderCard = memo(function OrderCard({
   onUpdateStatus: (orderId: string, newStatus: string) => void;
 }) {
   const [now, setNow] = useState(() => new Date());
+  // Live time (seconds/locale/timezone) only matches after mount — render it
+  // client-side to avoid SSR hydration mismatch on the ticking clock + timestamps.
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
+    setMounted(true);
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
@@ -332,9 +355,14 @@ const OrderCard = memo(function OrderCard({
     alertLevel.level === "orange" ? 7 :
     alertLevel.level === "yellow" ? 10 : 16;
 
-  // Live clock in the spinner centre: class countdown if linked, else minutes since the order landed.
-  const elapsedMin = Math.max(0, Math.floor((now.getTime() - new Date(order.order_date).getTime()) / 60000));
-  const centerClock = classTime ? formatTimeRemaining(classTime, now) : `${elapsedMin}m`;
+  // Live clock in the spinner centre: class countdown if linked, else elapsed since the order landed.
+  const elapsedSec = Math.max(0, Math.floor((now.getTime() - new Date(order.order_date).getTime()) / 1000));
+  const centerClock = classTime ? formatTimeRemaining(classTime, now) : formatDuration(elapsedSec, 2);
+  // Absolute order date + time and the full d/h/m/s wait, for the meta row.
+  const orderedAbs = new Date(order.order_date).toLocaleString("en-IN", {
+    day: "2-digit", month: "short", hour: "numeric", minute: "2-digit", hour12: true,
+  });
+  const elapsedFull = formatDuration(elapsedSec);
 
   const cardStyle = blinking
     ? ({ ["--blink-c"]: palette.glow, animation: `card-blink ${palette.dur} ease-in-out infinite` } as React.CSSProperties)
@@ -345,41 +373,50 @@ const OrderCard = memo(function OrderCard({
       style={cardStyle}
       className={`overflow-hidden border-2 bg-white-warm shadow-none ring-0 transition-colors ${palette.border}`}
     >
-      <CardContent className="p-6 sm:p-7">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          {/* Left: item / customer / class */}
-          <div className="flex min-w-0 flex-1 gap-4">
-            <div className="size-24 shrink-0 overflow-hidden rounded-2xl bg-sand/40">
-              {cafeItem?.image_url ? (
-                <Image
-                  src={cafeItem.image_url}
-                  alt={cafeItem.name}
-                  width={192}
-                  height={192}
-                  className="h-full w-full object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <ImageIcon className="text-sage/40" size={36} />
-                </div>
-              )}
+      <CardContent className="p-5 sm:p-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
+          {/* Item thumbnail */}
+          <div className="size-20 shrink-0 overflow-hidden rounded-2xl bg-sand/40">
+            {cafeItem?.image_url ? (
+              <Image
+                src={cafeItem.image_url}
+                alt={cafeItem.name}
+                width={160}
+                height={160}
+                className="h-full w-full object-cover"
+                unoptimized
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <ImageIcon className="text-sage/40" size={32} />
+              </div>
+            )}
+          </div>
+
+          {/* Details fill the row — no mid-card vacuum */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="min-w-0 truncate font-body font-semibold text-xl leading-snug text-charcoal">
+                {cafeItem?.name}
+              </h3>
+              <Pill tone={statusTone} size="sm" className="shrink-0 font-body font-semibold uppercase tracking-[0.06em]">
+                {order.status}
+              </Pill>
             </div>
-            <div className="min-w-0">
-              <h3 className="font-body font-semibold text-2xl leading-snug text-charcoal">{cafeItem?.name}</h3>
-              <p className="mt-1 font-body text-sm text-charcoal/60">
-                Qty {order.quantity}
-                <span className="mx-1.5 text-charcoal/30">·</span>
-                <span className="font-semibold text-charcoal">
-                  ₹{(Number(cafeItem?.price ?? 0) * order.quantity).toLocaleString("en-IN")}
-                </span>
-              </p>
-              <p className="mt-3 font-body text-sm text-charcoal">
-                <span className="text-charcoal/45">Customer · </span>
-                {userProfile?.full_name || "Unknown"}
-              </p>
+
+            <p className="mt-1 font-body text-sm text-charcoal/60">
+              Qty {order.quantity}
+              <span className="mx-1.5 text-charcoal/30">·</span>
+              <span className="font-semibold text-charcoal">
+                ₹{(Number(cafeItem?.price ?? 0) * order.quantity).toLocaleString("en-IN")}
+              </span>
+              <span className="mx-1.5 text-charcoal/30">·</span>
+              <span className="text-charcoal">{userProfile?.full_name || "Unknown"}</span>
+            </p>
+
+            <p className="mt-1.5 font-body text-sm">
               {booking ? (
-                <p className="mt-1 font-body text-sm text-charcoal">
+                <span className="text-charcoal">
                   <span className="text-charcoal/45">Class · </span>
                   {schedule?.class_model?.name || booking?.class_name || "—"}
                   {classTime && (
@@ -388,37 +425,49 @@ const OrderCard = memo(function OrderCard({
                       ({new Date(classTime).toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })})
                     </span>
                   )}
-                </p>
+                </span>
               ) : (
-                <p className="mt-1 font-body text-sm text-charcoal/40">Walk-in order</p>
+                <span className="text-charcoal/40">Walk-in order</span>
+              )}
+            </p>
+
+            {/* Order timestamp + full d/h/m/s wait (client-only — see mounted) */}
+            <div className="mt-3 flex min-h-4 flex-wrap items-center gap-x-2.5 gap-y-1 font-body text-xs text-charcoal/50" suppressHydrationWarning>
+              {mounted && (
+                <>
+                  <span className="inline-flex items-center gap-1">
+                    <CalendarClock size={13} className="text-charcoal/40" />
+                    {orderedAbs}
+                  </span>
+                  <span className="text-charcoal/25">·</span>
+                  <span className={`font-semibold ${palette.text}`}>{elapsedFull} ago</span>
+                  {alertLevel.readyBy && (
+                    <>
+                      <span className="text-charcoal/25">·</span>
+                      <span className="font-medium text-sage">Ready by {alertLevel.readyBy}</span>
+                    </>
+                  )}
+                </>
               )}
             </div>
           </div>
 
-          {/* Right: spinning status ring around a live clock */}
-          <div className="flex shrink-0 items-center gap-6 lg:flex-col lg:gap-4">
+          {/* Spinning status ring around a live clock */}
+          <div className="mx-auto shrink-0 sm:mx-0">
             <SpinningText
               text={` ${order.status} • ${order.status} • `}
-              radius={80}
-              fontSize={12}
+              radius={62}
+              fontSize={11}
               speed={spinSpeed}
               className={`${palette.text} font-semibold`}
             >
-              <div className={`flex size-24 flex-col items-center justify-center rounded-full border px-2 text-center ${palette.border} bg-white-warm`}>
-                <Clock className={`mb-0.5 ${palette.text}`} size={16} />
-                <span className={`font-mono text-base font-bold leading-tight tabular-nums ${palette.text}`}>
-                  {centerClock}
+              <div className={`flex size-[4.5rem] flex-col items-center justify-center rounded-full border px-2 text-center ${palette.border} bg-white-warm`}>
+                <Clock className={`mb-0.5 ${palette.text}`} size={14} />
+                <span className={`font-mono text-sm font-bold leading-tight tabular-nums ${palette.text}`} suppressHydrationWarning>
+                  {mounted ? centerClock : "—"}
                 </span>
               </div>
             </SpinningText>
-            <div className="text-center">
-              <Pill tone={statusTone} size="md" className="px-3 py-1 font-body text-[0.65rem] font-semibold uppercase tracking-[0.08em]">
-                {order.status}
-              </Pill>
-              {alertLevel.readyBy && (
-                <p className="mt-1 font-body text-xs font-semibold text-sage">Ready by {alertLevel.readyBy}</p>
-              )}
-            </div>
           </div>
         </div>
 

@@ -17,6 +17,19 @@ interface CafeOrderRow {
   quantity: number;
   cafe_item: { name: string; price: number } | null;
   profile: { full_name: string | null; email: string } | null;
+  member_pass_name: string | null;
+  member_cafe_discount_percent: number;
+}
+
+/** Absolute order date + time, e.g. "18 Jul, 11:52 AM". */
+function orderDateTime(iso: string) {
+  return new Date(iso).toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
 const NEXT_STATUS: Record<string, { next: string; label: string }> = {
@@ -175,7 +188,16 @@ export default function KitchenDashboard() {
                     {o.status}
                   </Pill>
                 </div>
-                <p className="font-body text-xs text-charcoal/45">{minsAgo(o.order_date)}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-body text-xs text-charcoal/45">
+                    {orderDateTime(o.order_date)} · {minsAgo(o.order_date)}
+                  </p>
+                  {o.member_cafe_discount_percent > 0 ? (
+                    <Pill tone="success" size="sm" className="shrink-0 font-body font-medium">
+                      {o.member_cafe_discount_percent}% off{o.member_pass_name ? ` · ${o.member_pass_name}` : ""}
+                    </Pill>
+                  ) : null}
+                </div>
                 <div className="flex gap-2 pt-1">
                   {step ? (
                     <Button
