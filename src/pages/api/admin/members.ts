@@ -478,6 +478,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           user_id: profile_id,
           package_type_id: pt.id,
           credits_remaining: hasClassCount ? class_count : null,
+          // Provision the grant total alongside remaining — omitting it left the pass
+          // with credits_total=null (an empty, unauditable pass). Mirror the other create sites.
+          credits_total: hasClassCount ? class_count : null,
           expiration_date: expiryForCreate,
           is_active: true,
           pass_type: desiredType,

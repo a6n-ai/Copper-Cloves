@@ -156,6 +156,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             user_id: profile.id,
             package_type_id: pkgTypeId,
             credits_remaining: creditsRemaining,
+            // Provision grant total alongside remaining (see members.ts) — omitting it
+            // produced credits_total=null empty passes. Mirror the other create sites.
+            credits_total: creditsRemaining,
             expiration_date: expiry,
             is_active: true,
             pass_type: passType,
