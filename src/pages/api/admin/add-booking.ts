@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { SEAT_HOLDING_STATUSES } from "@/lib/bookingStatus";
+import { pickActivePass } from "@/lib/pickActivePass";
 import { checkInOutcomeFromTimes } from "@/lib/bookingAttendance";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
@@ -12,10 +13,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if ((session.user as { role?: string }).role !== "admin") return res.status(403).json({ error: "Forbidden" });
   if (req.method !== "POST") return res.status(405).end();
 
-  const { scheduleId, userId, packageId, markCheckedIn, allowOverCapacity } = req.body as {
+  const { scheduleId, userId, markCheckedIn, allowOverCapacity } = req.body as {
     scheduleId?: string;
     userId?: string;
-    packageId?: string;
     markCheckedIn?: boolean;
     allowOverCapacity?: boolean;
   };
@@ -61,22 +61,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       if (dup) throw new Error("ALREADY_BOOKED");
 
-      // Walk-in path: deduct one credit from the chosen package (so cancellation
-      // can refund it later via user_package_id). Unlimited passes (credits null)
-      // carry no credit balance — link without decrementing.
-      if (packageId) {
-        const pkg = await tx.userPackage.findFirst({
-          where: { id: packageId, user_id: userId },
-          select: { id: true, credits_remaining: true },
+      // The pass to deduct is resolved server-side from the member (the UI never
+      // passes it) — booking a class always consumes a credit. Prefer a finite
+      // class_pass, soonest-expiry first (so a day pass is spent before it lapses);
+      // fall back to an unlimited pass. No active pass → NO_PASS (admin must assign
+      // one first). This is the single chokepoint for every add-member flow.
+      const candidates = await tx.userPackage.findMany({
+        where: {
+          user_id: userId,
+          is_active: true,
+          is_paused: false,
+          expiration_date: { gt: new Date() },
+          OR: [{ credits_remaining: null }, { credits_remaining: { gte: 1 } }],
+        },
+        select: { id: true, credits_remaining: true, expiration_date: true },
+      });
+      const effectivePackage = pickActivePass(candidates);
+      if (!effectivePackage) throw new Error("NO_PASS");
+
+      // Deduct one credit (so cancellation can refund it later via
+      // user_package_id). Unlimited passes (credits null) carry no balance — link
+      // without decrementing.
+      const effectivePackageId = effectivePackage.id;
+      if (effectivePackage.credits_remaining != null) {
+        const upd = await tx.userPackage.updateMany({
+          where: { id: effectivePackageId, user_id: userId, credits_remaining: { gte: 1 } },
+          data: { credits_remaining: { decrement: 1 } },
         });
-        if (!pkg) throw new Error("PACKAGE_NOT_FOUND");
-        if (pkg.credits_remaining != null) {
-          const upd = await tx.userPackage.updateMany({
-            where: { id: packageId, user_id: userId, credits_remaining: { gte: 1 } },
-            data: { credits_remaining: { decrement: 1 } },
-          });
-          if (upd.count !== 1) throw new Error("NO_CREDITS");
-        }
+        if (upd.count !== 1) throw new Error("NO_CREDITS");
       }
 
       // Admin override: mark attended without enforcing the member/instructor
@@ -92,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           status: "confirmed",
           class_name: schedule.class_model?.name ?? null,
           class_time: schedule.start_time.toISOString(),
-          ...(packageId ? { user_package_id: packageId } : {}),
+          user_package_id: effectivePackageId,
           ...(checkInAt
             ? {
                 checked_in: true,
@@ -107,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const msg = e instanceof Error ? e.message : "";
     if (msg === "ALREADY_BOOKED") return res.status(409).json({ error: "Member already booked into this class" });
     if (msg === "NO_CREDITS") return res.status(400).json({ error: "This package has no credits remaining." });
-    if (msg === "PACKAGE_NOT_FOUND") return res.status(400).json({ error: "Selected package not found for this member." });
+    if (msg === "NO_PASS") return res.status(400).json({ error: "Member has no active pass with credits. Assign a pass before booking." });
     logger.error({ err: e }, "[add-booking]");
     return res.status(500).json({ error: "Could not add booking" });
   }

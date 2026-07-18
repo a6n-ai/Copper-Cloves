@@ -262,14 +262,17 @@ export function AddWalkInDialog({
   }
 
   async function confirm() {
-    if (!member || !packageId) return;
+    if (!member) return;
     setSubmitting(true);
     try {
+      // The server resolves + deducts the member's active pass — the UI never
+      // sends a packageId. Step 2 has already assigned a pass for members without
+      // one, so an active pass exists by the time we book.
       const res = await fetch("/api/admin/add-booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ scheduleId, userId: member.id, packageId, markCheckedIn, allowOverCapacity }),
+        body: JSON.stringify({ scheduleId, userId: member.id, markCheckedIn, allowOverCapacity }),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) {
