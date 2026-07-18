@@ -302,8 +302,32 @@ async function confirmPreCreatedBookingFlow(args: {
         });
         await tx.booking.update({
           where: { id: result.bookingId },
-          data: { extra_guest_count: 0 },
+          data: {
+            extra_guest_count: 0,
+            // Link the booking to the pass so it reads as a pass booking in history/finance.
+            ...(pending.user_package_id ? { user_package_id: pending.user_package_id } : {}),
+          },
         });
+        // Deduct the booker's pass credit for their own seat. Runs only inside the
+        // single `result.transitioned` confirm (guarded by confirmPendingBookingTx's
+        // conditional flip), so client-verify + webhook + reconcile can't double-spend.
+        // The fresh-booking path decrements at bookings.ts / line ~505; the pre-created
+        // path (create-order always pre-reserves the booking) reached neither — this is
+        // the class-pass member who paid for a guest/add-on and kept their credit for free.
+        // Log-not-throw: the payment is already captured, so a missing credit (out of
+        // credits / pkg gone) must not roll the confirmed booking back to payment_pending.
+        if (pending.user_package_id) {
+          const upd = await tx.userPackage.updateMany({
+            where: { id: pending.user_package_id, user_id: userId, credits_remaining: { gte: 1 } },
+            data: { credits_remaining: { decrement: 1 } },
+          });
+          if (upd.count !== 1) {
+            logger.error(
+              { bookingId: result.bookingId, userPackageId: pending.user_package_id, userId },
+              "[confirmPreCreatedBookingFlow] pass credit NOT decremented (no credits / package missing) — booking confirmed without credit",
+            );
+          }
+        }
         const sched = await tx.classSchedule.findUnique({
           where: { id: pending.class_schedule_id },
           include: { class_model: { select: { max_capacity: true } } },
