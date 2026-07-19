@@ -861,13 +861,25 @@ function MemberBody({
                   animate={{ opacity: dim ? 0.6 : 1, y: 0 }}
                   transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1], delay: Math.min(i, 6) * 0.06 }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => onEditExpiry(p)}
-                    title="Edit pass expiry"
-                    aria-label={`Edit expiry for ${p.name}`}
-                    className="block w-full cursor-pointer rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
-                  >
+                  {p.isActive ? (
+                    <button
+                      type="button"
+                      onClick={() => onEditExpiry(p)}
+                      title="Edit pass expiry"
+                      aria-label={`Edit expiry for ${p.name}`}
+                      className="block w-full cursor-pointer rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
+                    >
+                      <PassCard
+                        name={p.name}
+                        isUnlimited={p.isUnlimited}
+                        classesRemaining={p.creditsRemaining}
+                        expiry={p.expiresAt}
+                        durationMonths={p.durationMonths}
+                        status={p.status}
+                        className="w-full"
+                      />
+                    </button>
+                  ) : (
                     <PassCard
                       name={p.name}
                       isUnlimited={p.isUnlimited}
@@ -877,7 +889,7 @@ function MemberBody({
                       status={p.status}
                       className="w-full"
                     />
-                  </button>
+                  )}
                 </motion.div>
               );
               return (
