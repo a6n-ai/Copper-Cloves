@@ -8,6 +8,8 @@ import { getDynamicStats, getDynamicStatsForUsers } from "@/lib/attendanceStats"
 import { logActivity } from "@/lib/activityLog";
 import { HISTORY_STATUSES } from "@/lib/bookingStatus";
 import { getStudioSettings } from "@/lib/studioSettings";
+import { validateCreditAdjust } from "@/lib/passAdjust";
+import { recordManualPayment, RECORDABLE_METHODS } from "@/lib/payments";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
@@ -435,6 +437,202 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.json({ ok: true, paused: false, daysPaused });
       }
       return res.json({ ok: true, paused: false, daysPaused: 0 });
+    }
+
+    // Adjust/remove/upgrade an existing pass — all three require an admin-entered
+    // reason for the audit trail.
+    const ADJUST_ACTIONS = ["adjust_credits", "remove_pass", "upgrade_pass"];
+    if (ADJUST_ACTIONS.includes(action)) {
+      const reasonRaw = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+      if (!reasonRaw) return res.status(400).json({ error: "Reason required" });
+
+      if (action === "adjust_credits") {
+        const upkgId = typeof user_package_id === "string" ? user_package_id : "";
+        if (!upkgId) return res.status(400).json({ error: "user_package_id required" });
+        const pkg = await prisma.userPackage.findUnique({ where: { id: upkgId } });
+        if (!pkg || pkg.user_id !== profile_id) return res.status(400).json({ error: "Invalid package" });
+
+        const credits = Number(req.body?.credits);
+        const check = validateCreditAdjust({ credits, isUnlimited: pkg.credits_remaining === null });
+        // strictNullChecks is off, which breaks discriminated-union narrowing on `ok`
+        // (see .llm/known-issues.md #6) — assert the error-branch shape explicitly.
+        if (!check.ok) return res.status(400).json({ error: (check as { ok: false; error: string }).error });
+
+        const before = pkg.credits_remaining;
+        await prisma.userPackage.update({ where: { id: upkgId }, data: { credits_remaining: credits } });
+        await logActivity({
+          req,
+          action: "admin.pass_credits_adjusted",
+          targetProfileId: profile_id,
+          entity: { type: "user_package", id: upkgId },
+          metadata: { from: before, to: credits, reason: reasonRaw },
+        });
+        return res.status(200).json({ ok: true });
+      }
+
+      if (action === "remove_pass") {
+        const upkgId = typeof user_package_id === "string" ? user_package_id : "";
+        if (!upkgId) return res.status(400).json({ error: "user_package_id required" });
+        const pkg = await prisma.userPackage.findUnique({ where: { id: upkgId } });
+        if (!pkg || pkg.user_id !== profile_id) return res.status(400).json({ error: "Invalid package" });
+
+        const refundKind = req.body?.refund_kind;
+        if (!["none", "comp", "money"].includes(refundKind)) {
+          return res.status(400).json({ error: "Invalid refund_kind" });
+        }
+        const refund = (req.body?.refund ?? {}) as { classes?: number; amount_paise?: number; method?: string; proof_url?: string };
+
+        if (refundKind === "comp") {
+          const classes = Number(refund.classes);
+          if (!Number.isInteger(classes) || classes <= 0) {
+            return res.status(400).json({ error: "Enter a valid number of comp classes" });
+          }
+        }
+        if (refundKind === "money") {
+          const amt = Number(refund.amount_paise);
+          if (!Number.isInteger(amt) || amt < 0) {
+            return res.status(400).json({ error: "Enter a valid refund amount" });
+          }
+          if (!refund.method || !RECORDABLE_METHODS.includes(refund.method as (typeof RECORDABLE_METHODS)[number])) {
+            return res.status(400).json({ error: "Select a refund method" });
+          }
+        }
+
+        await prisma.$transaction(async (tx) => {
+          await tx.userPackage.update({
+            where: { id: upkgId },
+            data: { is_active: false, credits_remaining: 0 },
+          });
+          if (refundKind === "comp") {
+            const settings = await getStudioSettings();
+            const expiry = new Date();
+            expiry.setDate(expiry.getDate() + settings.default_package_validity_days);
+            await tx.userPackage.create({
+              data: {
+                user_id: profile_id,
+                package_type_id: pkg.package_type_id,
+                credits_remaining: Number(refund.classes),
+                credits_total: Number(refund.classes),
+                expiration_date: pkg.expiration_date ?? expiry,
+                is_active: true,
+                is_comp: true,
+                grant_note: reasonRaw,
+                origin: "cancellation",
+              },
+            });
+          }
+        });
+
+        await logActivity({
+          req,
+          action: "admin.pass_removed",
+          targetProfileId: profile_id,
+          entity: { type: "user_package", id: upkgId },
+          metadata: {
+            reason: reasonRaw,
+            refund_kind: refundKind,
+            ...(refundKind === "comp" ? { comp_classes: Number(refund.classes) } : {}),
+            ...(refundKind === "money"
+              ? { refund_amount_paise: Math.round(Number(refund.amount_paise)), refund_method: refund.method, proof_url: refund.proof_url ?? null }
+              : {}),
+          },
+        });
+        return res.status(200).json({ ok: true });
+      }
+
+      if (action === "upgrade_pass") {
+        const upkgId = typeof user_package_id === "string" ? user_package_id : "";
+        const targetTypeId = typeof req.body?.target_package_type_id === "string" ? req.body.target_package_type_id : "";
+        if (!upkgId || !targetTypeId) return res.status(400).json({ error: "user_package_id and target_package_type_id required" });
+
+        const oldPkg = await prisma.userPackage.findUnique({ where: { id: upkgId } });
+        if (!oldPkg || oldPkg.user_id !== profile_id) return res.status(400).json({ error: "Invalid package" });
+        const targetType = await prisma.packageType.findUnique({ where: { id: targetTypeId } });
+        if (!targetType) return res.status(400).json({ error: "Target package not found" });
+
+        const amountPaise = Number(req.body?.amount_paise);
+        if (!Number.isInteger(amountPaise) || amountPaise < 0) {
+          return res.status(400).json({ error: "Enter a valid amount" });
+        }
+        const method = req.body?.method;
+        if (!method || !RECORDABLE_METHODS.includes(method)) {
+          return res.status(400).json({ error: "Select a payment method" });
+        }
+        const proofUrl = typeof req.body?.proof_url === "string" ? req.body.proof_url : null;
+
+        let expiryForCreate: Date;
+        if (targetType.duration_months && targetType.duration_months > 0) {
+          expiryForCreate = new Date();
+          expiryForCreate.setMonth(expiryForCreate.getMonth() + targetType.duration_months);
+        } else {
+          const settings = await getStudioSettings();
+          expiryForCreate = new Date();
+          expiryForCreate.setDate(expiryForCreate.getDate() + settings.default_package_validity_days);
+        }
+
+        let newPkgId: string;
+        try {
+          newPkgId = await prisma.$transaction(async (tx) => {
+            // Re-check inside the transaction so a retried/duplicate submit aborts
+            // cleanly instead of creating a second upgraded pass + payment — the
+            // first successful attempt already flipped is_active false, and
+            // recordManualPayment's idempotency guard can't catch this because the
+            // new pass gets a fresh id every attempt.
+            const fresh = await tx.userPackage.findUnique({ where: { id: upkgId } });
+            if (!fresh || !fresh.is_active) {
+              throw new Error("This pass has already been upgraded or is no longer active");
+            }
+            await tx.userPackage.update({ where: { id: upkgId }, data: { is_active: false } });
+            const created = await tx.userPackage.create({
+              data: {
+                user_id: profile_id,
+                package_type_id: targetType.id,
+                credits_remaining: targetType.class_count,
+                credits_total: targetType.class_count,
+                expiration_date: expiryForCreate,
+                is_active: true,
+                origin: "admin",
+                grant_note: reasonRaw,
+              },
+            });
+            if (amountPaise > 0) {
+              const result = await recordManualPayment(
+                {
+                  user_id: profile_id,
+                  user_package_id: created.id,
+                  method,
+                  amount_paise: Math.round(amountPaise),
+                  proof_url: proofUrl,
+                  notes: "pass upgrade",
+                  recorded_by: (session.user as { id?: string }).id ?? null,
+                },
+                tx,
+              );
+              if (!result.ok) throw new Error(result.error ?? "Could not record payment");
+            }
+            return created.id;
+          });
+        } catch (e) {
+          logger.error({ err: e }, "[admin/members PATCH] upgrade_pass transaction failed");
+          return res.status(409).json({ error: e instanceof Error ? e.message : "Could not upgrade pass" });
+        }
+
+        await logActivity({
+          req,
+          action: "admin.pass_upgraded",
+          targetProfileId: profile_id,
+          entity: { type: "user_package", id: newPkgId },
+          metadata: {
+            from_package_type_id: oldPkg.package_type_id,
+            target_package_type_id: targetType.id,
+            new_user_package_id: newPkgId,
+            amount_paise: Math.round(amountPaise),
+            method,
+            reason: reasonRaw,
+          },
+        });
+        return res.status(200).json({ ok: true, new_user_package_id: newPkgId });
+      }
     }
 
     // Auto-create a UserPackage when admin is assigning a new pass to a member with no

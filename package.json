@@ -55,6 +55,7 @@
     "test:cancel-emails": "tsx scripts/test-cancellation-recipients.ts",
     "test:email": "tsx scripts/test-email-service.ts",
     "test:friend-activity": "tsx scripts/test-friendActivity.ts",
+    "test:pass-adjust": "tsx scripts/test-passAdjust.ts",
     "db:refresh:templates": "tsx scripts/refresh-system-templates.ts",
     "db:catalog:dry": "tsx scripts/migrate-package-catalog.ts",
     "db:catalog:apply": "tsx scripts/migrate-package-catalog.ts --apply",

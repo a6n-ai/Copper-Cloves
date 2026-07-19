@@ -1,5 +1,8 @@
 import prisma from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import { PaymentMethod, PaymentStatus } from "@/generated/prisma/client";
+
+export type DbTx = Prisma.TransactionClient;
 
 // The single seam for recording manual money-IN (offline / non-gateway member
 // payments). Everything in the app that records a manual credit goes through
@@ -58,6 +61,7 @@ export type RecordManualPaymentResult = {
  */
 export async function recordManualPayment(
   input: RecordManualPaymentInput,
+  client: DbTx | typeof prisma = prisma,
 ): Promise<RecordManualPaymentResult> {
   if (!input.user_id || typeof input.user_id !== "string") {
     return { ok: false, error: "user_id required" };
@@ -79,7 +83,7 @@ export async function recordManualPayment(
   // Idempotency guard: covers double-submit (reload mid-request, double-click,
   // network retry, duplicate tab) within a short window.
   const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
-  const existing = await prisma.payment.findFirst({
+  const existing = await client.payment.findFirst({
     where: {
       user_id: input.user_id,
       method: input.method,
@@ -95,7 +99,7 @@ export async function recordManualPayment(
     return { ok: true, payment: existing, replayed: true };
   }
 
-  const payment = await prisma.payment.create({
+  const payment = await client.payment.create({
     data: {
       direction: "credit",
       user_id: input.user_id,

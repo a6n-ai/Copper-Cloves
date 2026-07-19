@@ -54,6 +54,13 @@ import {
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
 import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -74,8 +81,12 @@ import {
   priceBreakdown,
   formatINR,
   selectedPackageOf,
+  PAYMENT_METHODS,
   type PassMemberContext,
+  type PackageRow as CatalogPackageRow,
 } from "@/components/admin/managePass";
+import { computeUpgradeDifferencePaise } from "@/lib/passAdjust";
+import { MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
@@ -96,6 +107,8 @@ interface PackageRow {
   passType: string | null;
   durationMonths: number | null;
   status: PassStatus;
+  /** Package-type list price in rupees (INR), for computing upgrade price differences. */
+  price: number | null;
 }
 interface BookingRow {
   id: string;
@@ -189,7 +202,7 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
   const now = Date.now();
   const pkgsRaw = Array.isArray(data.user_packages) ? (data.user_packages as Array<Record<string, unknown>>) : [];
   const packages: PackageRow[] = pkgsRaw.map((p) => {
-    const pt = (p.package_type ?? null) as { name?: string; is_unlimited?: boolean; duration_months?: number | null } | null;
+    const pt = (p.package_type ?? null) as { name?: string; is_unlimited?: boolean; duration_months?: number | null; price?: number | string | null } | null;
     const exp = p.expiration_date ? String(p.expiration_date) : null;
     const isUnlimited = !!pt?.is_unlimited;
     const creditsRemaining = typeof p.credits_remaining === "number" ? p.credits_remaining : null;
@@ -209,6 +222,7 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
       passType: p.pass_type ? String(p.pass_type) : null,
       durationMonths: typeof pt?.duration_months === "number" ? pt.duration_months : null,
       status: derivePassStatus(isActive, isPaused, exp, now),
+      price: pt?.price == null ? null : Number(pt.price),
     };
   });
   // Active passes expiring-soonest first (booking-spend order); expired/used-up
@@ -352,6 +366,31 @@ export default function MemberDetailPage() {
   const [expiryDraft, setExpiryDraft] = useState("");
   const [savingExpiry, setSavingExpiry] = useState(false);
 
+  const [adjustPass, setAdjustPass] = useState<PackageRow | null>(null);
+  const [adjustCredits, setAdjustCredits] = useState("");
+  const [adjustReason, setAdjustReason] = useState("");
+  const [savingAdjust, setSavingAdjust] = useState(false);
+
+  const [removePass, setRemovePass] = useState<PackageRow | null>(null);
+  const [removeReason, setRemoveReason] = useState("");
+  const [refundKind, setRefundKind] = useState<"none" | "comp" | "money">("none");
+  const [refundClasses, setRefundClasses] = useState("");
+  const [refundAmount, setRefundAmount] = useState("");
+  const [refundMethod, setRefundMethod] = useState("");
+  const [refundProofUrl, setRefundProofUrl] = useState("");
+  const [refundProofUploading, setRefundProofUploading] = useState(false);
+  const [savingRemove, setSavingRemove] = useState(false);
+
+  const [upgradePass, setUpgradePass] = useState<PackageRow | null>(null);
+  const [upgradeCatalog, setUpgradeCatalog] = useState<CatalogPackageRow[]>([]);
+  const [upgradeTargetId, setUpgradeTargetId] = useState("");
+  const [upgradeAmount, setUpgradeAmount] = useState("");
+  const [upgradeMethod, setUpgradeMethod] = useState("");
+  const [upgradeProofUrl, setUpgradeProofUrl] = useState("");
+  const [upgradeProofUploading, setUpgradeProofUploading] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState("");
+  const [savingUpgrade, setSavingUpgrade] = useState(false);
+
   const load = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -474,6 +513,215 @@ export default function MemberDetailPage() {
     }
   }
 
+  function openAdjust(p: PackageRow) {
+    setAdjustPass(p);
+    setAdjustCredits(String(p.creditsRemaining ?? 0));
+    setAdjustReason("");
+  }
+  async function saveAdjust() {
+    if (!adjustPass || !member) return;
+    const credits = Number(adjustCredits);
+    if (!Number.isInteger(credits) || credits < 0) {
+      toast.error("Enter a whole number, zero or more");
+      return;
+    }
+    if (!adjustReason.trim()) {
+      toast.error("Reason required");
+      return;
+    }
+    setSavingAdjust(true);
+    try {
+      const res = await fetch("/api/admin/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          profile_id: member.id,
+          user_package_id: adjustPass.id,
+          action: "adjust_credits",
+          credits,
+          reason: adjustReason.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error ?? "Failed");
+      }
+      toast.success("Credits updated");
+      setAdjustPass(null);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update credits");
+    } finally {
+      setSavingAdjust(false);
+    }
+  }
+
+  function openRemove(p: PackageRow) {
+    setRemovePass(p);
+    setRemoveReason("");
+    setRefundKind("none");
+    setRefundClasses("");
+    setRefundAmount("");
+    setRefundMethod("");
+    setRefundProofUrl("");
+  }
+  async function uploadRefundProof(file: File) {
+    setRefundProofUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("purpose", "payment_proof");
+      const res = await fetch("/api/upload", { method: "POST", credentials: "include", body: fd });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.url) throw new Error(json.error ?? "Upload failed");
+      setRefundProofUrl(json.url);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setRefundProofUploading(false);
+    }
+  }
+  async function saveRemove() {
+    if (!removePass || !member) return;
+    if (!removeReason.trim()) {
+      toast.error("Reason required");
+      return;
+    }
+    if (refundKind === "comp" && (!Number.isInteger(Number(refundClasses)) || Number(refundClasses) <= 0)) {
+      toast.error("Enter a valid number of comp classes");
+      return;
+    }
+    if (refundKind === "money" && (!refundAmount || !refundMethod)) {
+      toast.error("Enter a refund amount and method");
+      return;
+    }
+    setSavingRemove(true);
+    try {
+      const res = await fetch("/api/admin/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          profile_id: member.id,
+          user_package_id: removePass.id,
+          action: "remove_pass",
+          reason: removeReason.trim(),
+          refund_kind: refundKind,
+          refund:
+            refundKind === "comp"
+              ? { classes: Number(refundClasses) }
+              : refundKind === "money"
+                ? { amount_paise: Math.round(Number(refundAmount) * 100), method: refundMethod, proof_url: refundProofUrl || undefined }
+                : undefined,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error ?? "Failed");
+      }
+      toast.success("Pass removed");
+      setRemovePass(null);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not remove pass");
+    } finally {
+      setSavingRemove(false);
+    }
+  }
+
+  function openUpgrade(p: PackageRow) {
+    setUpgradePass(p);
+    setUpgradeTargetId("");
+    setUpgradeAmount("");
+    setUpgradeMethod("");
+    setUpgradeProofUrl("");
+    setUpgradeReason("");
+    if (upgradeCatalog.length === 0) {
+      fetch("/api/packages?published=1", { credentials: "include" })
+        .then((r) => (r.ok ? r.json() : []))
+        .then((rows: unknown) => {
+          const list = Array.isArray(rows) ? rows : [];
+          setUpgradeCatalog(
+            list.map((row: Record<string, unknown>) => ({
+              id: String(row.id),
+              name: String(row.name ?? "Package"),
+              type: String(row.type ?? "class_pass"),
+              price: Number(row.price ?? 0),
+              class_count: row.class_count == null ? null : Number(row.class_count),
+              duration_months: row.duration_months == null ? null : Number(row.duration_months),
+              is_unlimited: Boolean(row.is_unlimited),
+            })),
+          );
+        })
+        .catch(() => {});
+    }
+  }
+  function onUpgradeTargetChange(id: string) {
+    setUpgradeTargetId(id);
+    const target = upgradeCatalog.find((c) => c.id === id);
+    if (target && upgradePass) {
+      const currentPriceInr = upgradePass.price ?? 0;
+      const diffPaise = computeUpgradeDifferencePaise(currentPriceInr, target.price);
+      setUpgradeAmount((diffPaise / 100).toFixed(2));
+    }
+  }
+  async function uploadUpgradeProof(file: File) {
+    setUpgradeProofUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("purpose", "payment_proof");
+      const res = await fetch("/api/upload", { method: "POST", credentials: "include", body: fd });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.url) throw new Error(json.error ?? "Upload failed");
+      setUpgradeProofUrl(json.url);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUpgradeProofUploading(false);
+    }
+  }
+  async function saveUpgrade() {
+    if (!upgradePass || !member) return;
+    if (!upgradeTargetId) return toast.error("Select a target package");
+    const amountPaise = Math.round(Number(upgradeAmount) * 100);
+    if (!Number.isFinite(amountPaise) || amountPaise < 0) return toast.error("Enter a valid amount");
+    if (amountPaise > 0 && (!upgradeMethod || !upgradeProofUrl)) {
+      return toast.error("Select a method and upload proof for a paid upgrade");
+    }
+    if (!upgradeReason.trim()) return toast.error("Reason required");
+    setSavingUpgrade(true);
+    try {
+      const res = await fetch("/api/admin/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          profile_id: member.id,
+          user_package_id: upgradePass.id,
+          action: "upgrade_pass",
+          target_package_type_id: upgradeTargetId,
+          amount_paise: amountPaise,
+          method: upgradeMethod || undefined,
+          proof_url: upgradeProofUrl || undefined,
+          reason: upgradeReason.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error ?? "Failed");
+      }
+      toast.success("Pass upgraded");
+      setUpgradePass(null);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not upgrade pass");
+    } finally {
+      setSavingUpgrade(false);
+    }
+  }
+
   /* — pause / resume active pass — */
   async function togglePause(next: boolean) {
     if (!member) return;
@@ -539,6 +787,9 @@ export default function MemberDetailPage() {
                   onCancelBooking={cancelBooking}
                   onTogglePause={togglePause}
                   onEditExpiry={openExpiry}
+                  onAdjustCredits={openAdjust}
+                  onUpgradePass={openUpgrade}
+                  onRemovePass={openRemove}
                   onReload={load}
                 />
               );
@@ -605,6 +856,178 @@ export default function MemberDetailPage() {
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
+      {/* Adjust credits */}
+      <ResponsiveDialog open={adjustPass !== null} onOpenChange={(o) => { if (!o) setAdjustPass(null); }}>
+        <ResponsiveDialogContent className="sm:max-w-[440px] bg-white-warm border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Adjust credits</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
+              {adjustPass?.name}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="font-body text-sm text-charcoal/70">New credit balance</Label>
+              <Input type="number" min={0} step={1} value={adjustCredits} onChange={(e) => setAdjustCredits(e.target.value)} className="font-body" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="font-body text-sm text-charcoal/70">Reason (required)</Label>
+              <Textarea value={adjustReason} onChange={(e) => setAdjustReason(e.target.value)} className="font-body" rows={3} />
+            </div>
+          </div>
+          <ResponsiveDialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setAdjustPass(null)} disabled={savingAdjust} className="font-body">Cancel</Button>
+            <Button onClick={() => void saveAdjust()} disabled={savingAdjust || !adjustReason.trim()} variant="sage" className="font-body">
+              {savingAdjust ? "Saving…" : "Save"}
+            </Button>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+
+      {/* Remove pass */}
+      <ResponsiveDialog open={removePass !== null} onOpenChange={(o) => { if (!o) setRemovePass(null); }}>
+        <ResponsiveDialogContent className="sm:max-w-[480px] bg-white-warm border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Remove pass</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
+              {removePass?.name} — this deactivates the pass. It stays in history.
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="font-body text-sm text-charcoal/70">Reason (required)</Label>
+              <Textarea value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} className="font-body" rows={3} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="font-body text-sm text-charcoal/70">Refund?</Label>
+              <Select value={refundKind} onValueChange={(v) => setRefundKind(v as "none" | "comp" | "money")}>
+                <SelectTrigger className="border-sage/20 font-body"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No refund</SelectItem>
+                  <SelectItem value="comp">Comp pass (free classes)</SelectItem>
+                  <SelectItem value="money">Money refund</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {refundKind === "comp" && (
+              <div className="space-y-1.5">
+                <Label className="font-body text-sm text-charcoal/70">Comp classes to grant</Label>
+                <Input type="number" min={1} step={1} value={refundClasses} onChange={(e) => setRefundClasses(e.target.value)} className="font-body" />
+              </div>
+            )}
+            {refundKind === "money" && (
+              <>
+                <p className="font-body text-xs text-charcoal/60">
+                  Audit note only — this records what you refunded outside the app. It does not move money or create a finance-ledger entry.
+                </p>
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">Refund amount (₹)</Label>
+                  <Input type="number" min={0} step="0.01" value={refundAmount} onChange={(e) => setRefundAmount(e.target.value)} className="font-body" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">Method</Label>
+                  <Select value={refundMethod} onValueChange={setRefundMethod}>
+                    <SelectTrigger className="border-sage/20 font-body"><SelectValue placeholder="Select method" /></SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_METHODS.map((m) => (
+                        <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">Proof (optional)</Label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    disabled={refundProofUploading}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadRefundProof(f); }}
+                    className="font-body"
+                  />
+                  {refundProofUrl && <a href={refundProofUrl} target="_blank" rel="noreferrer" className="text-xs text-sage underline">view uploaded proof</a>}
+                </div>
+              </>
+            )}
+          </div>
+          <ResponsiveDialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setRemovePass(null)} disabled={savingRemove} className="font-body">Cancel</Button>
+            <Button onClick={() => void saveRemove()} disabled={savingRemove || !removeReason.trim()} variant="sage" className="font-body">
+              {savingRemove ? "Removing…" : "Remove pass"}
+            </Button>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+
+      {/* Upgrade pass */}
+      <ResponsiveDialog open={upgradePass !== null} onOpenChange={(o) => { if (!o) setUpgradePass(null); }}>
+        <ResponsiveDialogContent className="sm:max-w-[480px] bg-white-warm border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Upgrade pass</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
+              {upgradePass?.name} → deactivates this pass and assigns the new one.
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="font-body text-sm text-charcoal/70">Upgrade to</Label>
+              <Select value={upgradeTargetId} onValueChange={onUpgradeTargetChange}>
+                <SelectTrigger className="border-sage/20 font-body"><SelectValue placeholder="Select target package" /></SelectTrigger>
+                <SelectContent>
+                  {upgradeCatalog.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name} · {formatINR(Math.round(c.price * 100))}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="font-body text-sm text-charcoal/70">Amount to collect (₹)</Label>
+              <Input type="number" min={0} step="0.01" value={upgradeAmount} onChange={(e) => setUpgradeAmount(e.target.value)} className="font-body" />
+            </div>
+            {Number(upgradeAmount) > 0 && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">Method</Label>
+                  <Select value={upgradeMethod} onValueChange={setUpgradeMethod}>
+                    <SelectTrigger className="border-sage/20 font-body"><SelectValue placeholder="Select method" /></SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_METHODS.map((m) => (
+                        <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">Proof of payment</Label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    disabled={upgradeProofUploading}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadUpgradeProof(f); }}
+                    className="font-body"
+                  />
+                  {upgradeProofUrl && <a href={upgradeProofUrl} target="_blank" rel="noreferrer" className="text-xs text-sage underline">view uploaded proof</a>}
+                </div>
+              </>
+            )}
+            <div className="space-y-1.5">
+              <Label className="font-body text-sm text-charcoal/70">Reason (required)</Label>
+              <Textarea value={upgradeReason} onChange={(e) => setUpgradeReason(e.target.value)} className="font-body" rows={3} />
+            </div>
+          </div>
+          <ResponsiveDialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setUpgradePass(null)} disabled={savingUpgrade} className="font-body">Cancel</Button>
+            <Button
+              onClick={() => void saveUpgrade()}
+              disabled={savingUpgrade || !upgradeTargetId || !upgradeReason.trim() || (Number(upgradeAmount) > 0 && (!upgradeMethod || !upgradeProofUrl))}
+              variant="sage"
+              className="font-body"
+            >
+              {savingUpgrade ? "Upgrading…" : "Upgrade"}
+            </Button>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+
       <ResponsiveDialog open={cancelTargetId !== null} onOpenChange={(o) => { if (!o) setCancelTargetId(null); }}>
         <ResponsiveDialogContent className="sm:max-w-[440px] bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
@@ -637,6 +1060,9 @@ function MemberBody({
   onCancelBooking,
   onTogglePause,
   onEditExpiry,
+  onAdjustCredits,
+  onUpgradePass,
+  onRemovePass,
   onReload,
 }: {
   member: MemberDetail;
@@ -646,6 +1072,9 @@ function MemberBody({
   onCancelBooking: (id: string) => void;
   onTogglePause: (next: boolean) => void;
   onEditExpiry: (p: PackageRow) => void;
+  onAdjustCredits: (p: PackageRow) => void;
+  onUpgradePass: (p: PackageRow) => void;
+  onRemovePass: (p: PackageRow) => void;
   onReload: () => Promise<void>;
 }) {
   const [manageOpen, setManageOpen] = useState(false);
@@ -862,23 +1291,44 @@ function MemberBody({
                   transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1], delay: Math.min(i, 6) * 0.06 }}
                 >
                   {p.isActive ? (
-                    <button
-                      type="button"
-                      onClick={() => onEditExpiry(p)}
-                      title="Edit pass expiry"
-                      aria-label={`Edit expiry for ${p.name}`}
-                      className="block w-full cursor-pointer rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
-                    >
-                      <PassCard
-                        name={p.name}
-                        isUnlimited={p.isUnlimited}
-                        classesRemaining={p.creditsRemaining}
-                        expiry={p.expiresAt}
-                        durationMonths={p.durationMonths}
-                        status={p.status}
-                        className="w-full"
-                      />
-                    </button>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => onEditExpiry(p)}
+                        title="Edit pass expiry"
+                        aria-label={`Edit expiry for ${p.name}`}
+                        className="block w-full cursor-pointer rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
+                      >
+                        <PassCard
+                          name={p.name}
+                          isUnlimited={p.isUnlimited}
+                          classesRemaining={p.creditsRemaining}
+                          expiry={p.expiresAt}
+                          durationMonths={p.durationMonths}
+                          status={p.status}
+                          className="w-full"
+                        />
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`More actions for ${p.name}`}
+                            className="absolute right-3 top-3 z-10 rounded-full bg-white-warm/90 p-1.5 text-charcoal/70 shadow-sm hover:bg-white-warm hover:text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="font-body">
+                          <DropdownMenuItem onClick={() => onAdjustCredits(p)}>Adjust credits</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onUpgradePass(p)}>Upgrade pass</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onRemovePass(p)} className="text-terracotta focus:text-terracotta">
+                            Remove pass
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   ) : (
                     <PassCard
                       name={p.name}
