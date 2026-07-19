@@ -8,7 +8,7 @@ import { getDynamicStats, getDynamicStatsForUsers } from "@/lib/attendanceStats"
 import { logActivity } from "@/lib/activityLog";
 import { HISTORY_STATUSES } from "@/lib/bookingStatus";
 import { getStudioSettings } from "@/lib/studioSettings";
-import { computeUpgradeDifferencePaise, validateCreditAdjust } from "@/lib/passAdjust";
+import { validateCreditAdjust } from "@/lib/passAdjust";
 import { recordManualPayment, RECORDABLE_METHODS } from "@/lib/payments";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
@@ -490,7 +490,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         if (refundKind === "money") {
           const amt = Number(refund.amount_paise);
-          if (!Number.isFinite(amt) || amt < 0) {
+          if (!Number.isInteger(amt) || amt < 0) {
             return res.status(400).json({ error: "Enter a valid refund amount" });
           }
           if (!refund.method || !RECORDABLE_METHODS.includes(refund.method as (typeof RECORDABLE_METHODS)[number])) {
@@ -533,7 +533,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             refund_kind: refundKind,
             ...(refundKind === "comp" ? { comp_classes: Number(refund.classes) } : {}),
             ...(refundKind === "money"
-              ? { refund_amount_paise: Number(refund.amount_paise), refund_method: refund.method, proof_url: refund.proof_url ?? null }
+              ? { refund_amount_paise: Math.round(Number(refund.amount_paise)), refund_method: refund.method, proof_url: refund.proof_url ?? null }
               : {}),
           },
         });
@@ -551,7 +551,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!targetType) return res.status(400).json({ error: "Target package not found" });
 
         const amountPaise = Number(req.body?.amount_paise);
-        if (!Number.isFinite(amountPaise) || amountPaise < 0) {
+        if (!Number.isInteger(amountPaise) || amountPaise < 0) {
           return res.status(400).json({ error: "Enter a valid amount" });
         }
         const method = req.body?.method;
@@ -570,37 +570,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           expiryForCreate.setDate(expiryForCreate.getDate() + settings.default_package_validity_days);
         }
 
-        const newPkgId = await prisma.$transaction(async (tx) => {
-          await tx.userPackage.update({ where: { id: upkgId }, data: { is_active: false } });
-          const created = await tx.userPackage.create({
-            data: {
-              user_id: profile_id,
-              package_type_id: targetType.id,
-              credits_remaining: targetType.class_count,
-              credits_total: targetType.class_count,
-              expiration_date: expiryForCreate,
-              is_active: true,
-              origin: "admin",
-              grant_note: reasonRaw,
-            },
-          });
-          if (amountPaise > 0) {
-            const result = await recordManualPayment(
-              {
+        let newPkgId: string;
+        try {
+          newPkgId = await prisma.$transaction(async (tx) => {
+            // Re-check inside the transaction so a retried/duplicate submit aborts
+            // cleanly instead of creating a second upgraded pass + payment — the
+            // first successful attempt already flipped is_active false, and
+            // recordManualPayment's idempotency guard can't catch this because the
+            // new pass gets a fresh id every attempt.
+            const fresh = await tx.userPackage.findUnique({ where: { id: upkgId } });
+            if (!fresh || !fresh.is_active) {
+              throw new Error("This pass has already been upgraded or is no longer active");
+            }
+            await tx.userPackage.update({ where: { id: upkgId }, data: { is_active: false } });
+            const created = await tx.userPackage.create({
+              data: {
                 user_id: profile_id,
-                user_package_id: created.id,
-                method,
-                amount_paise: Math.round(amountPaise),
-                proof_url: proofUrl,
-                notes: "pass upgrade",
-                recorded_by: (session.user as { id?: string }).id ?? null,
+                package_type_id: targetType.id,
+                credits_remaining: targetType.class_count,
+                credits_total: targetType.class_count,
+                expiration_date: expiryForCreate,
+                is_active: true,
+                origin: "admin",
+                grant_note: reasonRaw,
               },
-              tx,
-            );
-            if (!result.ok) throw new Error(result.error ?? "Could not record payment");
-          }
-          return created.id;
-        });
+            });
+            if (amountPaise > 0) {
+              const result = await recordManualPayment(
+                {
+                  user_id: profile_id,
+                  user_package_id: created.id,
+                  method,
+                  amount_paise: Math.round(amountPaise),
+                  proof_url: proofUrl,
+                  notes: "pass upgrade",
+                  recorded_by: (session.user as { id?: string }).id ?? null,
+                },
+                tx,
+              );
+              if (!result.ok) throw new Error(result.error ?? "Could not record payment");
+            }
+            return created.id;
+          });
+        } catch (e) {
+          logger.error({ err: e }, "[admin/members PATCH] upgrade_pass transaction failed");
+          return res.status(409).json({ error: e instanceof Error ? e.message : "Could not upgrade pass" });
+        }
 
         await logActivity({
           req,

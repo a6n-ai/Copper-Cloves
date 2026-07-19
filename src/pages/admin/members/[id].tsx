@@ -917,6 +917,9 @@ export default function MemberDetailPage() {
             )}
             {refundKind === "money" && (
               <>
+                <p className="font-body text-xs text-charcoal/60">
+                  Audit note only — this records what you refunded outside the app. It does not move money or create a finance-ledger entry.
+                </p>
                 <div className="space-y-1.5">
                   <Label className="font-body text-sm text-charcoal/70">Refund amount (₹)</Label>
                   <Input type="number" min={0} step="0.01" value={refundAmount} onChange={(e) => setRefundAmount(e.target.value)} className="font-body" />
