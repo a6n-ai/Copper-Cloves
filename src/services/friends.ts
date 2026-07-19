@@ -61,3 +61,15 @@ export async function getFriendActivity(): Promise<FriendActivity[]> {
   const r = await fetch("/api/friends/activity");
   return r.ok ? r.json() : [];
 }
+
+export async function inviteFriend(
+  input: { name: string; email: string; phone: string },
+): Promise<{ ok: boolean; error?: string; isNew?: boolean }> {
+  const r = await fetch("/api/friends/invite", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const data = await r.json().catch(() => ({}));
+  return r.ok ? { ok: true, isNew: data.isNew } : { ok: false, error: data.error };
+}
