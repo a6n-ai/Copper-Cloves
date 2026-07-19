@@ -141,6 +141,7 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
           { href: "/portal/bookings", label: "My Bookings", icon: CalendarCheck },
           { href: "/portal/packages", label: "Packages", icon: Package },
           { href: "/portal/menu", label: "Café", icon: Coffee },
+          { href: "/portal/friends", label: "Friends & Family", icon: Users },
         ],
       },
       {

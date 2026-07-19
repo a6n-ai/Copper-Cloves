@@ -47,3 +47,17 @@ export async function blockFriend(friendId: string): Promise<boolean> {
   });
   return r.ok;
 }
+
+export type FriendActivity = {
+  friendId: string;
+  friendName: string;
+  friendAvatarUrl: string | null;
+  scheduleId: string;
+  className: string;
+  startTime: string;
+};
+
+export async function getFriendActivity(): Promise<FriendActivity[]> {
+  const r = await fetch("/api/friends/activity");
+  return r.ok ? r.json() : [];
+}
