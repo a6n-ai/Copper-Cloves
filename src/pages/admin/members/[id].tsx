@@ -37,7 +37,7 @@ import { PassCard } from "@/components/dashboard/PassCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
-import { paymentMethodPill, ticketStatusPill, bookingStatusPill, bookingPaymentPill } from "@/lib/pillMaps";
+import { paymentMethodPill, ticketStatusPill, bookingStatusPill, bookingPaymentPill, memberStatusPill } from "@/lib/pillMaps";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/filters";
 import { Label } from "@/components/ui/label";
@@ -347,6 +347,10 @@ export default function MemberDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [savingBookingId, setSavingBookingId] = useState<string | null>(null);
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
+  // Edit-expiry dialog: the clicked pass + the draft date (yyyy-MM-dd).
+  const [expiryPass, setExpiryPass] = useState<PackageRow | null>(null);
+  const [expiryDraft, setExpiryDraft] = useState("");
+  const [savingExpiry, setSavingExpiry] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -436,6 +440,40 @@ export default function MemberDetailPage() {
     }
   }
 
+  /* — edit a pass's expiry date — */
+  function openExpiry(p: PackageRow) {
+    setExpiryPass(p);
+    setExpiryDraft(p.expiresAt ? p.expiresAt.slice(0, 10) : "");
+  }
+
+  async function saveExpiry() {
+    if (!member || !expiryPass || !expiryDraft) return;
+    setSavingExpiry(true);
+    try {
+      const res = await fetch("/api/admin/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          profile_id: member.id,
+          user_package_id: expiryPass.id,
+          expiration_date: expiryDraft,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error ?? "Failed");
+      }
+      toast.success("Expiry updated");
+      setExpiryPass(null);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update expiry");
+    } finally {
+      setSavingExpiry(false);
+    }
+  }
+
   /* — pause / resume active pass — */
   async function togglePause(next: boolean) {
     if (!member) return;
@@ -500,6 +538,7 @@ export default function MemberDetailPage() {
                   onApplyOutcome={applyOutcome}
                   onCancelBooking={cancelBooking}
                   onTogglePause={togglePause}
+                  onEditExpiry={openExpiry}
                   onReload={load}
                 />
               );
@@ -507,6 +546,64 @@ export default function MemberDetailPage() {
           </div>
         </main>
       </div>
+
+      {/* Edit pass expiry */}
+      <ResponsiveDialog open={expiryPass !== null} onOpenChange={(o) => { if (!o) setExpiryPass(null); }}>
+        <ResponsiveDialogContent className="sm:max-w-[440px] bg-white-warm border-sage/20">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Pass details</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="font-body text-charcoal/60">
+              Review the current pass and update its expiry date.
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+
+          {expiryPass && (
+            <div className="space-y-4">
+              <div className="space-y-2 rounded-xl border border-sage/20 bg-sage/5 px-4 py-3 font-body text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-charcoal/55">Pass</span>
+                  <span className="font-medium text-charcoal">{expiryPass.name}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-charcoal/55">Classes left</span>
+                  <span className="font-medium text-charcoal">
+                    {expiryPass.isUnlimited ? "Unlimited" : `${expiryPass.creditsRemaining ?? 0} left`}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-charcoal/55">Status</span>
+                  <Pill {...memberStatusPill(expiryPass.status)} size="sm">
+                    {expiryPass.status.charAt(0).toUpperCase() + expiryPass.status.slice(1).replace(/_/g, " ")}
+                  </Pill>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-charcoal/55">Current expiry</span>
+                  <span className="font-medium text-charcoal">{expiryPass.expiresAt ? fmtDate(expiryPass.expiresAt) : "No expiry"}</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-body text-sm text-charcoal/80">New expiry date</label>
+                <DatePicker value={expiryDraft} onChange={setExpiryDraft} placeholder="Select expiry date" className="h-11" />
+              </div>
+            </div>
+          )}
+
+          <ResponsiveDialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setExpiryPass(null)} disabled={savingExpiry} className="font-body">
+              Cancel
+            </Button>
+            <Button
+              variant="sage"
+              onClick={saveExpiry}
+              disabled={savingExpiry || !expiryDraft || expiryDraft === (expiryPass?.expiresAt?.slice(0, 10) ?? "")}
+              className="font-body"
+            >
+              {savingExpiry ? "Saving…" : "Update expiry"}
+            </Button>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       <ResponsiveDialog open={cancelTargetId !== null} onOpenChange={(o) => { if (!o) setCancelTargetId(null); }}>
         <ResponsiveDialogContent className="sm:max-w-[440px] bg-white-warm border-sage/20">
@@ -539,6 +636,7 @@ function MemberBody({
   onApplyOutcome,
   onCancelBooking,
   onTogglePause,
+  onEditExpiry,
   onReload,
 }: {
   member: MemberDetail;
@@ -547,6 +645,7 @@ function MemberBody({
   onApplyOutcome: (id: string, o: "on_time" | "late" | "no_show" | "not_checked_in") => void;
   onCancelBooking: (id: string) => void;
   onTogglePause: (next: boolean) => void;
+  onEditExpiry: (p: PackageRow) => void;
   onReload: () => Promise<void>;
 }) {
   const [manageOpen, setManageOpen] = useState(false);
@@ -762,15 +861,23 @@ function MemberBody({
                   animate={{ opacity: dim ? 0.6 : 1, y: 0 }}
                   transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1], delay: Math.min(i, 6) * 0.06 }}
                 >
-                  <PassCard
-                    name={p.name}
-                    isUnlimited={p.isUnlimited}
-                    classesRemaining={p.creditsRemaining}
-                    expiry={p.expiresAt}
-                    durationMonths={p.durationMonths}
-                    status={p.status}
-                    className="w-full"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => onEditExpiry(p)}
+                    title="Edit pass expiry"
+                    aria-label={`Edit expiry for ${p.name}`}
+                    className="block w-full cursor-pointer rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
+                  >
+                    <PassCard
+                      name={p.name}
+                      isUnlimited={p.isUnlimited}
+                      classesRemaining={p.creditsRemaining}
+                      expiry={p.expiresAt}
+                      durationMonths={p.durationMonths}
+                      status={p.status}
+                      className="w-full"
+                    />
+                  </button>
                 </motion.div>
               );
               return (
