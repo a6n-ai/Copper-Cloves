@@ -59,6 +59,9 @@ export const ACTIVITY_ACTIONS: Record<string, ActionDef> = {
   "admin.orphan_payment_linked": { category: "admin", buildSummary: () => `Linked an orphan payment to a booking` },
   "admin.orphan_payment_marked_refunded": { category: "admin", buildSummary: () => `Marked an orphan payment as refunded` },
   "admin.package_assigned": { category: "admin", buildSummary: (m) => `Assigned ${str(m.package_name, "a package")}` },
+  "admin.pass_credits_adjusted": { category: "admin", buildSummary: (m) => `Adjusted pass credits ${str(String(m.from ?? "?"), "?")} → ${str(String(m.to ?? "?"), "?")}` },
+  "admin.pass_removed": { category: "admin", buildSummary: (m) => `Removed a pass (refund: ${str(m.refund_kind, "none")})` },
+  "admin.pass_upgraded": { category: "admin", buildSummary: () => "Upgraded a pass" },
   "admin.badge_allocated": { category: "admin", buildSummary: (m) => `Allocated badge ${str(m.badge_name, "")}`.trim() },
   "admin.schedule_created": {
     category: "admin",
