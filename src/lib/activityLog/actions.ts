@@ -51,6 +51,11 @@ export const ACTIVITY_ACTIONS: Record<string, ActionDef> = {
   "profile.updated": { category: "member", buildSummary: () => "Updated profile" },
   "ticket.raised": { category: "member", buildSummary: () => "Raised a support request" },
   "user.pass_shared": { category: "member", buildSummary: (m) => `Shared ${str(String(m.credits ?? "?"), "?")} classes with a friend` },
+  "booking.credit_shortfall": {
+    category: "system",
+    buildSummary: (m) =>
+      `Pass credit NOT deducted (booking confirmed anyway) — needed ${str(String(m.requested_credits ?? "?"), "?")}, short ${str(String(m.shortfall ?? "?"), "?")}`,
+  },
 
   // admin
   "admin.payment_recorded": { category: "admin", buildSummary: (m) => `Recorded ${str(m.method, "a")} payment` },

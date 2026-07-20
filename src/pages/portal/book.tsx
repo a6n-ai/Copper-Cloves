@@ -822,6 +822,12 @@ export default function BookClass() {
   const [activeClassPasses, setActiveClassPasses] = useState<
     { id?: string; name: string; classesRemaining: number; expiry: string | null }[]
   >([]);
+  // Credits remaining on the SINGLE pass that will actually be debited
+  // (pickBookablePackage's choice) — distinct from userPackage.classesRemaining,
+  // which is the sum across ALL active passes. Group-cover gating must use this,
+  // not the aggregate: the debit only ever hits one pass, so a member with two
+  // 2-credit passes (4 summed) can't be allowed to "cover" a 3-seat group.
+  const [bookablePassCredits, setBookablePassCredits] = useState<number | null>(null);
 
   // Credits & payment
   const [useCredits, setUseCredits] = useState(true);
@@ -1050,9 +1056,11 @@ export default function BookClass() {
           classesRemaining: totalClasses,
           isUnlimited: packageType?.is_unlimited || false,
         });
+        setBookablePassCredits(pkg.credits_remaining ?? 0);
       } else {
         setActiveClassPasses([]);
         setUserPackage({ type: null, name: "No Active Package", classesRemaining: 0, isUnlimited: false });
+        setBookablePassCredits(0);
       }
 
       setIsLoading(false);
@@ -1148,9 +1156,14 @@ export default function BookClass() {
   }, []);
 
   const creditsNeededForGroup = 1 + addedMembers.length;
+  // Gate on the single pass that will actually be debited, not the sum across
+  // every active pass (see bookablePassCredits) — otherwise the UI can offer
+  // "cover the whole group" when no single pass holds enough credits, and the
+  // server-side updateMany (targeted at one pass) silently books extra seats
+  // for free while logging (online path) instead of blocking the purchase.
   const canCoverGuestsWithCredits =
     userPackage.type === "class_pass" &&
-    (userPackage.classesRemaining ?? 0) >= creditsNeededForGroup;
+    (bookablePassCredits ?? 0) >= creditsNeededForGroup;
   const coveringGroup =
     useCredits && coverGuestsWithCredits && canCoverGuestsWithCredits && addedMembers.length > 0;
 
@@ -1846,7 +1859,7 @@ export default function BookClass() {
                             <span className="block font-body text-xs text-charcoal/60">
                               {canCoverGuestsWithCredits
                                 ? "No payment needed for the class."
-                                : `You have ${userPackage.classesRemaining ?? 0} left — this needs ${creditsNeededForGroup}.`}
+                                : `You have ${bookablePassCredits ?? 0} left on this pass — this needs ${creditsNeededForGroup}.`}
                             </span>
                           </button>
                         </div>
