@@ -83,23 +83,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     if (!recipient) return res.status(400).json({ error: "Recipient not found" });
 
-    const created = await prisma.$transaction(async (tx) => {
-      await tx.userPackage.update({
-        where: { id: user_package_id },
-        data: { credits_remaining: (pkg.credits_remaining ?? 0) - requested },
+    let created;
+    try {
+      created = await prisma.$transaction(async (tx) => {
+        // Atomic conditional debit — the WHERE guard makes this race-safe under
+        // concurrent shares of the same pass (see finding: two simultaneous
+        // requests both reading a stale credits_remaining could otherwise both
+        // pass the pre-check and double-spend the same credits).
+        const debited = await tx.userPackage.updateMany({
+          where: { id: user_package_id, credits_remaining: { gte: requested } },
+          data: { credits_remaining: { decrement: requested } },
+        });
+        if (debited.count !== 1) {
+          throw new Error("Not enough classes left on this pass");
+        }
+        return tx.sharedCredit.create({
+          data: {
+            source_user_package_id: user_package_id,
+            owner_user_id: me,
+            recipient_user_id: recipient_id,
+            credits_total: requested,
+            credits_remaining: requested,
+            status: "active",
+            expiration_date: pkg.expiration_date,
+          },
+        });
       });
-      return tx.sharedCredit.create({
-        data: {
-          source_user_package_id: user_package_id,
-          owner_user_id: me,
-          recipient_user_id: recipient_id,
-          credits_total: requested,
-          credits_remaining: requested,
-          status: "active",
-          expiration_date: pkg.expiration_date,
-        },
-      });
-    });
+    } catch (e) {
+      logger.error({ err: e }, "[shared-credits POST] transaction failed");
+      return res.status(409).json({ error: e instanceof Error ? e.message : "Could not share classes" });
+    }
 
     await logActivity({
       req,
