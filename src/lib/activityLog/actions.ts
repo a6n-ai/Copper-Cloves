@@ -50,6 +50,7 @@ export const ACTIVITY_ACTIONS: Record<string, ActionDef> = {
   "package.purchased": { category: "member", buildSummary: (m) => `Purchased ${str(m.package_name, "a package")}` },
   "profile.updated": { category: "member", buildSummary: () => "Updated profile" },
   "ticket.raised": { category: "member", buildSummary: () => "Raised a support request" },
+  "user.pass_shared": { category: "member", buildSummary: (m) => `Shared ${str(String(m.credits ?? "?"), "?")} classes with a friend` },
 
   // admin
   "admin.payment_recorded": { category: "admin", buildSummary: (m) => `Recorded ${str(m.method, "a")} payment` },
