@@ -111,7 +111,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
     let cancelled = false;
     import("@/services/friends").then(({ getFriends }) =>
       getFriends().then((fs) => {
-        if (!cancelled) setFriends(fs.map((f) => ({ id: f.id, name: f.name, email: f.email, phone: null, avatar_url: f.avatar_url })));
+        if (!cancelled) setFriends(fs.map((f) => ({ id: f.id, name: f.name, email: f.email, phone: f.phone, avatar_url: f.avatar_url })));
       }),
     );
     return () => { cancelled = true; };

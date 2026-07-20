@@ -127,7 +127,7 @@ export function AddFriendSearch({ existingIds, onSent }: { existingIds: Set<stri
             const connected = existingIds.has(r.id);
             const sent = requested.has(r.id);
             return (
-              <CommandItem key={r.id} value={r.id} disabled={connected || sent} className="gap-2.5">
+              <CommandItem key={r.id} value={r.id} className="gap-2.5">
                 <Avatar name={r.name} avatarUrl={r.avatar_url} />
                 <div className="min-w-0 flex-1 text-left">
                   <div className="truncate text-sm font-medium text-charcoal">{r.name}</div>
