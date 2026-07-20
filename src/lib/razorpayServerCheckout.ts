@@ -374,7 +374,10 @@ async function confirmPreCreatedBookingFlow(args: {
                 userId,
                 requestedCredits,
                 creditsToDeduct,
-                shortfall: creditsToDeduct,
+                // Debits are all-or-nothing, so the whole attempt is what went
+                // untaken — name it as such rather than "shortfall", which reads
+                // as a deficit and misleads when creditsToDeduct < requested.
+                attemptedCredits: creditsToDeduct,
               },
               "[confirmPreCreatedBookingFlow] pass credit NOT decremented (no credits / package missing) — booking confirmed without credit",
             );
@@ -420,7 +423,7 @@ async function confirmPreCreatedBookingFlow(args: {
           user_package_id: creditShortfall.userPackageId,
           requested_credits: creditShortfall.requestedCredits,
           credits_to_deduct: creditShortfall.creditsToDeduct,
-          shortfall: creditShortfall.creditsToDeduct,
+          attempted_credits: creditShortfall.creditsToDeduct,
         },
       }).catch(() => {});
     }
@@ -550,7 +553,11 @@ export async function finishBookingCheckoutOnServer(
   const extraGuests = pending.extra_guest_count;
   const scheduleId = pending.class_schedule_id;
   const packageId = pending.user_package_id;
-  const addedMemberProfileIds = pending.added_member_profile_ids ?? [];
+  // Filter the booker out of their own added-member list, mirroring
+  // createPendingBooking. Without this, a member who added themselves by email
+  // would have their own just-created confirmed row counted as "already
+  // booked", under-debiting the group by one credit.
+  const addedMemberProfileIds = (pending.added_member_profile_ids ?? []).filter((id) => id !== userId);
 
   const booking = await prisma.$transaction(async (tx) => {
     // Serialize concurrent bookings on this schedule (read-then-insert race).

@@ -1316,6 +1316,23 @@ export default function BookClass() {
       const packageToUse = await fetchActivePackage();
       assertClassPassUsable(usingClassPassCredit, packageToUse);
 
+      // Re-check the group cover against FRESH server credits, not the balance
+      // read at mount. `bookablePassCredits` goes stale as soon as this member
+      // books once without a reload — trusting it would let a second group
+      // booking through on a pass that can no longer fund it, and the online
+      // (pre-created) confirm path logs rather than throws on a failed debit,
+      // so the seats would be issued for free.
+      if (coveringGroup) {
+        const freshCredits = packageToUse?.credits_remaining ?? 0;
+        setBookablePassCredits(freshCredits);
+        if (freshCredits < creditsNeededForGroup) {
+          setCoverGuestsWithCredits(false);
+          throw new Error(
+            `This pass now has ${freshCredits} class${freshCredits === 1 ? "" : "es"} left — not enough to cover ${creditsNeededForGroup}. Review your booking and try again.`,
+          );
+        }
+      }
+
       const owedTotals = calculateTotals();
       const { classTotal, foodTotal, discount, taxIncluded, finalTotal } = owedTotals;
       const dayPassEquivalentCount = coveringGroup

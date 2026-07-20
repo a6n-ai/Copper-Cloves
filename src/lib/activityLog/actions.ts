@@ -54,7 +54,7 @@ export const ACTIVITY_ACTIONS: Record<string, ActionDef> = {
   "booking.credit_shortfall": {
     category: "system",
     buildSummary: (m) =>
-      `Pass credit NOT deducted (booking confirmed anyway) — needed ${str(String(m.requested_credits ?? "?"), "?")}, short ${str(String(m.shortfall ?? "?"), "?")}`,
+      `Pass credit NOT deducted (booking confirmed anyway) — needed ${str(String(m.requested_credits ?? "?"), "?")}, attempted ${str(String(m.attempted_credits ?? "?"), "?")}`,
   },
 
   // admin
