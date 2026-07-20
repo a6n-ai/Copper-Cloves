@@ -21,6 +21,7 @@ import { logActivity } from "@/lib/activityLog";
 import { getStudioSettings } from "@/lib/studioSettings";
 import { grantRefundForBookingRow, notifyGroupCancellation } from "@/lib/classCancellation";
 import { releaseCouponRedemption } from "@/lib/couponHelpers";
+import { validateCreditsToDeduct } from "@/lib/bookingCredits";
 
 type BookingsLog = ReturnType<typeof requestLogger>;
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
@@ -184,6 +185,7 @@ type CreateBookingArgs = {
   guestList: NonNullable<ReturnType<typeof parseGuestAttendees>>;
   financeSnap: ReturnType<typeof parseFinanceSnapshot>;
   addedMemberProfileIds: string[];
+  creditsToDeduct: number;
 };
 
 function createBookingTx(args: CreateBookingArgs) {
@@ -292,9 +294,9 @@ function createBookingTx(args: CreateBookingArgs) {
         where: {
           id: args.packageId,
           user_id: args.userId,
-          credits_remaining: { gte: 1 },
+          credits_remaining: { gte: args.creditsToDeduct },
         },
-        data: { credits_remaining: { decrement: 1 } },
+        data: { credits_remaining: { decrement: args.creditsToDeduct } },
       });
       if (upd.count !== 1) throw new Error("NO_CREDITS");
     }
@@ -345,6 +347,7 @@ type ParsedBooking = {
   guestList: NonNullable<ReturnType<typeof parseGuestAttendees>>;
   financeSnap: ReturnType<typeof parseFinanceSnapshot>;
   addedMemberProfileIds: string[];
+  creditsToDeduct: number;
 };
 
 function parseBookingRequest(
@@ -368,6 +371,7 @@ function parseBookingRequest(
     extra_guest_count?: unknown;
     guest_attendees?: unknown;
     finance_snapshot?: unknown;
+    credits_to_deduct?: unknown;
   };
 
   const rpOrderId =
@@ -417,6 +421,15 @@ function parseBookingRequest(
       )
     : [];
 
+  const creditsCheck = validateCreditsToDeduct({
+    requested: (body as Record<string, unknown>).credits_to_deduct,
+    addedMemberCount: addedMemberProfileIds.length,
+  });
+  if (!creditsCheck.ok) {
+    return { ok: false, error: (creditsCheck as { error: string }).error };
+  }
+  const creditsToDeduct = creditsCheck.credits as number;
+
   return {
     ok: true,
     value: {
@@ -429,6 +442,7 @@ function parseBookingRequest(
       guestList,
       financeSnap,
       addedMemberProfileIds,
+      creditsToDeduct,
     },
   };
 }
@@ -444,8 +458,18 @@ async function handlePost(
   if (!parsed.ok) {
     return res.status(400).json({ error: parsed.error });
   }
-  const { scheduleId, packageId, rpOrderId, className, classTime, extraGuests, guestList, financeSnap, addedMemberProfileIds } =
-    parsed.value;
+  const {
+    scheduleId,
+    packageId,
+    rpOrderId,
+    className,
+    classTime,
+    extraGuests,
+    guestList,
+    financeSnap,
+    addedMemberProfileIds,
+    creditsToDeduct,
+  } = parsed.value;
 
   try {
     if (rpOrderId) {
@@ -467,6 +491,7 @@ async function handlePost(
       guestList,
       financeSnap,
       addedMemberProfileIds,
+      creditsToDeduct,
     });
 
     // Auto-friend booker ↔ each added member. Best-effort, OUTSIDE the booking tx
