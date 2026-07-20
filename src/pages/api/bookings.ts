@@ -21,6 +21,7 @@ import { logActivity } from "@/lib/activityLog";
 import { getStudioSettings } from "@/lib/studioSettings";
 import { grantRefundForBookingRow, notifyGroupCancellation } from "@/lib/classCancellation";
 import { releaseCouponRedemption } from "@/lib/couponHelpers";
+import { validateCreditsToDeduct } from "@/lib/bookingCredits";
 
 type BookingsLog = ReturnType<typeof requestLogger>;
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
@@ -184,6 +185,7 @@ type CreateBookingArgs = {
   guestList: NonNullable<ReturnType<typeof parseGuestAttendees>>;
   financeSnap: ReturnType<typeof parseFinanceSnapshot>;
   addedMemberProfileIds: string[];
+  creditsToDeduct: number;
 };
 
 function createBookingTx(args: CreateBookingArgs) {
@@ -256,6 +258,7 @@ function createBookingTx(args: CreateBookingArgs) {
     });
 
     // Create one Booking row per added member (invited by the primary booker)
+    let membersInserted = 0;
     for (const profileId of args.addedMemberProfileIds) {
       const alreadyBooked = await tx.booking.findFirst({
         where: {
@@ -277,6 +280,7 @@ function createBookingTx(args: CreateBookingArgs) {
           invited_by_user_id: args.userId,
         },
       });
+      membersInserted += 1;
     }
 
     if (args.rpOrderId) {
@@ -288,13 +292,18 @@ function createBookingTx(args: CreateBookingArgs) {
     }
 
     if (args.packageId) {
+      // Credits follow the seats actually created: a member who was already
+      // booked is skipped above, so covering the "whole group" must not charge
+      // for their absent row.
+      const effectiveCredits =
+        args.creditsToDeduct > 1 ? 1 + membersInserted : args.creditsToDeduct;
       const upd = await tx.userPackage.updateMany({
         where: {
           id: args.packageId,
           user_id: args.userId,
-          credits_remaining: { gte: 1 },
+          credits_remaining: { gte: effectiveCredits },
         },
-        data: { credits_remaining: { decrement: 1 } },
+        data: { credits_remaining: { decrement: effectiveCredits } },
       });
       if (upd.count !== 1) throw new Error("NO_CREDITS");
     }
@@ -345,6 +354,7 @@ type ParsedBooking = {
   guestList: NonNullable<ReturnType<typeof parseGuestAttendees>>;
   financeSnap: ReturnType<typeof parseFinanceSnapshot>;
   addedMemberProfileIds: string[];
+  creditsToDeduct: number;
 };
 
 function parseBookingRequest(
@@ -368,6 +378,7 @@ function parseBookingRequest(
     extra_guest_count?: unknown;
     guest_attendees?: unknown;
     finance_snapshot?: unknown;
+    credits_to_deduct?: unknown;
   };
 
   const rpOrderId =
@@ -417,6 +428,15 @@ function parseBookingRequest(
       )
     : [];
 
+  const creditsCheck = validateCreditsToDeduct({
+    requested: (body as Record<string, unknown>).credits_to_deduct,
+    addedMemberCount: addedMemberProfileIds.length,
+  });
+  if (!creditsCheck.ok) {
+    return { ok: false, error: (creditsCheck as { error: string }).error };
+  }
+  const creditsToDeduct = creditsCheck.credits as number;
+
   return {
     ok: true,
     value: {
@@ -429,6 +449,7 @@ function parseBookingRequest(
       guestList,
       financeSnap,
       addedMemberProfileIds,
+      creditsToDeduct,
     },
   };
 }
@@ -444,8 +465,18 @@ async function handlePost(
   if (!parsed.ok) {
     return res.status(400).json({ error: parsed.error });
   }
-  const { scheduleId, packageId, rpOrderId, className, classTime, extraGuests, guestList, financeSnap, addedMemberProfileIds } =
-    parsed.value;
+  const {
+    scheduleId,
+    packageId,
+    rpOrderId,
+    className,
+    classTime,
+    extraGuests,
+    guestList,
+    financeSnap,
+    addedMemberProfileIds,
+    creditsToDeduct,
+  } = parsed.value;
 
   try {
     if (rpOrderId) {
@@ -467,6 +498,7 @@ async function handlePost(
       guestList,
       financeSnap,
       addedMemberProfileIds,
+      creditsToDeduct,
     });
 
     // Auto-friend booker ↔ each added member. Best-effort, OUTSIDE the booking tx

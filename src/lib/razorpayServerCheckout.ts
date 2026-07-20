@@ -137,6 +137,26 @@ async function computeSeatsTaken(tx: TxClient, scheduleId: string): Promise<numb
   );
 }
 
+/**
+ * How many of the given added-member profile ids already hold a CONFIRMED
+ * booking for this schedule — i.e. how many `fulfillAddedMembersAndReconcileSeats`
+ * will SKIP (no new seat created) rather than transition/create. Mirrors the
+ * skip condition in that function exactly, so credits follow seats actually
+ * (about to be) created, not the requested "whole group" count.
+ */
+async function countAlreadyConfirmedAddedMembers(
+  tx: TxClient,
+  scheduleId: string,
+  memberIds: string[],
+): Promise<number> {
+  if (memberIds.length === 0) return 0;
+  const rows = await tx.booking.findMany({
+    where: { class_schedule_id: scheduleId, user_id: { in: memberIds }, status: "confirmed" },
+    select: { user_id: true },
+  });
+  return rows.length;
+}
+
 async function assertPackageBookable(tx: TxClient, packageId: string, userId: string) {
   const pkg = await tx.userPackage.findFirst({
     where: { id: packageId, user_id: userId },
@@ -292,6 +312,15 @@ async function confirmPreCreatedBookingFlow(args: {
   // 2. Best-effort post-confirm: link the order, drop the booker back to one seat
   // (guests/added members get their own rows below), and refresh counters. A
   // failure here leaves the booking CONFIRMED (recoverable) instead of undoing it.
+  // Set inside the transaction below when the credit debit falls short; logged
+  // via logActivity AFTER the transaction settles (never write off-tx while a
+  // tx is still open — matches the existing post-transitioned logActivity call).
+  let creditShortfall: {
+    userPackageId: string;
+    requestedCredits: number;
+    creditsToDeduct: number;
+  } | null = null;
+
   if (result.transitioned) {
     try {
       await prisma.$transaction(async (tx) => {
@@ -317,15 +346,53 @@ async function confirmPreCreatedBookingFlow(args: {
         // Log-not-throw: the payment is already captured, so a missing credit (out of
         // credits / pkg gone) must not roll the confirmed booking back to payment_pending.
         if (pending.user_package_id) {
+          const requestedCredits = pending.credits_to_deduct ?? 1;
+          // Credits follow seats actually (about to be) created: a member who
+          // already holds a confirmed seat for this schedule is skipped by
+          // fulfillAddedMembersAndReconcileSeats below, so covering the "whole
+          // group" must not charge for their absent row (mirrors bookings.ts).
+          // Filter the booker out of their own added-member list (mirrors
+          // createPendingBooking and the fresh-booking path). By this point the
+          // booker's own row is already confirmed, so a self-invite would be
+          // counted as "already booked" and under-debit the group by one.
+          const addedMemberIds = (pending.added_member_profile_ids ?? []).filter((id) => id !== userId);
+          const alreadyConfirmed =
+            requestedCredits > 1
+              ? await countAlreadyConfirmedAddedMembers(tx, pending.class_schedule_id, addedMemberIds)
+              : 0;
+          const membersInserted = Math.max(0, addedMemberIds.length - alreadyConfirmed);
+          const creditsToDeduct = requestedCredits > 1 ? 1 + membersInserted : requestedCredits;
           const upd = await tx.userPackage.updateMany({
-            where: { id: pending.user_package_id, user_id: userId, credits_remaining: { gte: 1 } },
-            data: { credits_remaining: { decrement: 1 } },
+            where: {
+              id: pending.user_package_id,
+              user_id: userId,
+              credits_remaining: { gte: creditsToDeduct },
+            },
+            data: { credits_remaining: { decrement: creditsToDeduct } },
           });
           if (upd.count !== 1) {
             logger.error(
-              { bookingId: result.bookingId, userPackageId: pending.user_package_id, userId },
+              {
+                bookingId: result.bookingId,
+                userPackageId: pending.user_package_id,
+                userId,
+                requestedCredits,
+                creditsToDeduct,
+                // Debits are all-or-nothing, so the whole attempt is what went
+                // untaken — name it as such rather than "shortfall", which reads
+                // as a deficit and misleads when creditsToDeduct < requested.
+                attemptedCredits: creditsToDeduct,
+              },
               "[confirmPreCreatedBookingFlow] pass credit NOT decremented (no credits / package missing) — booking confirmed without credit",
             );
+            // Durable marker (log-not-throw is intentional here — payment is already
+            // captured, so we must not roll the confirmed booking back). logActivity
+            // itself fires after the transaction settles (see below).
+            creditShortfall = {
+              userPackageId: pending.user_package_id,
+              requestedCredits,
+              creditsToDeduct,
+            };
           }
         }
         const sched = await tx.classSchedule.findUnique({
@@ -348,6 +415,21 @@ async function confirmPreCreatedBookingFlow(args: {
         { err: e, bookingId: result.bookingId },
         "[confirmPreCreatedBookingFlow] post-confirm link/seat failed — booking stays confirmed",
       );
+    }
+
+    if (creditShortfall) {
+      await logActivity({
+        actor: { role: "system", name: "System" },
+        action: "booking.credit_shortfall",
+        targetProfileId: userId,
+        entity: { type: "booking", id: result.bookingId },
+        metadata: {
+          user_package_id: creditShortfall.userPackageId,
+          requested_credits: creditShortfall.requestedCredits,
+          credits_to_deduct: creditShortfall.creditsToDeduct,
+          attempted_credits: creditShortfall.creditsToDeduct,
+        },
+      }).catch(() => {});
     }
   }
 
@@ -475,7 +557,11 @@ export async function finishBookingCheckoutOnServer(
   const extraGuests = pending.extra_guest_count;
   const scheduleId = pending.class_schedule_id;
   const packageId = pending.user_package_id;
-  const addedMemberProfileIds = pending.added_member_profile_ids ?? [];
+  // Filter the booker out of their own added-member list, mirroring
+  // createPendingBooking. Without this, a member who added themselves by email
+  // would have their own just-created confirmed row counted as "already
+  // booked", under-debiting the group by one credit.
+  const addedMemberProfileIds = (pending.added_member_profile_ids ?? []).filter((id) => id !== userId);
 
   const booking = await prisma.$transaction(async (tx) => {
     // Serialize concurrent bookings on this schedule (read-then-insert race).
@@ -527,9 +613,21 @@ export async function finishBookingCheckoutOnServer(
     });
 
     if (packageId) {
+      const requestedCredits = pending.credits_to_deduct ?? 1;
+      // Credits follow seats actually created: added-member rows are created by
+      // fulfillAddedMembersAndReconcileSeats AFTER this tx and it skips a member
+      // who already holds a confirmed seat for this schedule — covering the
+      // "whole group" must not charge for their absent row (mirrors bookings.ts /
+      // confirmPreCreatedBookingFlow above).
+      const alreadyConfirmed =
+        requestedCredits > 1
+          ? await countAlreadyConfirmedAddedMembers(tx, scheduleId, addedMemberProfileIds)
+          : 0;
+      const membersInserted = Math.max(0, addedMemberProfileIds.length - alreadyConfirmed);
+      const creditsToDeduct = requestedCredits > 1 ? 1 + membersInserted : requestedCredits;
       const upd = await tx.userPackage.updateMany({
-        where: { id: packageId, user_id: userId, credits_remaining: { gte: 1 } },
-        data: { credits_remaining: { decrement: 1 } },
+        where: { id: packageId, user_id: userId, credits_remaining: { gte: creditsToDeduct } },
+        data: { credits_remaining: { decrement: creditsToDeduct } },
       });
       if (upd.count !== 1) throw new Error("NO_CREDITS");
     }

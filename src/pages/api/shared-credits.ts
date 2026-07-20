@@ -2,8 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { activeFriendIds } from "@/lib/friendQueries";
-import { canShare, maxShareableCredits, type ShareDenyReason } from "@/lib/sharedCredits";
-import { getStudioSettings } from "@/lib/studioSettings";
+import { canShare, type ShareDenyReason } from "@/lib/sharedCredits";
 import { logActivity } from "@/lib/activityLog";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import logger from "@/lib/logger";
@@ -52,20 +51,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "This pass can't be shared" });
     }
 
-    const settings = await getStudioSettings();
-    const agg = await prisma.sharedCredit.aggregate({
-      where: { source_user_package_id: user_package_id, status: "active" },
-      _sum: { credits_total: true },
-    });
-    const alreadyShared = agg._sum.credits_total ?? 0;
-
     const requested = Number(credits);
     const check = canShare({
       creditsTotal: pkg.credits_total,
       creditsRemaining: pkg.credits_remaining ?? 0,
       requested,
-      alreadyShared,
-      maxSharedPercent: settings.max_shared_percent,
     });
     // strictNullChecks is off, which breaks discriminated-union narrowing on `ok`
     // (see .llm/known-issues.md #6) — assert the error-branch shape explicitly.
@@ -75,7 +65,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         INVALID_AMOUNT: "Enter a valid number of classes",
         UNLIMITED_NOT_SHAREABLE: "This pass can't be shared",
         INSUFFICIENT_CREDITS: "Not enough classes left on this pass",
-        CAP_EXCEEDED: "You've already shared the most you're allowed from this pass",
       };
       return res.status(400).json({ error: messages[reason ?? ""] ?? "Can't share this amount" });
     }
@@ -99,19 +88,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         if (debited.count !== 1) {
           throw new Error("Not enough classes left on this pass");
-        }
-
-        // Re-verify the share cap against fresh data inside the transaction —
-        // the pre-check above is stale under concurrent requests; two
-        // simultaneous shares could both pass it and both debit successfully,
-        // exceeding max_shared_percent even though credits stay conserved.
-        const freshAgg = await tx.sharedCredit.aggregate({
-          where: { source_user_package_id: user_package_id, status: "active" },
-          _sum: { credits_total: true },
-        });
-        const freshAlreadyShared = freshAgg._sum.credits_total ?? 0;
-        if (freshAlreadyShared + requested > maxShareableCredits(pkg.credits_total, settings.max_shared_percent)) {
-          throw new Error("You've already shared the most you're allowed from this pass");
         }
 
         return tx.sharedCredit.create({

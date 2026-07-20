@@ -822,9 +822,19 @@ export default function BookClass() {
   const [activeClassPasses, setActiveClassPasses] = useState<
     { id?: string; name: string; classesRemaining: number; expiry: string | null }[]
   >([]);
+  // Credits remaining on the SINGLE pass that will actually be debited
+  // (pickBookablePackage's choice) — distinct from userPackage.classesRemaining,
+  // which is the sum across ALL active passes. Group-cover gating must use this,
+  // not the aggregate: the debit only ever hits one pass, so a member with two
+  // 2-credit passes (4 summed) can't be allowed to "cover" a 3-seat group.
+  const [bookablePassCredits, setBookablePassCredits] = useState<number | null>(null);
 
   // Credits & payment
   const [useCredits, setUseCredits] = useState(true);
+  // When the booker has added friends, they can spend their own pass credits to
+  // cover the whole group instead of paying per guest. Default false = today's
+  // behavior (1 credit for the booker, guests paid in cash).
+  const [coverGuestsWithCredits, setCoverGuestsWithCredits] = useState(false);
 
   // Food ordering
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
@@ -1046,9 +1056,11 @@ export default function BookClass() {
           classesRemaining: totalClasses,
           isUnlimited: packageType?.is_unlimited || false,
         });
+        setBookablePassCredits(pkg.credits_remaining ?? 0);
       } else {
         setActiveClassPasses([]);
         setUserPackage({ type: null, name: "No Active Package", classesRemaining: 0, isUnlimited: false });
+        setBookablePassCredits(0);
       }
 
       setIsLoading(false);
@@ -1143,6 +1155,23 @@ export default function BookClass() {
     ));
   }, []);
 
+  const creditsNeededForGroup = 1 + addedMembers.length;
+  // Gate on the single pass that will actually be debited, not the sum across
+  // every active pass (see bookablePassCredits) — otherwise the UI can offer
+  // "cover the whole group" when no single pass holds enough credits, and the
+  // server-side updateMany (targeted at one pass) silently books extra seats
+  // for free while logging (online path) instead of blocking the purchase.
+  const canCoverGuestsWithCredits =
+    userPackage.type === "class_pass" &&
+    (bookablePassCredits ?? 0) >= creditsNeededForGroup;
+  const coveringGroup =
+    useCredits && coverGuestsWithCredits && canCoverGuestsWithCredits && addedMembers.length > 0;
+
+  // Reset the choice when it stops being valid (group size or pass balance changed).
+  useEffect(() => {
+    if (!canCoverGuestsWithCredits && coverGuestsWithCredits) setCoverGuestsWithCredits(false);
+  }, [canCoverGuestsWithCredits, coverGuestsWithCredits]);
+
   const calculateTotals = useCallback(() => {
     const totalPeople = 1 + addedMembers.length;
     const classPrice = 945;
@@ -1151,9 +1180,9 @@ export default function BookClass() {
     let classTotal = 0;
     if (userPackage.type === "class_pass") {
       if (useCredits) {
-        // Class Pass holder: Primary user's class is deducted (free)
-        // Added members pay separately (NOT deducted from user's classes)
-        classTotal = addedMembers.length * classPrice;
+        // Booker's pass covers their own seat. If they also chose to cover the
+        // group, every added member's seat is paid in credits too.
+        classTotal = coveringGroup ? 0 : addedMembers.length * classPrice;
       } else {
         // User chose not to use their classes - pay for everyone
         classTotal = totalPeople * classPrice;
@@ -1190,7 +1219,7 @@ export default function BookClass() {
     const taxIncluded = Math.round((finalTotal * TAX_RATE / (1 + TAX_RATE)) * 100) / 100;
 
     return { classTotal, foodTotal, discount, couponDiscount, subtotal, taxIncluded, finalTotal };
-  }, [addedMembers, userPackage, useCredits, foodItems, appliedCoupon]);
+  }, [addedMembers, userPackage, useCredits, coveringGroup, foodItems, appliedCoupon]);
 
   // Single memoized total used by both the submit handler and JSX (was called twice).
   const totals = useMemo(() => calculateTotals(), [calculateTotals]);
@@ -1287,13 +1316,28 @@ export default function BookClass() {
       const packageToUse = await fetchActivePackage();
       assertClassPassUsable(usingClassPassCredit, packageToUse);
 
+      // Re-check the group cover against FRESH server credits, not the balance
+      // read at mount. `bookablePassCredits` goes stale as soon as this member
+      // books once without a reload — trusting it would let a second group
+      // booking through on a pass that can no longer fund it, and the online
+      // (pre-created) confirm path logs rather than throws on a failed debit,
+      // so the seats would be issued for free.
+      if (coveringGroup) {
+        const freshCredits = packageToUse?.credits_remaining ?? 0;
+        setBookablePassCredits(freshCredits);
+        if (freshCredits < creditsNeededForGroup) {
+          setCoverGuestsWithCredits(false);
+          throw new Error(
+            `This pass now has ${freshCredits} class${freshCredits === 1 ? "" : "es"} left — not enough to cover ${creditsNeededForGroup}. Review your booking and try again.`,
+          );
+        }
+      }
+
       const owedTotals = calculateTotals();
       const { classTotal, foodTotal, discount, taxIncluded, finalTotal } = owedTotals;
-      const dayPassEquivalentCount = computeDayPassEquivalentCount(
-        userPackage.type,
-        addedMembers.length,
-        useCredits,
-      );
+      const dayPassEquivalentCount = coveringGroup
+        ? 0
+        : computeDayPassEquivalentCount(userPackage.type, addedMembers.length, useCredits);
 
       const financeSnapshotPayload = {
         version: 1 as const,
@@ -1340,6 +1384,8 @@ export default function BookClass() {
         addedMemberProfileIds = resolveData.profile_ids ?? [];
       }
 
+      const creditsToDeduct = coveringGroup ? 1 + addedMemberProfileIds.length : 1;
+
       if (finalTotal > 0) {
         const result = await runOnlineBookingCheckout({
           orderRequestBody: {
@@ -1356,6 +1402,7 @@ export default function BookClass() {
               cafe_items: cafeLines,
               coupon_code: couponCode,
               coupon_context: couponCode ? couponContext : null,
+              credits_to_deduct: usingClassPassCredit ? creditsToDeduct : undefined,
             },
           },
           pendingBase: {
@@ -1370,6 +1417,7 @@ export default function BookClass() {
             cafe_items: cafeLines,
             coupon_code: couponCode,
             coupon_context: couponCode ? couponContext : null,
+            credits_to_deduct: usingClassPassCredit ? creditsToDeduct : undefined,
           },
           checkoutDescription: selectedClass?.name ? `Class — ${selectedClass.name}` : "Studio booking",
           prefill: { email: userEmail || undefined, name: userName || undefined },
@@ -1401,6 +1449,7 @@ export default function BookClass() {
           guest_attendees: [],
           added_member_profile_ids: addedMemberProfileIds,
           finance_snapshot: financeSnapshotPayload,
+          credits_to_deduct: usingClassPassCredit ? creditsToDeduct : undefined,
         },
         cafeLines,
       );
@@ -1787,7 +1836,9 @@ export default function BookClass() {
                                     </span>
                                   );
                                 } else if (addedMembers.length > 0) {
-                                  return `1 class deducted for you. Pay ₹${addedMembers.length * 945} for ${addedMembers.length} guest${addedMembers.length > 1 ? 's' : ''}.`;
+                                  return coveringGroup
+                                    ? `${creditsNeededForGroup} classes deducted — free for everyone.`
+                                    : `1 class deducted for you. Pay ₹${addedMembers.length * 945} for ${addedMembers.length} guest${addedMembers.length > 1 ? 's' : ''}.`;
                                 } else {
                                   return "1 class will be deducted for your spot.";
                                 }
@@ -1796,6 +1847,40 @@ export default function BookClass() {
                           </div>
                         </div>
                       </button>
+
+                      {useCredits && addedMembers.length > 0 && (
+                        <div className="mt-3 space-y-2 pl-8">
+                          <button
+                            type="button"
+                            onClick={() => setCoverGuestsWithCredits(false)}
+                            className={`w-full text-left rounded-lg border px-3 py-2 text-sm transition-colors ${
+                              !coverGuestsWithCredits ? "border-sage bg-sage/5" : "border-sage/20 hover:border-sage/40"
+                            }`}
+                          >
+                            <span className="font-body text-charcoal">Just me — 1 class</span>
+                            <span className="block font-body text-xs text-charcoal/60">
+                              Pay ₹{addedMembers.length * 945} for {addedMembers.length} guest{addedMembers.length > 1 ? "s" : ""}.
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!canCoverGuestsWithCredits}
+                            onClick={() => setCoverGuestsWithCredits(true)}
+                            className={`w-full text-left rounded-lg border px-3 py-2 text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                              coverGuestsWithCredits ? "border-sage bg-sage/5" : "border-sage/20 enabled:hover:border-sage/40"
+                            }`}
+                          >
+                            <span className="font-body text-charcoal">
+                              Use my pass for everyone — {creditsNeededForGroup} classes
+                            </span>
+                            <span className="block font-body text-xs text-charcoal/60">
+                              {canCoverGuestsWithCredits
+                                ? "No payment needed for the class."
+                                : `You have ${bookablePassCredits ?? 0} left on this pass — this needs ${creditsNeededForGroup}.`}
+                            </span>
+                          </button>
+                        </div>
+                      )}
 
                       <button
                         type="button"
@@ -2094,7 +2179,9 @@ export default function BookClass() {
 
                   {userPackage.type === "class_pass" && useCredits && (
                     <p className="font-body text-xs text-charcoal/60 italic">
-                      * 1 class deducted (your spot only)
+                      {coveringGroup
+                        ? `* ${creditsNeededForGroup} classes deducted (covers everyone)`
+                        : "* 1 class deducted (your spot only)"}
                     </p>
                   )}
 
