@@ -64,8 +64,7 @@ export function SharePassDialog({
   }, [open]);
 
   const selected = passes.find((p) => p.id === selectedId) ?? null;
-  const shareableCap = selected ? Math.max(0, selected.maxShareable - selected.alreadyShared) : 0;
-  const upTo = selected ? Math.min(selected.creditsRemaining, shareableCap) : 0;
+  const upTo = selected ? selected.creditsRemaining : 0;
 
   function goToConfirm() {
     const n = Number(credits);
@@ -136,7 +135,9 @@ export function SharePassDialog({
             <div className="space-y-1.5">
               <Label>Classes to share</Label>
               <Input type="number" min={1} max={upTo} step={1} value={credits} onChange={(e) => { setCredits(e.target.value); setError(null); }} />
-              <p className="text-xs text-muted-foreground">Up to {upTo} shareable from this pass</p>
+              <p className="text-xs text-muted-foreground">
+                {selected?.creditsRemaining ?? 0} classes left · up to {upTo} shareable
+              </p>
             </div>
             {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
