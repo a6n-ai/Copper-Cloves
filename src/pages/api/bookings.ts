@@ -258,6 +258,7 @@ function createBookingTx(args: CreateBookingArgs) {
     });
 
     // Create one Booking row per added member (invited by the primary booker)
+    let membersInserted = 0;
     for (const profileId of args.addedMemberProfileIds) {
       const alreadyBooked = await tx.booking.findFirst({
         where: {
@@ -279,6 +280,7 @@ function createBookingTx(args: CreateBookingArgs) {
           invited_by_user_id: args.userId,
         },
       });
+      membersInserted += 1;
     }
 
     if (args.rpOrderId) {
@@ -290,13 +292,18 @@ function createBookingTx(args: CreateBookingArgs) {
     }
 
     if (args.packageId) {
+      // Credits follow the seats actually created: a member who was already
+      // booked is skipped above, so covering the "whole group" must not charge
+      // for their absent row.
+      const effectiveCredits =
+        args.creditsToDeduct > 1 ? 1 + membersInserted : args.creditsToDeduct;
       const upd = await tx.userPackage.updateMany({
         where: {
           id: args.packageId,
           user_id: args.userId,
-          credits_remaining: { gte: args.creditsToDeduct },
+          credits_remaining: { gte: effectiveCredits },
         },
-        data: { credits_remaining: { decrement: args.creditsToDeduct } },
+        data: { credits_remaining: { decrement: effectiveCredits } },
       });
       if (upd.count !== 1) throw new Error("NO_CREDITS");
     }

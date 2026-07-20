@@ -1,5 +1,6 @@
 import { parseFinanceSnapshot, parseGuestAttendees } from "@/lib/financeBookingCheckout";
 import type { PendingBookingCheckout, PendingPackageCheckout } from "@/lib/pendingRazorpayCheckout";
+import { validateCreditsToDeduct } from "@/lib/bookingCredits";
 
 /** Validate booking body from create-order before the Razorpay order id exists. */
 export function parsePendingBookingBody(raw: unknown): Omit<
@@ -73,6 +74,15 @@ export function parsePendingBookingPayload(
     }
   }
 
+  // Server-authoritative: only 1 (booker) or 1 + added-member count (whole
+  // group) are legal — same guard as the free-booking path (bookings.ts).
+  const creditsCheck = validateCreditsToDeduct({
+    requested: o.credits_to_deduct,
+    addedMemberCount: added_member_profile_ids.length,
+  });
+  if (!creditsCheck.ok) return null;
+  const credits_to_deduct = creditsCheck.credits as number;
+
   return {
     purpose: "booking",
     razorpayOrderId,
@@ -86,6 +96,7 @@ export function parsePendingBookingPayload(
     extra_guest_count,
     guest_attendees: guests,
     added_member_profile_ids,
+    credits_to_deduct,
     finance_snapshot,
     cafe_items,
     coupon_code:

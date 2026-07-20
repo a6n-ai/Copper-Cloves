@@ -16,6 +16,8 @@ export type PendingBookingCheckout = {
   added_member_profile_ids: string[];
   finance_snapshot: FinanceSnapshotV1;
   cafe_items: { id: string; quantity: number }[];
+  /** Class-pass credits to spend on this booking: 1 (just the booker) or 1 + added-member count (whole group). Server-validated; absent on pre-feature cached payloads. */
+  credits_to_deduct?: number;
   /** Coupon applied to this booking; re-validated + recorded server-side at fulfillment. */
   coupon_code?: string | null;
   /** Coupon context the client matched against (`food` | `class_pass` | `studio_pass`). */

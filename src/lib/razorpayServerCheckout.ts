@@ -317,9 +317,14 @@ async function confirmPreCreatedBookingFlow(args: {
         // Log-not-throw: the payment is already captured, so a missing credit (out of
         // credits / pkg gone) must not roll the confirmed booking back to payment_pending.
         if (pending.user_package_id) {
+          const creditsToDeduct = pending.credits_to_deduct ?? 1;
           const upd = await tx.userPackage.updateMany({
-            where: { id: pending.user_package_id, user_id: userId, credits_remaining: { gte: 1 } },
-            data: { credits_remaining: { decrement: 1 } },
+            where: {
+              id: pending.user_package_id,
+              user_id: userId,
+              credits_remaining: { gte: creditsToDeduct },
+            },
+            data: { credits_remaining: { decrement: creditsToDeduct } },
           });
           if (upd.count !== 1) {
             logger.error(
@@ -527,9 +532,10 @@ export async function finishBookingCheckoutOnServer(
     });
 
     if (packageId) {
+      const creditsToDeduct = pending.credits_to_deduct ?? 1;
       const upd = await tx.userPackage.updateMany({
-        where: { id: packageId, user_id: userId, credits_remaining: { gte: 1 } },
-        data: { credits_remaining: { decrement: 1 } },
+        where: { id: packageId, user_id: userId, credits_remaining: { gte: creditsToDeduct } },
+        data: { credits_remaining: { decrement: creditsToDeduct } },
       });
       if (upd.count !== 1) throw new Error("NO_CREDITS");
     }
