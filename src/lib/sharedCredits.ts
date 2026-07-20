@@ -1,9 +1,9 @@
 /**
  * Friends & Family shared-credit cap math. Pure — no DB. The single source of
  * truth for how many pass credits an owner may share and whether a specific
- * share request is allowed. Reserve-at-share model: a share can never draw more
- * than the pass's current remaining credits, and lifetime shares from one pass
- * are capped at floor(maxSharedPercent/100 * credits_total).
+ * share request is allowed. Reserve-at-share model: a grant decrements the
+ * pass's `credits_remaining` immediately, so "remaining" is inherently the
+ * running cap — a share can never draw more than the pass currently has left.
  */
 export const SHARE_PERCENT_MIN = 75;
 export const SHARE_PERCENT_MAX = 100;
