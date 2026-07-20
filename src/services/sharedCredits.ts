@@ -5,6 +5,7 @@ export type SharablePass = {
   creditsTotal: number;
   expiresAt: string;
   alreadyShared: number;
+  maxShareable: number;
 };
 
 export type ReceivedShare = {

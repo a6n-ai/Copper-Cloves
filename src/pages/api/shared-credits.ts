@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { activeFriendIds } from "@/lib/friendQueries";
-import { canShare, type ShareDenyReason } from "@/lib/sharedCredits";
+import { canShare, maxShareableCredits, type ShareDenyReason } from "@/lib/sharedCredits";
 import { getStudioSettings } from "@/lib/studioSettings";
 import { logActivity } from "@/lib/activityLog";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "GET") {
     const rows = await prisma.sharedCredit.findMany({
-      where: { recipient_user_id: me, status: "active" },
+      where: { recipient_user_id: me, status: "active", expiration_date: { gt: new Date() } },
       include: { owner: { select: { full_name: true, email: true, avatar_url: true } } },
       orderBy: { created_at: "desc" },
     });
@@ -48,6 +48,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const pkg = await prisma.userPackage.findUnique({ where: { id: user_package_id } });
     if (!pkg || pkg.user_id !== me) return res.status(400).json({ error: "Invalid pass" });
+    if (!pkg.is_active || pkg.is_paused || pkg.expiration_date <= new Date()) {
+      return res.status(400).json({ error: "This pass can't be shared" });
+    }
 
     const settings = await getStudioSettings();
     const agg = await prisma.sharedCredit.aggregate({
@@ -97,6 +100,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (debited.count !== 1) {
           throw new Error("Not enough classes left on this pass");
         }
+
+        // Re-verify the share cap against fresh data inside the transaction —
+        // the pre-check above is stale under concurrent requests; two
+        // simultaneous shares could both pass it and both debit successfully,
+        // exceeding max_shared_percent even though credits stay conserved.
+        const freshAgg = await tx.sharedCredit.aggregate({
+          where: { source_user_package_id: user_package_id, status: "active" },
+          _sum: { credits_total: true },
+        });
+        const freshAlreadyShared = freshAgg._sum.credits_total ?? 0;
+        if (freshAlreadyShared + requested > maxShareableCredits(pkg.credits_total, settings.max_shared_percent)) {
+          throw new Error("You've already shared the most you're allowed from this pass");
+        }
+
         return tx.sharedCredit.create({
           data: {
             source_user_package_id: user_package_id,

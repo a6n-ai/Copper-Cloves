@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { getStudioSettings } from "@/lib/studioSettings";
+import { maxShareableCredits } from "@/lib/sharedCredits";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).end();
@@ -9,10 +11,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const me = session?.user?.id;
   if (!me) return res.status(401).json({ error: "Unauthorized" });
 
+  const settings = await getStudioSettings();
+
   const packages = await prisma.userPackage.findMany({
     where: {
       user_id: me,
       is_active: true,
+      is_paused: false,
+      expiration_date: { gt: new Date() },
       credits_total: { not: null, gt: 0 },
     },
     include: { package_type: { select: { name: true, is_unlimited: true } } },
@@ -36,6 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     creditsTotal: p.credits_total ?? 0,
     expiresAt: p.expiration_date.toISOString(),
     alreadyShared: alreadySharedByPkg.get(p.id) ?? 0,
+    maxShareable: maxShareableCredits(p.credits_total, settings.max_shared_percent),
   }));
 
   return res.status(200).json(result);

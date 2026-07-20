@@ -64,7 +64,7 @@ export function SharePassDialog({
   }, [open]);
 
   const selected = passes.find((p) => p.id === selectedId) ?? null;
-  const shareableCap = selected ? Math.max(0, selected.creditsTotal - selected.alreadyShared) : 0;
+  const shareableCap = selected ? Math.max(0, selected.maxShareable - selected.alreadyShared) : 0;
   const upTo = selected ? Math.min(selected.creditsRemaining, shareableCap) : 0;
 
   function goToConfirm() {
@@ -84,11 +84,12 @@ export function SharePassDialog({
     if (!result.ok) {
       setError(result.error ?? "Could not share");
       setStep("form");
+      getShareablePasses().then(setPasses).catch(() => {});
       return;
     }
     toast.success(`Shared ${n} class${n === 1 ? "" : "es"} with ${friend.name}`);
-    onOpenChange(false);
     onShared();
+    onOpenChange(false);
   }
 
   return (

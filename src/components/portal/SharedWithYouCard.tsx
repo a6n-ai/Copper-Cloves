@@ -21,7 +21,7 @@ export function SharedWithYouCard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getReceivedShares().then(setItems).finally(() => setLoading(false));
+    getReceivedShares().then(setItems).catch(() => setItems([])).finally(() => setLoading(false));
   }, []);
 
   if (loading)
