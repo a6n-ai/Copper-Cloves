@@ -5,6 +5,7 @@ import { Pill } from "@/components/ui/pill";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cdnUrl } from "@/lib/cdnUrl";
 import type { useFriendsGraph } from "@/hooks/useFriendsGraph";
+import type { Friend } from "@/services/friends";
 
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -38,7 +39,13 @@ function PersonName({ name }: { name: string }) {
   return <span className="truncate text-sm font-medium text-charcoal">{name}</span>;
 }
 
-export function FriendsLists({ graph }: { graph: ReturnType<typeof useFriendsGraph> }) {
+export function FriendsLists({
+  graph,
+  onFriendClick,
+}: {
+  graph: ReturnType<typeof useFriendsGraph>;
+  onFriendClick?: (friend: Friend) => void;
+}) {
   const { friends, requests, suggestions, requested, loading, isEmpty, onAdd, onRespond, onCancel } = graph;
 
   if (loading)
@@ -107,15 +114,28 @@ export function FriendsLists({ graph }: { graph: ReturnType<typeof useFriendsGra
         <div className="space-y-2.5">
           <SectionLabel>Your circle</SectionLabel>
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {friends.map((f) => (
-              <li
-                key={f.id}
-                className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2"
-              >
-                <Avatar name={f.name} avatarUrl={f.avatar_url} />
-                <PersonName name={f.name} />
-              </li>
-            ))}
+            {friends.map((f) =>
+              onFriendClick ? (
+                <li key={f.id}>
+                  <button
+                    type="button"
+                    onClick={() => onFriendClick(f)}
+                    className="flex w-full items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2 text-left cursor-pointer hover:border-sage/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+                  >
+                    <Avatar name={f.name} avatarUrl={f.avatar_url} />
+                    <PersonName name={f.name} />
+                  </button>
+                </li>
+              ) : (
+                <li
+                  key={f.id}
+                  className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2"
+                >
+                  <Avatar name={f.name} avatarUrl={f.avatar_url} />
+                  <PersonName name={f.name} />
+                </li>
+              ),
+            )}
           </ul>
         </div>
       )}
