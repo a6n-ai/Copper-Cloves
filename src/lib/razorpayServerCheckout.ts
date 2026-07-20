@@ -351,7 +351,11 @@ async function confirmPreCreatedBookingFlow(args: {
           // already holds a confirmed seat for this schedule is skipped by
           // fulfillAddedMembersAndReconcileSeats below, so covering the "whole
           // group" must not charge for their absent row (mirrors bookings.ts).
-          const addedMemberIds = pending.added_member_profile_ids ?? [];
+          // Filter the booker out of their own added-member list (mirrors
+          // createPendingBooking and the fresh-booking path). By this point the
+          // booker's own row is already confirmed, so a self-invite would be
+          // counted as "already booked" and under-debit the group by one.
+          const addedMemberIds = (pending.added_member_profile_ids ?? []).filter((id) => id !== userId);
           const alreadyConfirmed =
             requestedCredits > 1
               ? await countAlreadyConfirmedAddedMembers(tx, pending.class_schedule_id, addedMemberIds)
