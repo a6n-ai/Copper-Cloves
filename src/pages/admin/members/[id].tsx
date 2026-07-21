@@ -53,12 +53,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -86,7 +81,6 @@ import {
   type PackageRow as CatalogPackageRow,
 } from "@/components/admin/managePass";
 import { computeUpgradeDifferencePaise } from "@/lib/passAdjust";
-import { MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
@@ -109,6 +103,8 @@ interface PackageRow {
   status: PassStatus;
   /** Package-type list price in rupees (INR), for computing upgrade price differences. */
   price: number | null;
+  /** Package-type id of the pass currently held — used to filter upgrade targets. */
+  packageTypeId: string | null;
 }
 interface BookingRow {
   id: string;
@@ -202,7 +198,7 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
   const now = Date.now();
   const pkgsRaw = Array.isArray(data.user_packages) ? (data.user_packages as Array<Record<string, unknown>>) : [];
   const packages: PackageRow[] = pkgsRaw.map((p) => {
-    const pt = (p.package_type ?? null) as { name?: string; is_unlimited?: boolean; duration_months?: number | null; price?: number | string | null } | null;
+    const pt = (p.package_type ?? null) as { id?: string; name?: string; is_unlimited?: boolean; duration_months?: number | null; price?: number | string | null } | null;
     const exp = p.expiration_date ? String(p.expiration_date) : null;
     const isUnlimited = !!pt?.is_unlimited;
     const creditsRemaining = typeof p.credits_remaining === "number" ? p.credits_remaining : null;
@@ -223,6 +219,7 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
       durationMonths: typeof pt?.duration_months === "number" ? pt.duration_months : null,
       status: derivePassStatus(isActive, isPaused, exp, now),
       price: pt?.price == null ? null : Number(pt.price),
+      packageTypeId: pt?.id ?? null,
     };
   });
   // Active passes expiring-soonest first (booking-spend order); expired/used-up
@@ -361,17 +358,17 @@ export default function MemberDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [savingBookingId, setSavingBookingId] = useState<string | null>(null);
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
-  // Edit-expiry dialog: the clicked pass + the draft date (yyyy-MM-dd).
-  const [expiryPass, setExpiryPass] = useState<PackageRow | null>(null);
+  // Unified pass-edit dialog: the clicked pass + which tab is active.
+  const [editPass, setEditPass] = useState<PackageRow | null>(null);
+  const [editTab, setEditTab] = useState<"expiry" | "credits" | "upgrade" | "remove">("expiry");
+
   const [expiryDraft, setExpiryDraft] = useState("");
   const [savingExpiry, setSavingExpiry] = useState(false);
 
-  const [adjustPass, setAdjustPass] = useState<PackageRow | null>(null);
   const [adjustCredits, setAdjustCredits] = useState("");
   const [adjustReason, setAdjustReason] = useState("");
   const [savingAdjust, setSavingAdjust] = useState(false);
 
-  const [removePass, setRemovePass] = useState<PackageRow | null>(null);
   const [removeReason, setRemoveReason] = useState("");
   const [refundKind, setRefundKind] = useState<"none" | "comp" | "money">("none");
   const [refundClasses, setRefundClasses] = useState("");
@@ -381,7 +378,6 @@ export default function MemberDetailPage() {
   const [refundProofUploading, setRefundProofUploading] = useState(false);
   const [savingRemove, setSavingRemove] = useState(false);
 
-  const [upgradePass, setUpgradePass] = useState<PackageRow | null>(null);
   const [upgradeCatalog, setUpgradeCatalog] = useState<CatalogPackageRow[]>([]);
   const [upgradeTargetId, setUpgradeTargetId] = useState("");
   const [upgradeAmount, setUpgradeAmount] = useState("");
@@ -418,6 +414,15 @@ export default function MemberDetailPage() {
     () => (member?.bookings ?? []).filter((b) => b.status === "no_show").length,
     [member],
   );
+
+  // Upgrade targets: same category (class ↔ class, studio/unlimited ↔ studio/unlimited)
+  // as the pass being edited, excluding the identical package.
+  const eligibleUpgradeCatalog = useMemo(() => {
+    if (!editPass) return [];
+    return upgradeCatalog.filter(
+      (c) => Boolean(c.is_unlimited) === Boolean(editPass.isUnlimited) && c.id !== editPass.packageTypeId,
+    );
+  }, [upgradeCatalog, editPass]);
 
   /* — manual check-in outcome — */
   async function applyOutcome(bookingId: string, outcome: "on_time" | "late" | "no_show" | "not_checked_in") {
@@ -479,159 +484,23 @@ export default function MemberDetailPage() {
     }
   }
 
-  /* — edit a pass's expiry date — */
-  function openExpiry(p: PackageRow) {
-    setExpiryPass(p);
+  /* — open the unified pass-edit dialog and seed every tab's form state — */
+  function openEditPass(p: PackageRow) {
+    setEditPass(p);
+    setEditTab("expiry");
+    // Expiry tab
     setExpiryDraft(p.expiresAt ? p.expiresAt.slice(0, 10) : "");
-  }
-
-  async function saveExpiry() {
-    if (!member || !expiryPass || !expiryDraft) return;
-    setSavingExpiry(true);
-    try {
-      const res = await fetch("/api/admin/members", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          profile_id: member.id,
-          user_package_id: expiryPass.id,
-          expiration_date: expiryDraft,
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err as { error?: string }).error ?? "Failed");
-      }
-      toast.success("Expiry updated");
-      setExpiryPass(null);
-      await load();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not update expiry");
-    } finally {
-      setSavingExpiry(false);
-    }
-  }
-
-  function openAdjust(p: PackageRow) {
-    setAdjustPass(p);
+    // Credits tab
     setAdjustCredits(String(p.creditsRemaining ?? 0));
     setAdjustReason("");
-  }
-  async function saveAdjust() {
-    if (!adjustPass || !member) return;
-    const credits = Number(adjustCredits);
-    if (!Number.isInteger(credits) || credits < 0) {
-      toast.error("Enter a whole number, zero or more");
-      return;
-    }
-    if (!adjustReason.trim()) {
-      toast.error("Reason required");
-      return;
-    }
-    setSavingAdjust(true);
-    try {
-      const res = await fetch("/api/admin/members", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          profile_id: member.id,
-          user_package_id: adjustPass.id,
-          action: "adjust_credits",
-          credits,
-          reason: adjustReason.trim(),
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err as { error?: string }).error ?? "Failed");
-      }
-      toast.success("Credits updated");
-      setAdjustPass(null);
-      await load();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not update credits");
-    } finally {
-      setSavingAdjust(false);
-    }
-  }
-
-  function openRemove(p: PackageRow) {
-    setRemovePass(p);
+    // Remove tab
     setRemoveReason("");
     setRefundKind("none");
     setRefundClasses("");
     setRefundAmount("");
     setRefundMethod("");
     setRefundProofUrl("");
-  }
-  async function uploadRefundProof(file: File) {
-    setRefundProofUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("purpose", "payment_proof");
-      const res = await fetch("/api/upload", { method: "POST", credentials: "include", body: fd });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || !json.url) throw new Error(json.error ?? "Upload failed");
-      setRefundProofUrl(json.url);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Upload failed");
-    } finally {
-      setRefundProofUploading(false);
-    }
-  }
-  async function saveRemove() {
-    if (!removePass || !member) return;
-    if (!removeReason.trim()) {
-      toast.error("Reason required");
-      return;
-    }
-    if (refundKind === "comp" && (!Number.isInteger(Number(refundClasses)) || Number(refundClasses) <= 0)) {
-      toast.error("Enter a valid number of comp classes");
-      return;
-    }
-    if (refundKind === "money" && (!refundAmount || !refundMethod)) {
-      toast.error("Enter a refund amount and method");
-      return;
-    }
-    setSavingRemove(true);
-    try {
-      const res = await fetch("/api/admin/members", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          profile_id: member.id,
-          user_package_id: removePass.id,
-          action: "remove_pass",
-          reason: removeReason.trim(),
-          refund_kind: refundKind,
-          refund:
-            refundKind === "comp"
-              ? { classes: Number(refundClasses) }
-              : refundKind === "money"
-                ? { amount_paise: Math.round(Number(refundAmount) * 100), method: refundMethod, proof_url: refundProofUrl || undefined }
-                : undefined,
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err as { error?: string }).error ?? "Failed");
-      }
-      toast.success("Pass removed");
-      setRemovePass(null);
-      await load();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not remove pass");
-    } finally {
-      setSavingRemove(false);
-    }
-  }
-
-  function openUpgrade(p: PackageRow) {
-    setUpgradePass(p);
+    // Upgrade tab
     setUpgradeTargetId("");
     setUpgradeAmount("");
     setUpgradeMethod("");
@@ -657,11 +526,143 @@ export default function MemberDetailPage() {
         .catch(() => {});
     }
   }
+
+  async function saveExpiry() {
+    if (!member || !editPass || !expiryDraft) return;
+    setSavingExpiry(true);
+    try {
+      const res = await fetch("/api/admin/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          profile_id: member.id,
+          user_package_id: editPass.id,
+          expiration_date: expiryDraft,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error ?? "Failed");
+      }
+      toast.success("Expiry updated");
+      setEditPass(null);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update expiry");
+    } finally {
+      setSavingExpiry(false);
+    }
+  }
+
+  async function saveAdjust() {
+    if (!editPass || !member) return;
+    const credits = Number(adjustCredits);
+    if (!Number.isInteger(credits) || credits < 0) {
+      toast.error("Enter a whole number, zero or more");
+      return;
+    }
+    if (!adjustReason.trim()) {
+      toast.error("Reason required");
+      return;
+    }
+    setSavingAdjust(true);
+    try {
+      const res = await fetch("/api/admin/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          profile_id: member.id,
+          user_package_id: editPass.id,
+          action: "adjust_credits",
+          credits,
+          reason: adjustReason.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error ?? "Failed");
+      }
+      toast.success("Credits updated");
+      setEditPass(null);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update credits");
+    } finally {
+      setSavingAdjust(false);
+    }
+  }
+
+  async function uploadRefundProof(file: File) {
+    setRefundProofUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("purpose", "payment_proof");
+      const res = await fetch("/api/upload", { method: "POST", credentials: "include", body: fd });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.url) throw new Error(json.error ?? "Upload failed");
+      setRefundProofUrl(json.url);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setRefundProofUploading(false);
+    }
+  }
+  async function saveRemove() {
+    if (!editPass || !member) return;
+    if (!removeReason.trim()) {
+      toast.error("Reason required");
+      return;
+    }
+    if (refundKind === "comp" && (!Number.isInteger(Number(refundClasses)) || Number(refundClasses) <= 0)) {
+      toast.error("Enter a valid number of comp classes");
+      return;
+    }
+    if (refundKind === "money" && (!refundAmount || !refundMethod)) {
+      toast.error("Enter a refund amount and method");
+      return;
+    }
+    setSavingRemove(true);
+    try {
+      const res = await fetch("/api/admin/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          profile_id: member.id,
+          user_package_id: editPass.id,
+          action: "remove_pass",
+          reason: removeReason.trim(),
+          refund_kind: refundKind,
+          refund:
+            refundKind === "comp"
+              ? { classes: Number(refundClasses) }
+              : refundKind === "money"
+                ? { amount_paise: Math.round(Number(refundAmount) * 100), method: refundMethod, proof_url: refundProofUrl || undefined }
+                : undefined,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error ?? "Failed");
+      }
+      toast.success("Pass removed");
+      setEditPass(null);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not remove pass");
+    } finally {
+      setSavingRemove(false);
+    }
+  }
+
   function onUpgradeTargetChange(id: string) {
     setUpgradeTargetId(id);
     const target = upgradeCatalog.find((c) => c.id === id);
-    if (target && upgradePass) {
-      const currentPriceInr = upgradePass.price ?? 0;
+    if (target && editPass) {
+      const currentPriceInr = editPass.price ?? 0;
       const diffPaise = computeUpgradeDifferencePaise(currentPriceInr, target.price);
       setUpgradeAmount((diffPaise / 100).toFixed(2));
     }
@@ -683,7 +684,7 @@ export default function MemberDetailPage() {
     }
   }
   async function saveUpgrade() {
-    if (!upgradePass || !member) return;
+    if (!editPass || !member) return;
     if (!upgradeTargetId) return toast.error("Select a target package");
     const amountPaise = Math.round(Number(upgradeAmount) * 100);
     if (!Number.isFinite(amountPaise) || amountPaise < 0) return toast.error("Enter a valid amount");
@@ -699,7 +700,7 @@ export default function MemberDetailPage() {
         credentials: "include",
         body: JSON.stringify({
           profile_id: member.id,
-          user_package_id: upgradePass.id,
+          user_package_id: editPass.id,
           action: "upgrade_pass",
           target_package_type_id: upgradeTargetId,
           amount_paise: amountPaise,
@@ -713,7 +714,7 @@ export default function MemberDetailPage() {
         throw new Error((err as { error?: string }).error ?? "Failed");
       }
       toast.success("Pass upgraded");
-      setUpgradePass(null);
+      setEditPass(null);
       await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not upgrade pass");
@@ -786,10 +787,7 @@ export default function MemberDetailPage() {
                   onApplyOutcome={applyOutcome}
                   onCancelBooking={cancelBooking}
                   onTogglePause={togglePause}
-                  onEditExpiry={openExpiry}
-                  onAdjustCredits={openAdjust}
-                  onUpgradePass={openUpgrade}
-                  onRemovePass={openRemove}
+                  onEditPass={openEditPass}
                   onReload={load}
                 />
               );
@@ -798,231 +796,216 @@ export default function MemberDetailPage() {
         </main>
       </div>
 
-      {/* Edit pass expiry */}
-      <ResponsiveDialog open={expiryPass !== null} onOpenChange={(o) => { if (!o) setExpiryPass(null); }}>
-        <ResponsiveDialogContent className="sm:max-w-[440px] bg-white-warm border-sage/20">
+      {/* Edit pass — tabbed: Expiry · Credits · Upgrade · Remove */}
+      <ResponsiveDialog open={editPass !== null} onOpenChange={(o) => { if (!o) setEditPass(null); }}>
+        <ResponsiveDialogContent className="sm:max-w-[520px] bg-white-warm border-sage/20">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Pass details</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">
+              Edit pass{editPass ? ` · ${editPass.name}` : ""}
+            </ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              Review the current pass and update its expiry date.
+              Update expiry, adjust credits, upgrade, or remove this pass.
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
-          {expiryPass && (
-            <div className="space-y-4">
-              <div className="space-y-2 rounded-xl border border-sage/20 bg-sage/5 px-4 py-3 font-body text-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-charcoal/55">Pass</span>
-                  <span className="font-medium text-charcoal">{expiryPass.name}</span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-charcoal/55">Classes left</span>
-                  <span className="font-medium text-charcoal">
-                    {expiryPass.isUnlimited ? "Unlimited" : `${expiryPass.creditsRemaining ?? 0} left`}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-charcoal/55">Status</span>
-                  <Pill {...memberStatusPill(expiryPass.status)} size="sm">
-                    {expiryPass.status.charAt(0).toUpperCase() + expiryPass.status.slice(1).replace(/_/g, " ")}
-                  </Pill>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-charcoal/55">Current expiry</span>
-                  <span className="font-medium text-charcoal">{expiryPass.expiresAt ? fmtDate(expiryPass.expiresAt) : "No expiry"}</span>
-                </div>
-              </div>
+          {editPass && (
+            <Tabs value={editTab} onValueChange={(v) => setEditTab(v as typeof editTab)}>
+              <TabsList className="bg-cream/50 border border-sage/15 p-1 gap-1 h-auto w-full justify-start">
+                <TabsTrigger value="expiry" className="font-body text-charcoal/60 data-[state=active]:bg-sage data-[state=active]:text-cream data-[state=active]:shadow-xs">Expiry</TabsTrigger>
+                <TabsTrigger value="credits" className="font-body text-charcoal/60 data-[state=active]:bg-sage data-[state=active]:text-cream data-[state=active]:shadow-xs">Credits</TabsTrigger>
+                <TabsTrigger value="upgrade" className="font-body text-charcoal/60 data-[state=active]:bg-sage data-[state=active]:text-cream data-[state=active]:shadow-xs">Upgrade</TabsTrigger>
+                <TabsTrigger value="remove" className="font-body text-charcoal/60 data-[state=active]:bg-terracotta data-[state=active]:text-cream data-[state=active]:shadow-xs">Remove</TabsTrigger>
+              </TabsList>
 
-              <div className="space-y-1.5">
-                <label className="font-body text-sm text-charcoal/80">New expiry date</label>
-                <DatePicker value={expiryDraft} onChange={setExpiryDraft} placeholder="Select expiry date" className="h-11" />
-              </div>
-            </div>
+              {/* Expiry */}
+              <TabsContent value="expiry" className="space-y-4 pt-4">
+                <div className="space-y-2 rounded-xl border border-sage/20 bg-sage/5 px-4 py-3 font-body text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-charcoal/55">Pass</span>
+                    <span className="font-medium text-charcoal">{editPass.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-charcoal/55">Classes left</span>
+                    <span className="font-medium text-charcoal">
+                      {editPass.isUnlimited ? "Unlimited" : `${editPass.creditsRemaining ?? 0} left`}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-charcoal/55">Status</span>
+                    <Pill {...memberStatusPill(editPass.status)} size="sm">
+                      {editPass.status.charAt(0).toUpperCase() + editPass.status.slice(1).replace(/_/g, " ")}
+                    </Pill>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-charcoal/55">Current expiry</span>
+                    <span className="font-medium text-charcoal">{editPass.expiresAt ? fmtDate(editPass.expiresAt) : "No expiry"}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-body text-sm text-charcoal/80">New expiry date</label>
+                  <DatePicker value={expiryDraft} onChange={setExpiryDraft} placeholder="Select expiry date" className="h-11" />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    variant="sage"
+                    onClick={saveExpiry}
+                    disabled={savingExpiry || !expiryDraft || expiryDraft === (editPass.expiresAt?.slice(0, 10) ?? "")}
+                    className="font-body"
+                  >
+                    {savingExpiry ? "Saving…" : "Update expiry"}
+                  </Button>
+                </div>
+              </TabsContent>
+
+              {/* Credits */}
+              <TabsContent value="credits" className="space-y-4 pt-4">
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">New credit balance</Label>
+                  <Input type="number" min={0} step={1} value={adjustCredits} onChange={(e) => setAdjustCredits(e.target.value)} className="font-body" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">Reason (required)</Label>
+                  <Textarea value={adjustReason} onChange={(e) => setAdjustReason(e.target.value)} className="font-body" rows={3} />
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button onClick={() => void saveAdjust()} disabled={savingAdjust || !adjustReason.trim()} variant="sage" className="font-body">
+                    {savingAdjust ? "Saving…" : "Save"}
+                  </Button>
+                </div>
+              </TabsContent>
+
+              {/* Upgrade */}
+              <TabsContent value="upgrade" className="space-y-4 pt-4">
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">Upgrade to</Label>
+                  <Select value={upgradeTargetId} onValueChange={onUpgradeTargetChange} disabled={eligibleUpgradeCatalog.length === 0}>
+                    <SelectTrigger className="border-sage/20 font-body">
+                      <SelectValue placeholder={eligibleUpgradeCatalog.length === 0 ? "No eligible upgrade" : "Select target package"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eligibleUpgradeCatalog.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name} · {formatINR(Math.round(c.price * 100))}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">Amount to collect (₹)</Label>
+                  <Input type="number" min={0} step="0.01" value={upgradeAmount} onChange={(e) => setUpgradeAmount(e.target.value)} className="font-body" />
+                </div>
+                {Number(upgradeAmount) > 0 && (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label className="font-body text-sm text-charcoal/70">Method</Label>
+                      <Select value={upgradeMethod} onValueChange={setUpgradeMethod}>
+                        <SelectTrigger className="border-sage/20 font-body"><SelectValue placeholder="Select method" /></SelectTrigger>
+                        <SelectContent>
+                          {PAYMENT_METHODS.map((m) => (
+                            <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="font-body text-sm text-charcoal/70">Proof of payment</Label>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        disabled={upgradeProofUploading}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadUpgradeProof(f); }}
+                        className="font-body"
+                      />
+                      {upgradeProofUrl && <a href={upgradeProofUrl} target="_blank" rel="noreferrer" className="text-xs text-sage underline">view uploaded proof</a>}
+                    </div>
+                  </>
+                )}
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">Reason (required)</Label>
+                  <Textarea value={upgradeReason} onChange={(e) => setUpgradeReason(e.target.value)} className="font-body" rows={3} />
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    onClick={() => void saveUpgrade()}
+                    disabled={savingUpgrade || !upgradeTargetId || !upgradeReason.trim() || (Number(upgradeAmount) > 0 && (!upgradeMethod || !upgradeProofUrl))}
+                    variant="sage"
+                    className="font-body"
+                  >
+                    {savingUpgrade ? "Upgrading…" : "Upgrade"}
+                  </Button>
+                </div>
+              </TabsContent>
+
+              {/* Remove */}
+              <TabsContent value="remove" className="space-y-4 pt-4">
+                <p className="font-body text-sm text-charcoal/60">This deactivates the pass. It stays in history.</p>
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">Reason (required)</Label>
+                  <Textarea value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} className="font-body" rows={3} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">Refund?</Label>
+                  <Select value={refundKind} onValueChange={(v) => setRefundKind(v as "none" | "comp" | "money")}>
+                    <SelectTrigger className="border-sage/20 font-body"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No refund</SelectItem>
+                      <SelectItem value="comp">Comp pass (free classes)</SelectItem>
+                      <SelectItem value="money">Money refund</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {refundKind === "comp" && (
+                  <div className="space-y-1.5">
+                    <Label className="font-body text-sm text-charcoal/70">Comp classes to grant</Label>
+                    <Input type="number" min={1} step={1} value={refundClasses} onChange={(e) => setRefundClasses(e.target.value)} className="font-body" />
+                  </div>
+                )}
+                {refundKind === "money" && (
+                  <>
+                    <p className="font-body text-xs text-charcoal/60">
+                      Audit note only — this records what you refunded outside the app. It does not move money or create a finance-ledger entry.
+                    </p>
+                    <div className="space-y-1.5">
+                      <Label className="font-body text-sm text-charcoal/70">Refund amount (₹)</Label>
+                      <Input type="number" min={0} step="0.01" value={refundAmount} onChange={(e) => setRefundAmount(e.target.value)} className="font-body" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="font-body text-sm text-charcoal/70">Method</Label>
+                      <Select value={refundMethod} onValueChange={setRefundMethod}>
+                        <SelectTrigger className="border-sage/20 font-body"><SelectValue placeholder="Select method" /></SelectTrigger>
+                        <SelectContent>
+                          {PAYMENT_METHODS.map((m) => (
+                            <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="font-body text-sm text-charcoal/70">Proof (optional)</Label>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        disabled={refundProofUploading}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadRefundProof(f); }}
+                        className="font-body"
+                      />
+                      {refundProofUrl && <a href={refundProofUrl} target="_blank" rel="noreferrer" className="text-xs text-sage underline">view uploaded proof</a>}
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button onClick={() => void saveRemove()} disabled={savingRemove || !removeReason.trim()} variant="destructive" className="font-body">
+                    {savingRemove ? "Removing…" : "Remove pass"}
+                  </Button>
+                </div>
+              </TabsContent>
+            </Tabs>
           )}
 
           <ResponsiveDialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => setExpiryPass(null)} disabled={savingExpiry} className="font-body">
-              Cancel
-            </Button>
-            <Button
-              variant="sage"
-              onClick={saveExpiry}
-              disabled={savingExpiry || !expiryDraft || expiryDraft === (expiryPass?.expiresAt?.slice(0, 10) ?? "")}
-              className="font-body"
-            >
-              {savingExpiry ? "Saving…" : "Update expiry"}
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-
-      {/* Adjust credits */}
-      <ResponsiveDialog open={adjustPass !== null} onOpenChange={(o) => { if (!o) setAdjustPass(null); }}>
-        <ResponsiveDialogContent className="sm:max-w-[440px] bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Adjust credits</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              {adjustPass?.name}
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label className="font-body text-sm text-charcoal/70">New credit balance</Label>
-              <Input type="number" min={0} step={1} value={adjustCredits} onChange={(e) => setAdjustCredits(e.target.value)} className="font-body" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="font-body text-sm text-charcoal/70">Reason (required)</Label>
-              <Textarea value={adjustReason} onChange={(e) => setAdjustReason(e.target.value)} className="font-body" rows={3} />
-            </div>
-          </div>
-          <ResponsiveDialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => setAdjustPass(null)} disabled={savingAdjust} className="font-body">Cancel</Button>
-            <Button onClick={() => void saveAdjust()} disabled={savingAdjust || !adjustReason.trim()} variant="sage" className="font-body">
-              {savingAdjust ? "Saving…" : "Save"}
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-
-      {/* Remove pass */}
-      <ResponsiveDialog open={removePass !== null} onOpenChange={(o) => { if (!o) setRemovePass(null); }}>
-        <ResponsiveDialogContent className="sm:max-w-[480px] bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Remove pass</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              {removePass?.name} — this deactivates the pass. It stays in history.
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label className="font-body text-sm text-charcoal/70">Reason (required)</Label>
-              <Textarea value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} className="font-body" rows={3} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="font-body text-sm text-charcoal/70">Refund?</Label>
-              <Select value={refundKind} onValueChange={(v) => setRefundKind(v as "none" | "comp" | "money")}>
-                <SelectTrigger className="border-sage/20 font-body"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No refund</SelectItem>
-                  <SelectItem value="comp">Comp pass (free classes)</SelectItem>
-                  <SelectItem value="money">Money refund</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {refundKind === "comp" && (
-              <div className="space-y-1.5">
-                <Label className="font-body text-sm text-charcoal/70">Comp classes to grant</Label>
-                <Input type="number" min={1} step={1} value={refundClasses} onChange={(e) => setRefundClasses(e.target.value)} className="font-body" />
-              </div>
-            )}
-            {refundKind === "money" && (
-              <>
-                <p className="font-body text-xs text-charcoal/60">
-                  Audit note only — this records what you refunded outside the app. It does not move money or create a finance-ledger entry.
-                </p>
-                <div className="space-y-1.5">
-                  <Label className="font-body text-sm text-charcoal/70">Refund amount (₹)</Label>
-                  <Input type="number" min={0} step="0.01" value={refundAmount} onChange={(e) => setRefundAmount(e.target.value)} className="font-body" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="font-body text-sm text-charcoal/70">Method</Label>
-                  <Select value={refundMethod} onValueChange={setRefundMethod}>
-                    <SelectTrigger className="border-sage/20 font-body"><SelectValue placeholder="Select method" /></SelectTrigger>
-                    <SelectContent>
-                      {PAYMENT_METHODS.map((m) => (
-                        <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="font-body text-sm text-charcoal/70">Proof (optional)</Label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    disabled={refundProofUploading}
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadRefundProof(f); }}
-                    className="font-body"
-                  />
-                  {refundProofUrl && <a href={refundProofUrl} target="_blank" rel="noreferrer" className="text-xs text-sage underline">view uploaded proof</a>}
-                </div>
-              </>
-            )}
-          </div>
-          <ResponsiveDialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => setRemovePass(null)} disabled={savingRemove} className="font-body">Cancel</Button>
-            <Button onClick={() => void saveRemove()} disabled={savingRemove || !removeReason.trim()} variant="sage" className="font-body">
-              {savingRemove ? "Removing…" : "Remove pass"}
-            </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-
-      {/* Upgrade pass */}
-      <ResponsiveDialog open={upgradePass !== null} onOpenChange={(o) => { if (!o) setUpgradePass(null); }}>
-        <ResponsiveDialogContent className="sm:max-w-[480px] bg-white-warm border-sage/20">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-body font-semibold text-2xl text-charcoal">Upgrade pass</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="font-body text-charcoal/60">
-              {upgradePass?.name} → deactivates this pass and assigns the new one.
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label className="font-body text-sm text-charcoal/70">Upgrade to</Label>
-              <Select value={upgradeTargetId} onValueChange={onUpgradeTargetChange}>
-                <SelectTrigger className="border-sage/20 font-body"><SelectValue placeholder="Select target package" /></SelectTrigger>
-                <SelectContent>
-                  {upgradeCatalog.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name} · {formatINR(Math.round(c.price * 100))}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="font-body text-sm text-charcoal/70">Amount to collect (₹)</Label>
-              <Input type="number" min={0} step="0.01" value={upgradeAmount} onChange={(e) => setUpgradeAmount(e.target.value)} className="font-body" />
-            </div>
-            {Number(upgradeAmount) > 0 && (
-              <>
-                <div className="space-y-1.5">
-                  <Label className="font-body text-sm text-charcoal/70">Method</Label>
-                  <Select value={upgradeMethod} onValueChange={setUpgradeMethod}>
-                    <SelectTrigger className="border-sage/20 font-body"><SelectValue placeholder="Select method" /></SelectTrigger>
-                    <SelectContent>
-                      {PAYMENT_METHODS.map((m) => (
-                        <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="font-body text-sm text-charcoal/70">Proof of payment</Label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    disabled={upgradeProofUploading}
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadUpgradeProof(f); }}
-                    className="font-body"
-                  />
-                  {upgradeProofUrl && <a href={upgradeProofUrl} target="_blank" rel="noreferrer" className="text-xs text-sage underline">view uploaded proof</a>}
-                </div>
-              </>
-            )}
-            <div className="space-y-1.5">
-              <Label className="font-body text-sm text-charcoal/70">Reason (required)</Label>
-              <Textarea value={upgradeReason} onChange={(e) => setUpgradeReason(e.target.value)} className="font-body" rows={3} />
-            </div>
-          </div>
-          <ResponsiveDialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => setUpgradePass(null)} disabled={savingUpgrade} className="font-body">Cancel</Button>
-            <Button
-              onClick={() => void saveUpgrade()}
-              disabled={savingUpgrade || !upgradeTargetId || !upgradeReason.trim() || (Number(upgradeAmount) > 0 && (!upgradeMethod || !upgradeProofUrl))}
-              variant="sage"
-              className="font-body"
-            >
-              {savingUpgrade ? "Upgrading…" : "Upgrade"}
+            <Button variant="outline" onClick={() => setEditPass(null)} className="font-body">
+              Close
             </Button>
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
@@ -1059,10 +1042,7 @@ function MemberBody({
   onApplyOutcome,
   onCancelBooking,
   onTogglePause,
-  onEditExpiry,
-  onAdjustCredits,
-  onUpgradePass,
-  onRemovePass,
+  onEditPass,
   onReload,
 }: {
   member: MemberDetail;
@@ -1071,10 +1051,7 @@ function MemberBody({
   onApplyOutcome: (id: string, o: "on_time" | "late" | "no_show" | "not_checked_in") => void;
   onCancelBooking: (id: string) => void;
   onTogglePause: (next: boolean) => void;
-  onEditExpiry: (p: PackageRow) => void;
-  onAdjustCredits: (p: PackageRow) => void;
-  onUpgradePass: (p: PackageRow) => void;
-  onRemovePass: (p: PackageRow) => void;
+  onEditPass: (p: PackageRow) => void;
   onReload: () => Promise<void>;
 }) {
   const [manageOpen, setManageOpen] = useState(false);
@@ -1291,44 +1268,23 @@ function MemberBody({
                   transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1], delay: Math.min(i, 6) * 0.06 }}
                 >
                   {p.isActive ? (
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => onEditExpiry(p)}
-                        title="Edit pass expiry"
-                        aria-label={`Edit expiry for ${p.name}`}
-                        className="block w-full cursor-pointer rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
-                      >
-                        <PassCard
-                          name={p.name}
-                          isUnlimited={p.isUnlimited}
-                          classesRemaining={p.creditsRemaining}
-                          expiry={p.expiresAt}
-                          durationMonths={p.durationMonths}
-                          status={p.status}
-                          className="w-full"
-                        />
-                      </button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={(e) => e.stopPropagation()}
-                            aria-label={`More actions for ${p.name}`}
-                            className="absolute right-3 top-3 z-10 rounded-full bg-white-warm/90 p-1.5 text-charcoal/70 shadow-sm hover:bg-white-warm hover:text-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="font-body">
-                          <DropdownMenuItem onClick={() => onAdjustCredits(p)}>Adjust credits</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onUpgradePass(p)}>Upgrade pass</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onRemovePass(p)} className="text-terracotta focus:text-terracotta">
-                            Remove pass
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onEditPass(p)}
+                      title="Edit pass"
+                      aria-label={`Edit ${p.name}`}
+                      className="block w-full cursor-pointer rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
+                    >
+                      <PassCard
+                        name={p.name}
+                        isUnlimited={p.isUnlimited}
+                        classesRemaining={p.creditsRemaining}
+                        expiry={p.expiresAt}
+                        durationMonths={p.durationMonths}
+                        status={p.status}
+                        className="w-full"
+                      />
+                    </button>
                   ) : (
                     <PassCard
                       name={p.name}
@@ -1446,14 +1402,14 @@ function MemberBody({
                     onClick={() => setManageOpen(true)}
                     className="font-body w-full border-sage/30 text-sage hover:bg-sage hover:text-cream"
                   >
-                    <CreditCard className="h-4 w-4 mr-1.5" /> Manage / record payment
+                    <CreditCard className="h-4 w-4 mr-1.5" /> Assign a new pass
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-3">
                   <p className="font-body text-sm text-charcoal/45 italic">No active pass.</p>
                   <Button variant="sage" onClick={() => setManageOpen(true)} className="font-body w-full">
-                    <CreditCard className="h-4 w-4 mr-1.5" /> Assign a pass
+                    <CreditCard className="h-4 w-4 mr-1.5" /> Assign a new pass
                   </Button>
                 </div>
               )}
