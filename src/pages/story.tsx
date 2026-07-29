@@ -39,8 +39,8 @@ const VALUES = [
 const STATS = [
   { value: "2018", label: "Founded" },
   { value: "3", label: "Locations" },
-  { value: "20+", label: "Team members" },
-  { value: "500+", label: "Community" },
+  { value: "60+", label: "Team members" },
+  { value: "2000+", label: "Community" },
 ];
 
 const JOURNEY = [
@@ -58,7 +58,7 @@ const JOURNEY = [
   },
   {
     year: "2024",
-    text: "Grew to three locations, launched the meal subscription service, and built a team of 20+ hosting weekly events.",
+    text: "Grew to three locations, launched the meal subscription service, and built a team of 60+ hosting weekly events.",
   },
 ];
 
@@ -205,9 +205,9 @@ export default function StoryPage() {
                 </p>
                 <p className="font-body text-lg leading-relaxed text-charcoal/80">
                   What started with me making and selling granola in my home kitchen has grown into
-                  a multi-outlet operation with a team of 20+. From monthly events and cooking
+                  a multi-outlet operation with a team of 60+. From monthly events and cooking
                   workshops to our first studio in 2020, a meal subscription service, and a thriving
-                  community that gathers every week, the throughline has never changed: connection,
+                  community of 2000+ that gathers every week, the throughline has never changed: connection,
                   and conscious living.
                 </p>
               </div>

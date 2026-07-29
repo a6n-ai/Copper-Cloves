@@ -7,8 +7,8 @@ import { cdnUrl } from "@/lib/cdnUrl";
 const stats = [
   { value: "2018", label: "Founded" },
   { value: "3", label: "Locations" },
-  { value: "20+", label: "Team" },
-  { value: "500+", label: "Community" },
+  { value: "60+", label: "Team" },
+  { value: "2000+", label: "Community" },
 ];
 
 export function Founder() {
@@ -26,8 +26,8 @@ export function Founder() {
           <div className="mt-5 max-w-[56ch] space-y-4">
             <p className="font-body text-lg leading-relaxed text-charcoal/80">
               What began with granola from a home kitchen in 2018 has grown into a multi-outlet
-              wellness sanctuary of movement, plant-based food, and community, built by a team of
-              20+ across three locations in Bangalore.
+              wellness sanctuary of movement, plant-based food, and a 2000+ strong community, built
+              by a team of 60+ across three locations in Bangalore.
             </p>
             <p className="font-body text-lg leading-relaxed text-charcoal/80">
               From monthly cooking workshops to our first studio in 2020 and a community that
