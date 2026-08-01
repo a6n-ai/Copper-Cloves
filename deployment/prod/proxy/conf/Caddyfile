@@ -3,11 +3,13 @@
 	email {$ACME_EMAIL}
 }
 
-# www -> apex. Deliberately a REDIRECT, not a second site block serving the same
-# upstream. NEXTAUTH_URL pins one canonical origin; a request signed in from
-# www.<domain> carries an Origin that NextAuth's CSRF check rejects, so serving
-# both hosts silently breaks sign-in. One live origin, always.
-www.{$APP_DOMAIN} {
+# APP_DOMAIN is the CANONICAL host and must equal NEXTAUTH_URL's host exactly.
+# Production has always been served from www (NEXTAUTH_URL =
+# https://www.thestudiobycopperandcloves.in), so www is canonical here and the
+# apex redirects to it — not the other way round. Getting this backwards signs
+# every logged-in member out: NextAuth pins one origin, and a request arriving on
+# the other host fails its CSRF/origin check.
+{$REDIRECT_DOMAIN} {
 	redir https://{$APP_DOMAIN}{uri} permanent
 }
 
@@ -15,14 +17,14 @@ www.{$APP_DOMAIN} {
 	encode zstd gzip
 
 	reverse_proxy cc-web:3000 {
-		# Both headers are OVERWRITTEN (header_up NAME value replaces; it does not
-		# append) with the real socket peer, so a client cannot choose its own IP.
+		# Both headers are OVERWRITTEN (header_up NAME value replaces rather than
+		# appends) with the real socket peer, so a client cannot choose its own IP.
 		# src/lib/sessionGuard.ts clientIp() reads the FIRST entry of
-		# X-Forwarded-For, which with Caddy's default appending behaviour would be
-		# whatever the client sent — poisoning the session audit trail. Caddy is
-		# the only hop in front of the app, so replacing the chain is correct here.
-		# If a CDN or another proxy is ever put IN FRONT of Caddy, revisit this:
-		# the real client IP would then arrive inside the inbound header.
+		# X-Forwarded-For, which under Caddy's default appending behaviour would be
+		# whatever the client sent — poisoning the session audit trail. Caddy is the
+		# only hop in front of the app, so replacing the chain is correct here. If a
+		# CDN is ever put IN FRONT of Caddy, revisit: the real client IP would then
+		# arrive inside the inbound header.
 		header_up X-Forwarded-For {remote_host}
 		header_up X-Real-IP {remote_host}
 	}
