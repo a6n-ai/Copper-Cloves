@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { MobilePagination } from "@/components/responsive/MobilePagination";
 import { Pill } from "@/components/ui/pill";
-import { bookingStatusPill, attendanceOutcomePill } from "@/lib/pillMaps";
+import { bookingStatusPill, bookingPaymentPill, bookingRefundPill, moneyRefundPill, attendanceOutcomePill } from "@/lib/pillMaps";
 
 import { canCheckInNow, checkInWindowBounds } from "@/lib/bookingAttendance";
 
@@ -52,6 +52,12 @@ interface Booking {
   invited_by_name?: string | null;
   cancel_cutoff_hours?: number | null;
   invoiceAvailable?: boolean;
+  paid?: boolean;
+  user_package_id?: string | null;
+  refund_status?: string | null;
+  refund_amount_paise?: number | null;
+  /** PaymentReconcile state for a gateway payment on a cancelled seat. */
+  moneyRefundStatus?: string | null;
   guests?: { name: string; status: string; checked_in: boolean }[];
   class_schedule?: {
     start_time: string;
@@ -110,6 +116,22 @@ const BookingCard = memo(function BookingCard({
           </Link>
           <div className="flex flex-wrap gap-1.5 mt-1 sm:mt-1.5">
             <Pill {...bookingStatusPill(booking.status)}>{bookingStatusPill(booking.status).label}</Pill>
+            {/* Member-facing: only assert a payment axis we can actually vouch for.
+                An admin-comped seat (no payment, no pass) shows no pill rather than
+                "No payment on record", which reads as a problem to the member. */}
+            {booking.status !== "cancelled" && (booking.paid || booking.user_package_id || booking.status !== "confirmed") && (
+              <Pill {...bookingPaymentPill(booking.status, { paid: booking.paid, viaPass: !!booking.user_package_id })}>
+                {bookingPaymentPill(booking.status, { paid: booking.paid, viaPass: !!booking.user_package_id }).label}
+              </Pill>
+            )}
+            {/* Cancelled: credit refund if one was granted, else the money-refund
+                state (drop-in payers get cash back, not a class credit). */}
+            {booking.status === "cancelled" && (() => {
+              const refund =
+                bookingRefundPill(booking.refund_status, booking.refund_amount_paise) ??
+                moneyRefundPill(booking.moneyRefundStatus);
+              return refund ? <Pill {...refund}>{refund.label}</Pill> : null;
+            })()}
             {booking.confirmation_status === "pending" && booking.status !== "cancelled" && (
               <Pill tone="warning">Awaiting confirmation</Pill>
             )}

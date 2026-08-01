@@ -1331,7 +1331,7 @@ function ReconcileSectionImpl() {
     const q = logSearch.trim().toLowerCase();
     if (!q) return logRows;
     return logRows.filter((r) =>
-      [r.paymentId, r.orderId, r.memberName, r.memberEmail, r.note]
+      [r.paymentId, r.orderId, r.memberName, r.memberEmail, r.className, r.note]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(q)),
     );
@@ -1369,7 +1369,9 @@ function ReconcileSectionImpl() {
     match: "matched",
     email: r.memberEmail,
     contact: null,
-    description: null,
+    // Fallback identity for the detail panel — Razorpay's own description wins
+    // when the live fetch succeeds, but this keeps a handled row readable offline.
+    description: [r.memberName, r.className].filter(Boolean).join(" · ") || null,
     notes: r.note ?? "",
   }), []);
 
@@ -1598,6 +1600,7 @@ function ReconcileSectionImpl() {
                             <TableHead>Payment</TableHead>
                             <TableHead className="w-[120px] text-right">Amount</TableHead>
                             <TableHead>Member</TableHead>
+                            <TableHead>Class</TableHead>
                             <TableHead>Note</TableHead>
                             <TableHead className="w-[150px]">Updated</TableHead>
                             <TableHead className="w-[120px]">Resolver</TableHead>
@@ -1625,6 +1628,12 @@ function ReconcileSectionImpl() {
                                 <TableCell>
                                   <div className="font-body text-sm text-charcoal">{r.memberName ?? "—"}</div>
                                   {r.memberEmail && <div className="font-body text-xs text-charcoal/45 line-clamp-1">{r.memberEmail}</div>}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="font-body text-sm text-charcoal">{r.className ?? "—"}</div>
+                                  {r.classTimeISO && (
+                                    <div className="font-body text-xs text-charcoal/45 whitespace-nowrap">{fmtLogDate(r.classTimeISO)}</div>
+                                  )}
                                 </TableCell>
                                 <TableCell className="font-body text-xs text-charcoal/60 max-w-[220px]">
                                   <span className="line-clamp-2 [overflow-wrap:anywhere]">{r.note || "—"}</span>

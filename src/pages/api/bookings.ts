@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { OCCUPYING_STATUSES, ROSTER_STATUSES, HISTORY_STATUSES, occupiesSeat } from "@/lib/bookingStatus";
 import { isInvoiceable } from "@/lib/invoice/isInvoiceable";
+import { moneyRefundStatusByBooking } from "@/lib/reconcileStatus";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
@@ -126,6 +127,12 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: stri
   // for every row — both the bookings page and the dashboard consume it.
   const { cancellation_cutoff_hours } = await getStudioSettings();
 
+  // Money-refund state for cancelled seats that were paid at the gateway (drop-ins
+  // hold no pass, so they're owed cash, not a credit — see reconcileStatus.ts).
+  const moneyRefundByBooking = await moneyRefundStatusByBooking(
+    bookings.filter((b) => b.status === STATUS_CANCELLED).map((b) => b.id),
+  );
+
   const mapped = bookings.map((b) => ({
     ...b,
     invited_by_name: b.invited_by?.full_name ?? null,
@@ -133,6 +140,8 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: stri
     // Only the booker's own row (not an invited row) carries the guest list.
     guests: !b.invited_by_user_id && b.class_schedule_id ? guestsBySchedule.get(b.class_schedule_id) ?? [] : [],
     invoiceAvailable: isInvoiceable(b.payments),
+    paid: isInvoiceable(b.payments),
+    moneyRefundStatus: moneyRefundByBooking.get(b.id) ?? null,
   }));
   return res.json(mapped);
 }
