@@ -46,6 +46,7 @@
     "scheduler": "tsx scripts/scheduler.ts",
     "test:payout": "tsx scripts/test-payoutCalc.ts",
     "test:refund-pills": "tsx scripts/test-refund-pills.ts",
+    "test:dropin-pass": "tsx scripts/test-dropin-pass.ts",
     "test:cafe-discount": "tsx scripts/test-cafeDiscount.ts",
     "test:shared": "tsx scripts/test-sharedCredits.ts",
     "test:payout-export": "TZ=Asia/Kolkata tsx scripts/test-payoutExport.ts",
