@@ -1,0 +1,29 @@
+{
+	# ACME account email for Let's Encrypt (auto-TLS). Set ACME_EMAIL in .env.production.
+	email {$ACME_EMAIL}
+}
+
+# www -> apex. Deliberately a REDIRECT, not a second site block serving the same
+# upstream. NEXTAUTH_URL pins one canonical origin; a request signed in from
+# www.<domain> carries an Origin that NextAuth's CSRF check rejects, so serving
+# both hosts silently breaks sign-in. One live origin, always.
+www.{$APP_DOMAIN} {
+	redir https://{$APP_DOMAIN}{uri} permanent
+}
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy cc-web:3000 {
+		# Both headers are OVERWRITTEN (header_up NAME value replaces; it does not
+		# append) with the real socket peer, so a client cannot choose its own IP.
+		# src/lib/sessionGuard.ts clientIp() reads the FIRST entry of
+		# X-Forwarded-For, which with Caddy's default appending behaviour would be
+		# whatever the client sent — poisoning the session audit trail. Caddy is
+		# the only hop in front of the app, so replacing the chain is correct here.
+		# If a CDN or another proxy is ever put IN FRONT of Caddy, revisit this:
+		# the real client IP would then arrive inside the inbound header.
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Real-IP {remote_host}
+	}
+}

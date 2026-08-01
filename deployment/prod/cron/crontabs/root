@@ -1,0 +1,9 @@
+# Mounted read-only at /cron/crontabs/root and read by busybox crond in the
+# `cron` service. Times are UTC (the container has no TZ set); every endpoint is
+# idempotent and interval-based, so UTC vs IST does not matter here.
+#
+# Cadences match .llm/deploy.md. Keep them in sync if you change either.
+*/5  * * * * /cron/run.sh class-emails
+*/15 * * * * /cron/run.sh reconcile-no-shows
+*/15 * * * * /cron/run.sh lifecycle-bookings
+0    * * * * /cron/run.sh reconcile-razorpay

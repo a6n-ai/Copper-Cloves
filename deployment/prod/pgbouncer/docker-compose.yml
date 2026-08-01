@@ -1,0 +1,37 @@
+# Transaction-mode connection pooler in front of the existing copper-cloves RDS.
+# Pulled into the umbrella stack via `include:`. Caps real RDS backends at
+# DEFAULT_POOL_SIZE regardless of how many app processes exist.
+services:
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: cc-pgbouncer
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${PGBOUNCER_DB_HOST}
+      DB_PORT: ${PGBOUNCER_DB_PORT:-5432}
+      DB_USER: ${PGBOUNCER_DB_USER}
+      DB_PASSWORD: ${PGBOUNCER_DB_PASSWORD}
+      DB_NAME: ${PGBOUNCER_DB_NAME}
+      LISTEN_PORT: "6432"
+      POOL_MODE: transaction
+      AUTH_TYPE: scram-sha-256
+      DEFAULT_POOL_SIZE: "15"
+      MAX_CLIENT_CONN: "100"
+      # pgbouncer terminates TLS itself: the app talks plaintext to it over the
+      # private compose network, and pgbouncer dials RDS with TLS. This is why
+      # STUDIO_DATABASE_URL points at host `pgbouncer` with no sslmode —
+      # src/lib/prisma.ts only forces TLS for hosts matching rds.amazonaws.com.
+      SERVER_TLS_SSLMODE: require
+      # Transaction pooling hands a different backend to every transaction, so a
+      # named prepared statement created on one is missing on the next. The
+      # @prisma/adapter-pg driver issues unnamed extended-protocol queries, which
+      # are safe; disabling named ones makes any future regression fail loudly
+      # instead of intermittently under load.
+      MAX_PREPARED_STATEMENTS: "0"
+    expose:
+      - "6432" # compose network only; never published to the host
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 6432"]
+      interval: 10s
+      timeout: 3s
+      retries: 5

@@ -1,0 +1,236 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Copper & Cloves prod - EC2 box + EIP + IAM instance role + SG, reusing the EXISTING copper-cloves RDS.
+
+# What this does NOT create: the RDS instance. The existing `copper-cloves`
+# database (db.t4g.small, PG 18.3, ap-south-1c) is reused as-is. This stack only
+# adds an ingress rule to that database's security group allowing 5432 from the
+# new box's security group, so no data migration is involved.
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-07388d66504515da4
+    Description: VPC holding the existing RDS. The box must live here to reach it privately.
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: PUBLIC subnet in the above VPC (the box needs an internet-routable EIP for Let's Encrypt + inbound traffic).
+  RdsSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Default: sg-0de569aec9a0fa534
+    Description: Security group already attached to the copper-cloves RDS instance.
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: EC2 key pair used for SSH (also used by the deploy workflow).
+  InstanceType:
+    Type: String
+    Default: t4g.small
+    Description: Graviton. Docker images are built multi-arch by CI; change the CI platform if you switch to x86.
+  AmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64
+    Description: Amazon Linux 2023 (arm64). Resolved at deploy time from the AWS-managed SSM public parameter.
+  AllowSshCidr:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: CIDR permitted to SSH. Tighten to your IP once the deploy workflow is not needed, or use SSM Session Manager instead.
+  DataVolumeSizeGb:
+    Type: Number
+    Default: 30
+    Description: Root volume. Docker images + Caddy certs live here; 30GB leaves room for a few image generations.
+
+  # --- DNS -------------------------------------------------------------------
+  # Route53 hosted zones are GLOBAL, not per-region — the zone below already
+  # exists and is shared with the Amplify deployment. This stack only adds
+  # records, and by default only the staging one, so creating the stack can
+  # never move live traffic.
+  HostedZoneId:
+    Type: String
+    Default: Z042772335FKJXJEWCHU9
+    Description: Hosted zone for thestudiobycopperandcloves.in.
+  StagingHostname:
+    Type: String
+    Default: new.thestudiobycopperandcloves.in
+    Description: A record pointed at the box for pre-cutover testing. Set to an empty string to skip.
+  ApexDomain:
+    Type: String
+    Default: thestudiobycopperandcloves.in
+    Description: Apex domain, used only when ManageApexDns is true.
+  ManageApexDns:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      THE CUTOVER SWITCH. Set to true only when you are ready to move production
+      off Amplify: it replaces the apex + www records (currently aliases to
+      Amplify's CloudFront) with A records pointing at this box.
+
+Conditions:
+  HasStagingHostname: !Not [!Equals [!Ref StagingHostname, ""]]
+  CutOverApex: !Equals [!Ref ManageApexDns, "true"]
+
+Resources:
+  BoxSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: copper-cloves-prod-box-sg
+      GroupDescription: Copper & Cloves prod box - public 80/443 + SSH.
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - { IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: !Ref AllowSshCidr }
+        - { IpProtocol: tcp, FromPort: 80, ToPort: 80, CidrIp: 0.0.0.0/0 }
+        - { IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0 }
+      Tags:
+        - { Key: app, Value: copper-cloves }
+        - { Key: Name, Value: copper-cloves-prod-box-sg }
+
+  # Adds 5432 to the EXISTING RDS security group, sourced from the box SG only.
+  # After cutover, remove any wide/public 5432 rules on that group and set the
+  # RDS to PubliclyAccessible=false — this rule is all the box needs.
+  RdsIngressFromBox:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref RdsSecurityGroupId
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref BoxSecurityGroup
+      Description: copper-cloves prod box (pgbouncer)
+
+  BoxRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: copper-cloves-prod-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ec2.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        # Lets you open a shell without SSH (aws ssm start-session), which is the
+        # escape hatch if the SSH CIDR is ever tightened to nothing.
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: copper-cloves-prod-access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: SsmReadAppSecrets
+                Effect: Allow
+                Action: [ssm:GetParametersByPath, ssm:GetParameters, ssm:GetParameter]
+                Resource:
+                  # GetParametersByPath authorizes against the path NODE itself,
+                  # not just the child parameters, so grant both.
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/copper-cloves/prod"
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/copper-cloves/prod/*"
+              - Sid: SsmDecrypt
+                Effect: Allow
+                Action: kms:Decrypt
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    "kms:ViaService": !Sub "ssm.${AWS::Region}.amazonaws.com"
+              - Sid: CloudWatchLogs
+                Effect: Allow
+                Action: [logs:CreateLogGroup, logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/copper-cloves/prod:*"
+
+  BoxInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: copper-cloves-prod-role
+      Roles: [!Ref BoxRole]
+
+  Box:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref BoxInstanceProfile
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds: [!Ref BoxSecurityGroup]
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: !Ref DataVolumeSizeGb
+            VolumeType: gp3
+            Encrypted: true
+            DeleteOnTermination: true
+      Tags:
+        - { Key: app, Value: copper-cloves }
+        - { Key: Name, Value: copper-cloves-prod-box }
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euxo pipefail
+          dnf install -y docker git jq
+          # AL2023 ships the AWS CLI v2 and the docker engine, but NOT the compose
+          # v2 plugin — install it into the docker plugin dir by hand.
+          mkdir -p /usr/local/lib/docker/cli-plugins
+          curl -fsSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-aarch64" \
+            -o /usr/local/lib/docker/cli-plugins/docker-compose
+          chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+          systemctl enable --now docker
+          usermod -aG docker ec2-user
+          # The external network both compose projects join. Created here so the
+          # first deploy does not have to be a special case.
+          docker network inspect edge >/dev/null 2>&1 || docker network create edge
+          sudo -u ec2-user git clone https://github.com/a6n-ai/Copper-Cloves.git /home/ec2-user/Copper-Cloves
+          # Docker's awslogs driver needs a region when the daemon has no default.
+          echo 'AWS_REGION=${AWS::Region}' >> /etc/environment
+
+  BoxEip:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref Box
+      Tags: [{ Key: Name, Value: copper-cloves-prod-eip }]
+
+  # Pre-cutover: a hostname that resolves to the box while production still runs
+  # on Amplify. Set APP_DOMAIN in SSM to this value so Caddy issues a cert for it.
+  StagingRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: HasStagingHostname
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref StagingHostname
+      Type: A
+      TTL: 60
+      ResourceRecords: [!Ref BoxEip]
+
+  # Cutover. TTL is deliberately short so a rollback to Amplify propagates in a
+  # minute rather than a day. Raise it once the box has proven itself.
+  ApexRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: CutOverApex
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref ApexDomain
+      Type: A
+      TTL: 60
+      ResourceRecords: [!Ref BoxEip]
+
+  # An A record, not a CNAME to the apex: Caddy answers this host with a 301 to
+  # the apex (see proxy/conf/Caddyfile), which keeps exactly one live origin so
+  # NextAuth's CSRF check never sees a mismatched Origin.
+  WwwRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: CutOverApex
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Sub "www.${ApexDomain}"
+      Type: A
+      TTL: 60
+      ResourceRecords: [!Ref BoxEip]
+
+Outputs:
+  PublicIp:
+    Description: Point the apex + www A records here at cutover.
+    Value: !Ref BoxEip
+  InstanceId:
+    Value: !Ref Box
+  BoxSecurityGroupId:
+    Value: !Ref BoxSecurityGroup
+  SshCommand:
+    Value: !Sub "ssh ec2-user@${BoxEip}"

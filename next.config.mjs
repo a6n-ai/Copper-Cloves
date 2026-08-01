@@ -51,6 +51,18 @@ const IS_AMPLIFY = Boolean(process.env.AWS_APP_ID || process.env.AWS_BRANCH);
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Emit a self-contained server bundle (server.js + only the traced
+  // node_modules) so the Docker runner stage needs no `npm install`. Harmless on
+  // Amplify/Vercel, which ignore `.next/standalone`.
+  output: "standalone",
+  // Without this, Next INFERS the trace root by walking up for a lockfile — and
+  // a stray package-lock.json anywhere above the repo (a home directory, say)
+  // silently makes it the root, nesting the output at
+  // `.next/standalone/<path>/<to>/<repo>/server.js`. deployment/Dockerfile copies
+  // `.next/standalone` to /app and runs `node server.js`, so that nesting is a
+  // crash loop. Pin it to this file's directory and the layout is identical
+  // everywhere.
+  outputFileTracingRoot: import.meta.dirname,
   env: IS_AMPLIFY ? inlineEnv : {},
   // Transform barrel imports (`import { X } from "lucide-react"`) into direct
   // per-module imports so only the icons/charts actually used land in the

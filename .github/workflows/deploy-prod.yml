@@ -1,0 +1,116 @@
+# Build the prod images and (optionally) roll them out to the EC2 box.
+#
+# Two images from deployment/Dockerfile:
+#   copper-cloves-web   (runner target) - Next.js standalone server
+#   copper-cloves-tools (build target)  - prisma CLI + tsx, for `db push` and scripts
+# Both are tagged with the commit SHA; the box pins IMAGE_TAG to that SHA so a
+# deploy is reproducible and a rollback is `IMAGE_TAG=<old-sha> ./deploy.sh`.
+#
+# Required repo secrets: EC2_HOST, EC2_USER, EC2_SSH_KEY.
+# Required repo variable: ENABLE_SSH_DEPLOY=true (deploy is a no-op until then,
+# so this workflow is safe to merge while the box does not exist yet).
+# Optional repo variable: DEPLOY_PATH (default ~/Copper-Cloves).
+name: deploy-prod
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - ".llm/**"
+      - "docs/**"
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Native arm64 runner (free on public repos) matching the t4g.small box.
+    # Building arm64 on an x86 runner would go through QEMU emulation and take
+    # roughly 5-10x longer for a Next.js build.
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # web first: the runner target also builds the shared `build` stage, so the
+      # tools image below is a cache hit on every layer.
+      - name: Build + push copper-cloves-web (runner)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deployment/Dockerfile
+          target: runner
+          platforms: linux/arm64
+          build-args: |
+            BUILD_ID=${{ github.sha }}
+          push: true
+          tags: |
+            ghcr.io/a6n-ai/copper-cloves-web:${{ github.sha }}
+            ghcr.io/a6n-ai/copper-cloves-web:latest
+          cache-from: type=gha,scope=copper-cloves
+          cache-to: type=gha,mode=max,scope=copper-cloves
+
+      - name: Build + push copper-cloves-tools (build)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deployment/Dockerfile
+          target: build
+          platforms: linux/arm64
+          build-args: |
+            BUILD_ID=${{ github.sha }}
+          push: true
+          tags: |
+            ghcr.io/a6n-ai/copper-cloves-tools:${{ github.sha }}
+            ghcr.io/a6n-ai/copper-cloves-tools:latest
+          cache-from: type=gha,scope=copper-cloves
+          cache-to: type=gha,mode=max,scope=copper-cloves
+
+  deploy:
+    needs: build
+    if: ${{ vars.ENABLE_SSH_DEPLOY == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH -> deploy on the prod box
+        uses: appleboy/ssh-action@v1
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 20m
+          envs: IMAGE_TAG
+          script: |
+            set -euo pipefail
+            REPO="${{ vars.DEPLOY_PATH }}"; REPO="${REPO:-$HOME/Copper-Cloves}"
+            # Only compose files + the Caddyfile come from git; application code
+            # ships inside the image.
+            git -C "$REPO" pull --ff-only
+            cd "$REPO/deployment/prod"
+            docker network inspect edge >/dev/null 2>&1 || docker network create edge
+
+            # deploy.sh regenerates .env.production from SSM, which Caddy also
+            # reads (ACME_EMAIL, APP_DOMAIN) — so it must run before the proxy on
+            # a first deploy. Subsequent runs already have the file.
+            ./deploy.sh
+
+            # Caddy reads its config only at startup, and `up -d` will NOT
+            # recreate the container when only the Caddyfile changed. conf/ is
+            # mounted as a directory (see proxy/docker-compose.yml) so the file
+            # resolves fresh; an explicit reload applies edits with no restart and
+            # no dropped connections. An invalid config fails the deploy here
+            # instead of leaving the old one silently serving.
+            (cd proxy && docker compose pull && docker compose up -d --wait)
+            (cd proxy && docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile)

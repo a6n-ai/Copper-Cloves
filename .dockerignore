@@ -1,0 +1,27 @@
+# Build context = repo root. Keep it small and keep secrets out of the image.
+.git
+node_modules
+.next
+out
+npm-debug.log*
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Local agent/context dirs — never needed to build the app.
+.llm
+.claude
+.agents
+.impeccable
+.remember
+.superpowers
+.planning
+.cursor
+.idea
+graphify-out
+docs
+
+# Local-only infra + uploads
+docker-compose.yml
+public/uploads

@@ -1,0 +1,75 @@
+# Copper & Cloves prod stack. Fronted by the Caddy in ./proxy, which reaches the
+# app as `cc-web:3000` over the external `edge` network. Create it once on the
+# box:  docker network create edge
+#
+# Images come from deployment/Dockerfile (built + pushed by CI):
+#   copper-cloves-web   = runner target (Next standalone)          -> web
+#   copper-cloves-tools = build  target (source + prisma + tsx)    -> migrate
+# Pin with IMAGE_TAG (CI sets the commit SHA); defaults to :latest.
+include:
+  - pgbouncer/docker-compose.yml
+
+x-awslogs: &awslogs
+  driver: awslogs
+  options:
+    awslogs-region: ${AWS_REGION:-ap-south-1}
+    awslogs-group: /copper-cloves/prod
+    awslogs-create-group: "true"
+
+services:
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/a6n-ai/copper-cloves-web}:${IMAGE_TAG:-latest}
+    container_name: cc-web # stable hostname the Caddy in ./proxy targets
+    restart: unless-stopped
+    logging: *awslogs
+    env_file: .env.production
+    expose:
+      - "3000" # internal only; Caddy is the sole public ingress
+    networks:
+      - default # reach pgbouncer in this project
+      - edge # reached by the Caddy in ./proxy
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+
+  # In-box cron. The /api/cron/* endpoints already carry the auth check, the
+  # idempotency guards and the CronRun health logging, so this only has to call
+  # them on a schedule — no duplicate job wiring, and the admin cron-health panel
+  # keeps working exactly as it does today.
+  cron:
+    image: alpine:3.22
+    container_name: cc-cron
+    restart: unless-stopped
+    logging: *awslogs
+    env_file: .env.production # provides CRON_SECRET to the jobs
+    volumes:
+      - ./cron:/cron:ro
+    # busybox crond passes its own environment to each job, so $CRON_SECRET
+    # resolves inside run.sh. -f = foreground, -l 8 = log every run.
+    command: ["crond", "-f", "-l", "8", "-c", "/cron/crontabs"]
+    networks:
+      - default
+    depends_on:
+      - web
+
+  # One-shot schema sync. Reuses the tools image (full node_modules + prisma
+  # CLI). Never starts on `up` (tools profile); deploy.sh invokes it before up.
+  migrate:
+    image: ${TOOLS_IMAGE:-ghcr.io/a6n-ai/copper-cloves-tools}:${IMAGE_TAG:-latest}
+    logging: *awslogs
+    env_file: .env.production
+    environment:
+      # DDL bypasses the pooler. `prisma db push` takes a SESSION-level advisory
+      # lock; through a transaction pooler that lock would be released as soon as
+      # its transaction ended, so two concurrent pushes could interleave DDL.
+      STUDIO_DATABASE_URL: ${DIRECT_DATABASE_URL}
+      DATABASE_URL: ${DIRECT_DATABASE_URL}
+    command: ["node", "scripts/ci-db-push.mjs"]
+    profiles:
+      - tools
+
+# The box's edge network — created once (`docker network create edge`) and
+# joined by ./proxy's Caddy and this web service.
+networks:
+  edge:
+    external: true
