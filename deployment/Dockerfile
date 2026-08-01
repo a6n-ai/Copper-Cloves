@@ -9,6 +9,11 @@
 
 FROM node:22-alpine AS base
 RUN apk add --no-cache libc6-compat
+# node:22-alpine bundles npm 10, which resolves this tree differently from the
+# npm 11 that wrote package-lock.json — `npm ci` then aborts with
+# "lock file's picomatch@2.3.2 does not satisfy picomatch@4.0.5". Pin the major
+# so the lockfile is interpreted by the version that produced it.
+RUN npm install -g npm@11
 WORKDIR /app
 
 # --- build: deps (cached on the lockfile) -> prisma generate -> next build ---
