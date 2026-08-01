@@ -77,3 +77,9 @@ firebase-service-account.json
 /graphify-out
 /docs
 .superpowers/
+
+# local agent/context dirs (not shipped)
+.impeccable/
+.remember/
+.llm/
+docs/
