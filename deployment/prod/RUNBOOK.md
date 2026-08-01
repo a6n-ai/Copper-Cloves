@@ -125,6 +125,14 @@ docker compose exec pgbouncer psql -h 127.0.0.1 -p 6432 -U "$PGBOUNCER_DB_USER" 
 
 ## Gotchas
 
+- **Changing a domain requires `--force-recreate` on the proxy.** Caddy reads
+  `APP_DOMAIN`, `REDIRECT_DOMAIN` and `ACME_EMAIL` from the environment at
+  container startup. `deploy.sh` rewrites `proxy/.env.production` from SSM, but
+  compose does not treat an env_file content change as a reason to recreate the
+  container — so Caddy keeps serving the OLD vhost and HTTPS on the new name
+  fails with a TLS alert rather than any useful error. This caused a ~2 minute
+  outage during the Amplify cutover. The deploy workflow now passes
+  `--force-recreate`; if you run the proxy by hand, do the same.
 - **`docker compose up -d` will not pick up a Caddyfile edit.** Nothing about the
   container changed, so compose leaves it alone. Run
   `docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile`

@@ -133,5 +133,12 @@ jobs:
             # resolves fresh; an explicit reload applies edits with no restart and
             # no dropped connections. An invalid config fails the deploy here
             # instead of leaving the old one silently serving.
-            (cd proxy && docker compose pull && docker compose up -d --wait)
+            # --force-recreate because Caddy reads ACME_EMAIL/APP_DOMAIN/
+            # REDIRECT_DOMAIN from the environment at STARTUP. deploy.sh rewrites
+            # proxy/.env.production from SSM, but compose does not consider an
+            # env_file content change a reason to recreate the container, so a
+            # domain change would silently keep serving the old vhost — HTTPS
+            # fails with a TLS alert for the new name. Caused a ~2 minute outage
+            # during the Amplify cutover.
+            (cd proxy && docker compose pull && docker compose up -d --force-recreate --wait)
             (cd proxy && docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile)
