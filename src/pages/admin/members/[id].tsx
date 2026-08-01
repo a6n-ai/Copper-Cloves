@@ -21,6 +21,7 @@ import {
   Coffee,
   Ticket,
   Sparkles,
+  History,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
@@ -63,6 +64,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ListAvatar } from "@/components/admin/ListAvatar";
+import { ActivityLogList } from "@/components/activity/ActivityLogList";
 import {
   usePassPaymentState,
   PassConfigSection,
@@ -1409,6 +1411,17 @@ function MemberBody({
               )}
             </SectionCard>
           </div>
+
+          {/* Everything that has happened TO this account — refunds, pass changes,
+              payments, logins — from the shared audit log, scoped by target. */}
+          <SectionCard title="Account history" icon={History}>
+            <ActivityLogList
+              endpoint="/api/admin/activity-log"
+              query={`targetProfileId=${member.id}`}
+              emptyLabel="No recorded activity for this account yet."
+              pageSize={10}
+            />
+          </SectionCard>
         </div>
 
         {/* Rail */}
@@ -1824,7 +1837,8 @@ function SectionCard({
 }: {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
-  count: number;
+  /** Omit when the section paginates its own data and has no meaningful local count. */
+  count?: number;
   children: React.ReactNode;
 }) {
   return (
@@ -1833,7 +1847,7 @@ function SectionCard({
         <CardTitle className="font-body font-semibold text-lg text-charcoal flex items-center gap-2">
           <Icon className="h-4 w-4 text-sage" />
           {title}
-          <span className="font-body text-sm text-charcoal/40">({count})</span>
+          {count != null && <span className="font-body text-sm text-charcoal/40">({count})</span>}
         </CardTitle>
       </CardHeader>
       <CardContent>{children}</CardContent>

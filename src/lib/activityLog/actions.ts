@@ -47,6 +47,17 @@ export const ACTIVITY_ACTIONS: Record<string, ActionDef> = {
   "booking.payment_reconciled": { category: "system", buildSummary: (m) => `Payment reconciled for ${str(m.class_name, "a class")}` },
   "booking.healed_from_orphan": { category: "system", buildSummary: (m) => `Healed orphan payment for ${str(m.class_name, "a class")}${changeStr(m)}` },
   "booking.guest_added": { category: "member", buildSummary: (m) => `Guest added to ${str(m.class_name, "a class")}` },
+  "booking.refund_granted": {
+    category: "member",
+    buildSummary: (m) => {
+      const n = Number(m.credits ?? 1);
+      return `Refunded ${n} class credit${n === 1 ? "" : "s"} for ${str(m.class_name, "a cancelled class")}`;
+    },
+  },
+  "payment.refunded": {
+    category: "system",
+    buildSummary: (m) => `Refunded ₹${str(String(m.amount_inr ?? "?"), "?")} to the original payment method`,
+  },
   "package.purchased": { category: "member", buildSummary: (m) => `Purchased ${str(m.package_name, "a package")}` },
   "profile.updated": { category: "member", buildSummary: () => "Updated profile" },
   "ticket.raised": { category: "member", buildSummary: () => "Raised a support request" },
@@ -64,6 +75,18 @@ export const ACTIVITY_ACTIONS: Record<string, ActionDef> = {
   "admin.payment_deleted": { category: "admin", buildSummary: () => `Deleted a manual payment` },
   "admin.orphan_payment_linked": { category: "admin", buildSummary: () => `Linked an orphan payment to a booking` },
   "admin.orphan_payment_marked_refunded": { category: "admin", buildSummary: () => `Marked an orphan payment as refunded` },
+  "admin.reconcile_status_set": {
+    category: "admin",
+    buildSummary: (m) => {
+      const label: Record<string, string> = {
+        done: "settled",
+        in_progress: "refund in progress",
+        dropped: "no refund due",
+        needs_refund: "flagged for refund",
+      };
+      return `Payment marked ${label[String(m.status)] ?? str(m.status, "handled")}`;
+    },
+  },
   "admin.package_assigned": { category: "admin", buildSummary: (m) => `Assigned ${str(m.package_name, "a package")}` },
   "admin.pass_credits_adjusted": { category: "admin", buildSummary: (m) => `Adjusted pass credits ${str(String(m.from ?? "?"), "?")} → ${str(String(m.to ?? "?"), "?")}` },
   "admin.pass_removed": { category: "admin", buildSummary: (m) => `Removed a pass (refund: ${str(m.refund_kind, "none")})` },

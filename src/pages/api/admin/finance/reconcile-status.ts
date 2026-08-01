@@ -49,11 +49,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     resolvedBy: adminId,
   });
 
+  // Target the MEMBER whose money this is, not the admin. logActivity defaults
+  // target_profile_id to the actor, which filed every refund decision under the
+  // admin's own account and left it invisible on the member's history.
+  const payment = await prisma.payment.findFirst({
+    where: { razorpay_payment_id: paymentId },
+    select: {
+      user_id: true,
+      amount_paise: true,
+      booking: { select: { class_name: true, class_schedule: { select: { class_model: { select: { name: true } } } } } },
+    },
+  });
+
   logActivity({
     req,
     action: "admin.reconcile_status_set",
+    targetProfileId: payment?.user_id ?? null,
     entity: { type: "payment", id: paymentId },
-    metadata: { status, note: note ?? undefined },
+    metadata: {
+      status,
+      note: note ?? undefined,
+      class_name: payment?.booking?.class_schedule?.class_model?.name ?? payment?.booking?.class_name ?? undefined,
+      amount_inr:
+        payment?.amount_paise != null ? Math.round(payment.amount_paise / 100) : undefined,
+    },
   });
 
   return res.json({ ok: true, status });
