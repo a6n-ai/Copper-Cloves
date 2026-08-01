@@ -21,7 +21,12 @@ import { requestLogger } from "@/lib/logger";
 import { upsertFriendship } from "@/lib/friendship";
 import { logActivity } from "@/lib/activityLog";
 import { getStudioSettings } from "@/lib/studioSettings";
-import { grantRefundForBookingRow, notifyGroupCancellation } from "@/lib/classCancellation";
+import {
+  grantRefundForBookingRow,
+  logRefundGrants,
+  notifyGroupCancellation,
+  type RefundGrant,
+} from "@/lib/classCancellation";
 import { releaseCouponRedemption } from "@/lib/couponHelpers";
 import { validateCreditsToDeduct } from "@/lib/bookingCredits";
 
@@ -595,14 +600,18 @@ type CancelRefundRow = {
 // (origin=cancellation); anonymous extra guests grant their passes to the booker.
 // `wasActiveSeat` guards against double refund on repeated cancel calls (a
 // cancelled row is no longer an active seat). Replaces the old credit increment.
+/** Returns what each member got back, so the caller can audit it AFTER the tx
+ *  commits (logActivity must never run inside an open transaction). */
 async function refundCancelledSeatsAsPass(
   tx: TxClient,
   rows: CancelRefundRow[],
   wasActiveSeat: boolean,
-) {
-  if (!wasActiveSeat) return;
+  className: string | null,
+): Promise<RefundGrant[]> {
+  if (!wasActiveSeat) return [];
+  const grants: RefundGrant[] = [];
   for (const row of rows) {
-    await grantRefundForBookingRow(tx, {
+    const passIds = await grantRefundForBookingRow(tx, {
       id: row.id,
       user_id: row.user_id,
       user_package_id: row.user_package_id,
@@ -610,7 +619,11 @@ async function refundCancelledSeatsAsPass(
       extra_guest_count: row.extra_guest_count,
       is_unlimited: row.user_package?.package_type?.is_unlimited ?? false,
     });
+    if (passIds.length > 0 && row.user_id) {
+      grants.push({ userId: row.user_id, bookingId: row.id, credits: passIds.length, className });
+    }
   }
+  return grants;
 }
 
 async function awardPtmBadges(userId: string, log: BookingsLog) {
@@ -744,6 +757,8 @@ async function handlePatch(
   // Lifted out of the tx so the post-commit cancellation email can address each
   // cascaded group member.
   let groupMemberUserIds: string[] = [];
+  // Same reason: the refund audit runs after commit, never inside the tx.
+  let refundGrants: RefundGrant[] = [];
 
   const booking = await prisma.$transaction(async (tx) => {
     const updated = await tx.booking.update({ where: { id }, data });
@@ -806,7 +821,12 @@ async function handlePatch(
     }
 
     if (status === STATUS_CANCELLED) {
-      await refundCancelledSeatsAsPass(tx, refundRows, wasActiveSeat);
+      refundGrants = await refundCancelledSeatsAsPass(
+        tx,
+        refundRows,
+        wasActiveSeat,
+        existing.class_name ?? null,
+      );
       // Reverse any coupon used on this booking so its redemption count + per-user
       // limit free up. Only the booker's row carries the coupon; group rows have none.
       await releaseCouponRedemption(tx, { bookingId: id });
@@ -826,10 +846,12 @@ async function handlePatch(
       groupMemberIds: groupMemberUserIds,
     }).catch((e) => log.error({ err: e }, "CRM class_booking_cancelled failed"));
     await logActivity({ req, action: "booking.cancelled", entity: { type: "booking", id: booking.id }, metadata: { class_name: booking.class_name ?? undefined } });
-    // Reconcile-on-cancel: if this booking was paid online (captured/authorized) the cancel
-    // releases the seat but the refund-as-pass path does NOT apply (online seats carry no
-    // user_package_id). Surface the order as a refund/void candidate so an admin handles the
-    // money. Never auto-refunds/captures. Best-effort — must not fail the cancel.
+    // Audit each member's credit refund on their own timeline (post-commit).
+    await logRefundGrants(refundGrants);
+    // Reconcile-on-cancel: a paid-online seat with no pass behind it (legacy rows —
+    // new drop-ins provision one) has no credit to return, so surface the order as a
+    // refund/void candidate for an admin. Seats already refunded as credit are skipped
+    // inside the helper. Never auto-refunds/captures. Best-effort.
     await flagPaidCancelledOrphans({ bookingId: booking.id }).catch((e) =>
       log.error({ err: e, bookingId: booking.id }, "cancel-time orphan flag failed"),
     );

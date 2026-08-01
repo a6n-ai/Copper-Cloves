@@ -743,6 +743,17 @@ export async function flagPaidCancelledOrphans(opts?: {
       pays.find((p) => p.status === "captured") ?? pays.find((p) => p.status === "authorized");
     if (!pay) continue; // no money on the gateway → genuine abandonment, nothing to refund
 
+    // Money already returned → nothing owed. `RazorpayPayment.status` stays
+    // `captured` after a refund (the capture did happen); the refund lands on the
+    // internal Payment row via syncRefundForRazorpayPayment. Without this check a
+    // refunded-in-cash booking sits in the queue forever looking unpaid-back, and
+    // anyone working that queue can refund it a second time.
+    const internal = await prisma.payment.findFirst({
+      where: { razorpay_payment_id: pay.razorpay_payment_id },
+      select: { status: true },
+    });
+    if (internal?.status === "refunded") continue;
+
     const existing = await prisma.paymentReconcile.findUnique({
       where: { razorpay_payment_id: pay.razorpay_payment_id },
       select: { id: true },

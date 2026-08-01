@@ -213,6 +213,36 @@ export async function grantRefundForBookingRow(
   return granted;
 }
 
+/** One member's credit refund for one cancelled seat — carried out of the cancel
+ *  transaction so it can be logged AFTER the commit. */
+export type RefundGrant = {
+  userId: string;
+  bookingId: string;
+  credits: number;
+  className: string | null;
+};
+
+/**
+ * Audit the credit refunds a cancellation produced, on the MEMBER's timeline.
+ *
+ * Call AFTER the cancel transaction commits — logActivity writes its own row, and
+ * writing off-tx while a transaction is still open is the pattern this codebase
+ * explicitly avoids. Best-effort: an audit failure must never affect the refund.
+ */
+export async function logRefundGrants(grants: RefundGrant[]): Promise<void> {
+  const { logActivity } = await import("@/lib/activityLog");
+  for (const g of grants) {
+    if (!g.userId || g.credits < 1) continue;
+    await logActivity({
+      actor: { role: "system", name: "System" },
+      action: "booking.refund_granted",
+      targetProfileId: g.userId,
+      entity: { type: "booking", id: g.bookingId },
+      metadata: { credits: g.credits, class_name: g.className ?? undefined },
+    }).catch(() => {});
+  }
+}
+
 /**
  * Distinct user_ids that should receive the cancellation/refund email for a
  * group booking, deduped:
@@ -436,9 +466,11 @@ export async function cancelBookingWithRefund(
   // Lifted out of the tx so the post-commit email fan-out can address each
   // cascaded group member (the booker drags their whole group along).
   let groupMemberUserIds: string[] = [];
+  const refundGrants: RefundGrant[] = [];
 
   const grantedUserPackageIds = await prisma.$transaction(async (tx) => {
     const granted: string[] = [];
+    refundGrants.length = 0; // tx may retry — never double-count grants
     const cancelledAt = new Date();
 
     // The booker (invited_by_user_id === null) drags their whole group along; an
@@ -495,33 +527,50 @@ export async function cancelBookingWithRefund(
     }
 
     // Refund the booker's own row.
-    granted.push(
-      ...(await grantRefundForBookingRow(tx, {
-        id: existing.id,
-        user_id: existing.user_id,
-        user_package_id: existing.user_package_id,
-        checked_in: existing.checked_in,
-        extra_guest_count: existing.extra_guest_count,
-        is_unlimited: existing.user_package?.package_type?.is_unlimited ?? false,
-      })),
-    );
+    const ownGrants = await grantRefundForBookingRow(tx, {
+      id: existing.id,
+      user_id: existing.user_id,
+      user_package_id: existing.user_package_id,
+      checked_in: existing.checked_in,
+      extra_guest_count: existing.extra_guest_count,
+      is_unlimited: existing.user_package?.package_type?.is_unlimited ?? false,
+    });
+    granted.push(...ownGrants);
+    if (ownGrants.length > 0) {
+      refundGrants.push({
+        userId: existing.user_id,
+        bookingId: existing.id,
+        credits: ownGrants.length,
+        className: existing.class_name ?? null,
+      });
+    }
 
     // Refund each cascaded group member.
     for (const row of groupRows) {
-      granted.push(
-        ...(await grantRefundForBookingRow(tx, {
-          id: row.id,
-          user_id: row.user_id,
-          user_package_id: row.user_package_id,
-          checked_in: row.checked_in,
-          extra_guest_count: row.extra_guest_count,
-          is_unlimited: row.user_package?.package_type?.is_unlimited ?? false,
-        })),
-      );
+      const rowGrants = await grantRefundForBookingRow(tx, {
+        id: row.id,
+        user_id: row.user_id,
+        user_package_id: row.user_package_id,
+        checked_in: row.checked_in,
+        extra_guest_count: row.extra_guest_count,
+        is_unlimited: row.user_package?.package_type?.is_unlimited ?? false,
+      });
+      granted.push(...rowGrants);
+      if (rowGrants.length > 0) {
+        refundGrants.push({
+          userId: row.user_id,
+          bookingId: row.id,
+          credits: rowGrants.length,
+          className: existing.class_name ?? null,
+        });
+      }
     }
 
     return granted;
   });
+
+  // Member-timeline audit of what each person got back (post-commit, see helper).
+  await logRefundGrants(refundGrants);
 
   // Best-effort cancellation email (outside the tx so a CRM failure can't roll
   // back). Group-aware: booker cancel notifies the whole group; an invited

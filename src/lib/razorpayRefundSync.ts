@@ -69,6 +69,30 @@ export async function syncRefundForRazorpayPayment(
 
   if (updated.count > 0) {
     log.info({ razorpayPaymentId, amountPaise, amountRefundedPaise }, "refund sync: flipped Payment to refunded");
+    // Audit on the MEMBER's timeline — a completed money refund is the single most
+    // useful line in their account history, and only Razorpay knows when it lands.
+    // Best-effort: never let an audit failure undo a confirmed refund.
+    try {
+      const { logActivity } = await import("@/lib/activityLog");
+      const pay = await prisma.payment.findFirst({
+        where: { razorpay_payment_id: razorpayPaymentId },
+        select: { user_id: true, booking_id: true, booking: { select: { class_name: true } } },
+      });
+      if (pay?.user_id) {
+        await logActivity({
+          actor: { role: "system", name: "System" },
+          action: "payment.refunded",
+          targetProfileId: pay.user_id,
+          entity: { type: "payment", id: razorpayPaymentId },
+          metadata: {
+            amount_inr: Math.round((amountRefundedPaise ?? amountPaise) / 100),
+            class_name: pay.booking?.class_name ?? undefined,
+          },
+        });
+      }
+    } catch {
+      /* audit only */
+    }
     return { changed: true };
   }
   return { changed: false, reason: "not_fully_refunded" };

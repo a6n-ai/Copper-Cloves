@@ -26,7 +26,7 @@ export async function moneyRefundStatusByBooking(
 
   const payments = await prisma.payment.findMany({
     where: { booking_id: { in: bookingIds }, razorpay_payment_id: { not: null } },
-    select: { booking_id: true, razorpay_payment_id: true },
+    select: { booking_id: true, razorpay_payment_id: true, status: true },
   });
   if (payments.length === 0) return out;
 
@@ -37,8 +37,17 @@ export async function moneyRefundStatusByBooking(
   const statusByRzpId = new Map(records.map((r) => [r.razorpay_payment_id, r.status]));
 
   for (const p of payments) {
+    if (!p.booking_id) continue;
+    // The gateway is authoritative: once `sweepRefundStatus`/the refund webhook has
+    // flipped the Payment to `refunded`, the money is actually back with the member.
+    // That outranks whatever the admin's reconcile row still says (it may sit at
+    // `needs_refund` until someone ticks it off).
+    if (p.status === "refunded") {
+      out.set(p.booking_id, "done");
+      continue;
+    }
     const status = statusByRzpId.get(p.razorpay_payment_id as string);
-    if (status && p.booking_id && isReconcileStatus(status)) out.set(p.booking_id, status);
+    if (status && isReconcileStatus(status)) out.set(p.booking_id, status);
   }
   return out;
 }
