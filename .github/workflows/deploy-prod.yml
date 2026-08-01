@@ -54,6 +54,8 @@ jobs:
           platforms: linux/arm64
           build-args: |
             BUILD_ID=${{ github.sha }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+            NEXT_PUBLIC_CDN_URL=${{ vars.NEXT_PUBLIC_CDN_URL }}
           push: true
           tags: |
             ghcr.io/a6n-ai/copper-cloves-web:${{ github.sha }}
@@ -70,6 +72,8 @@ jobs:
           platforms: linux/arm64
           build-args: |
             BUILD_ID=${{ github.sha }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+            NEXT_PUBLIC_CDN_URL=${{ vars.NEXT_PUBLIC_CDN_URL }}
           push: true
           tags: |
             ghcr.io/a6n-ai/copper-cloves-tools:${{ github.sha }}

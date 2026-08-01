@@ -28,6 +28,16 @@ COPY . .
 # CI passes the commit SHA.
 ARG BUILD_ID=dev
 ENV NEXT_PUBLIC_BUILD_ID=${BUILD_ID}
+# NEXT_PUBLIC_* referenced from CLIENT code is inlined into the browser bundle at
+# BUILD time — setting it in .env.production at runtime does nothing. These two
+# are the only such vars (GA in _app.tsx, CDN in cdnUrl.ts/_document.tsx); the
+# other NEXT_PUBLIC_ vars are read only in API routes, where runtime env works.
+# Both are unset in production today, so the default empty value matches current
+# behaviour: no analytics tag, assets served from the app's own origin.
+ARG NEXT_PUBLIC_GA_MEASUREMENT_ID=""
+ARG NEXT_PUBLIC_CDN_URL=""
+ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID}
+ENV NEXT_PUBLIC_CDN_URL=${NEXT_PUBLIC_CDN_URL}
 # Build-only placeholders, inlined on the command so they never persist as image
 # ENV. `next build` imports route modules whose top-level code reads these; every
 # client connects lazily, so no real service is touched. Real values come from

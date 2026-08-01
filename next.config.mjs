@@ -1,59 +1,9 @@
 /** @type {import('next').NextConfig} */
-// Amplify Hosting (Compute) does NOT inject Console environment variables into
-// the SSR Lambda runtime — they are only available at build time. To make
-// server-side code (Prisma, NextAuth, Razorpay, etc.) see them at runtime we
-// inline build-time values into the bundle via `env`.
-// Ref: https://github.com/prisma/prisma/discussions/20116
-const inlineEnv = {
-  STUDIO_DATABASE_URL: process.env.STUDIO_DATABASE_URL ?? "",
-  DATABASE_URL: process.env.DATABASE_URL ?? "",
-  NEXTAUTH_URL: process.env.NEXTAUTH_URL ?? "",
-  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ?? "",
-  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? "",
-  RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID ?? "",
-  RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET ?? "",
-  RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET ?? "",
-  EMAIL_USER: process.env.EMAIL_USER ?? "",
-  EMAIL_PASS: process.env.EMAIL_PASS ?? "",
-  EMAIL_FROM: process.env.EMAIL_FROM ?? "",
-  RESEND_API_KEY: process.env.RESEND_API_KEY ?? "",
-  WHATSAPP_ACCESS_TOKEN: process.env.WHATSAPP_ACCESS_TOKEN ?? "",
-  WHATSAPP_PHONE_NUMBER_ID: process.env.WHATSAPP_PHONE_NUMBER_ID ?? "",
-  WHATSAPP_PACKAGE_TEMPLATE_NAME: process.env.WHATSAPP_PACKAGE_TEMPLATE_NAME ?? "",
-  WHATSAPP_TEMPLATE_LANGUAGE: process.env.WHATSAPP_TEMPLATE_LANGUAGE ?? "",
-  WHATSAPP_API_VERSION: process.env.WHATSAPP_API_VERSION ?? "",
-  S3_BUCKET: process.env.S3_BUCKET ?? "",
-  S3_REGION: process.env.S3_REGION ?? "",
-  S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID ?? "",
-  S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY ?? "",
-  S3_PUBLIC_URL: process.env.S3_PUBLIC_URL ?? "",
-  CRON_SECRET: process.env.CRON_SECRET ?? "",
-  ADMIN_SETUP_SECRET: process.env.ADMIN_SETUP_SECRET ?? "",
-  ADMIN_EMAIL: process.env.ADMIN_EMAIL ?? "",
-  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD ?? "",
-  ENV_CHECK_KEY: process.env.ENV_CHECK_KEY ?? "",
-  // Build identifier exposed to the client. The BuildVersionWatcher component
-  // polls /api/version against this value; mismatch triggers a soft reload so
-  // long-idle prod tabs always pick up the latest bundle (and a fresh session
-  // signed by the current NEXTAUTH_SECRET) instead of 401-looping.
-  NEXT_PUBLIC_BUILD_ID:
-    process.env.NEXT_PUBLIC_BUILD_ID ??
-    process.env.VERCEL_GIT_COMMIT_SHA ??
-    process.env.AWS_COMMIT_ID ??
-    String(Date.now()),
-};
-
-// Only inline secrets on Amplify — Amplify SSR Lambdas don't get Console env
-// vars injected at runtime, so we bake them in at build time. On Vercel and
-// local dev, runtime env works correctly; inlining is a security liability.
-const IS_AMPLIFY = Boolean(process.env.AWS_APP_ID || process.env.AWS_BRANCH);
-
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   // Emit a self-contained server bundle (server.js + only the traced
-  // node_modules) so the Docker runner stage needs no `npm install`. Harmless on
-  // Amplify/Vercel, which ignore `.next/standalone`.
+  // node_modules) so the Docker runner stage needs no `npm install`.
   output: "standalone",
   // Without this, Next INFERS the trace root by walking up for a lockfile — and
   // a stray package-lock.json anywhere above the repo (a home directory, say)
@@ -63,7 +13,6 @@ const nextConfig = {
   // crash loop. Pin it to this file's directory and the layout is identical
   // everywhere.
   outputFileTracingRoot: import.meta.dirname,
-  env: IS_AMPLIFY ? inlineEnv : {},
   // Transform barrel imports (`import { X } from "lucide-react"`) into direct
   // per-module imports so only the icons/charts actually used land in the
   // bundle. Without listing them here Next does NOT auto-optimize these — the
@@ -87,11 +36,11 @@ const nextConfig = {
   },
   // Stable build id per deploy → matches NEXT_PUBLIC_BUILD_ID above so client
   // and server agree on which bundle is current.
-  generateBuildId: async () =>
-    process.env.NEXT_PUBLIC_BUILD_ID ??
-    process.env.VERCEL_GIT_COMMIT_SHA ??
-    process.env.AWS_COMMIT_ID ??
-    String(Date.now()),
+  // CI passes the commit SHA as the BUILD_ID build-arg (see deployment/Dockerfile),
+  // which becomes NEXT_PUBLIC_BUILD_ID. BuildVersionWatcher polls /api/version
+  // against it so long-idle prod tabs soft-reload onto the current bundle instead
+  // of 401-looping against a session signed by a rotated NEXTAUTH_SECRET.
+  generateBuildId: async () => process.env.NEXT_PUBLIC_BUILD_ID ?? String(Date.now()),
   // Guards re-enabled: the codebase is lint-clean (0 warnings) and tsc-clean,
   // so let builds fail on regressions instead of silently shipping them.
   eslint: {
