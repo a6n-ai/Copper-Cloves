@@ -26,7 +26,24 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Next 16 removed `next lint` AND stopped running ESLint during `next build`,
+  # so the lint guard that used to live in the build has to be its own job.
+  lint:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx prisma generate
+      # --max-warnings is deliberately unset: eslint-config-next 16 surfaces 189
+      # pre-existing warnings (see eslint.config.mjs). This gates on errors only.
+      - run: npm run lint
+
   build:
+    needs: lint
     # Native arm64 runner (free on public repos) matching the t4g.small box.
     # Building arm64 on an x86 runner would go through QEMU emulation and take
     # roughly 5-10x longer for a Next.js build.
