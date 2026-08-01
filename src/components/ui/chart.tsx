@@ -100,10 +100,24 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+/**
+ * Recharts 3 split the props a custom `content=` component receives away from
+ * the props you pass to <Tooltip>/<Legend>: 3.0 removed the internal state that
+ * 2.x passed through cloned props while exporting it as if it were public.
+ * `TooltipContentProps` and `LegendPayload` are the supported replacements, so
+ * the content components below use those rather than the container prop types.
+ */
+type ChartTooltipContentProps = RechartsPrimitive.TooltipContentProps<
+  RechartsPrimitive.TooltipValueType,
+  string | number
+>
+
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
-    React.ComponentProps<"div"> & {
+  // Partial because recharts injects active/payload/coordinate/activeIndex at
+  // runtime — call sites only ever pass the presentational props below.
+  Partial<Omit<ChartTooltipContentProps, "ref">> &
+    Omit<React.ComponentProps<"div">, keyof ChartTooltipContentProps | "ref"> & {
       hideLabel?: boolean
       hideIndicator?: boolean
       indicator?: "line" | "dot" | "dashed"
@@ -192,7 +206,9 @@ const ChartTooltipContent = React.forwardRef<
 
               return (
                 <div
-                  key={item.dataKey}
+                  // recharts 3 types dataKey as string | number | accessor fn,
+                  // and a function is not a valid React key.
+                  key={typeof item.dataKey === "function" ? index : (item.dataKey ?? index)}
                   className={cn(
                     "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                     indicator === "dot" && "items-center"
@@ -260,11 +276,13 @@ const ChartLegend = RechartsPrimitive.Legend
 
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div"> &
-    Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
-      hideIcon?: boolean
-      nameKey?: string
-    }
+  React.ComponentProps<"div"> & {
+    // Injected by recharts at runtime; see the note on ChartTooltipContentProps.
+    payload?: ReadonlyArray<RechartsPrimitive.LegendPayload>
+    verticalAlign?: "top" | "middle" | "bottom"
+    hideIcon?: boolean
+    nameKey?: string
+  }
 >(
   (
     { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },

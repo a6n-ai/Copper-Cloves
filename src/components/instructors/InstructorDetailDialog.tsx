@@ -1,5 +1,8 @@
 import { useEffect, useRef } from "react";
-import { Award, Heart, Sparkles, Facebook, Twitter, Linkedin, MessageCircle } from "lucide-react";
+import { Award, Heart, Sparkles, MessageCircle } from "lucide-react";
+// lucide v1 removed every brand icon for trademark reasons; SocialIcons holds
+// the simple-icons (CC0) replacements with the same `size`/className API.
+import { FacebookIcon, TwitterIcon, LinkedinIcon } from "@/components/icons/SocialIcons";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { CloseButton } from "@/components/ui/quick-actions";
@@ -91,17 +94,17 @@ export function InstructorDetailDialog({
               <span className="mr-1 font-body text-xs text-charcoal/60">Connect:</span>
               {instructor.social_facebook && (
                 <SocialLink href={instructor.social_facebook} label="Facebook profile">
-                  <Facebook className="text-charcoal/70" size={16} />
+                  <FacebookIcon className="text-charcoal/70" size={16} />
                 </SocialLink>
               )}
               {instructor.social_twitter && (
                 <SocialLink href={instructor.social_twitter} label="Twitter profile">
-                  <Twitter className="text-charcoal/70" size={16} />
+                  <TwitterIcon className="text-charcoal/70" size={16} />
                 </SocialLink>
               )}
               {instructor.social_linkedin && (
                 <SocialLink href={instructor.social_linkedin} label="LinkedIn profile">
-                  <Linkedin className="text-charcoal/70" size={16} />
+                  <LinkedinIcon className="text-charcoal/70" size={16} />
                 </SocialLink>
               )}
               {instructor.social_whatsapp && (

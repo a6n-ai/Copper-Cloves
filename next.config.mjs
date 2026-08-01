@@ -41,11 +41,9 @@ const nextConfig = {
   // against it so long-idle prod tabs soft-reload onto the current bundle instead
   // of 401-looping against a session signed by a rotated NEXTAUTH_SECRET.
   generateBuildId: async () => process.env.NEXT_PUBLIC_BUILD_ID ?? String(Date.now()),
-  // Guards re-enabled: the codebase is lint-clean (0 warnings) and tsc-clean,
-  // so let builds fail on regressions instead of silently shipping them.
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
+  // Next 16 removed the `eslint` config option AND stopped running ESLint during
+  // `next build`, so lint is now a separate CI step (see deploy-prod.yml) rather
+  // than a build guard. Type checking still fails the build.
   typescript: {
     ignoreBuildErrors: false,
   },
