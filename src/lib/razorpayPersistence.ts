@@ -705,7 +705,22 @@ export async function flagPaidCancelledOrphans(opts?: {
     where: {
       status: "paid",
       user_package_id: null,
-      booking: { is: { status: "cancelled" } },
+      booking: {
+        is: {
+          status: "cancelled",
+          // A seat already refunded as studio credit is settled — the member got a
+          // class back, so there is no money decision left for an admin. Drop-in
+          // checkouts now provision a pass (provisionDropInPass), so without this
+          // guard every credit-refunded cancel would land here as a false positive.
+          //
+          // Explicit OR, not `notIn`: SQL NOT IN against a NULL column yields
+          // UNKNOWN, which would silently drop legacy rows with a null refund_status.
+          OR: [
+            { refund_status: null },
+            { refund_status: { notIn: ["auto_pass", "approved_pass"] } },
+          ],
+        },
+      },
       ...(opts?.orderId ? { razorpay_order_id: opts.orderId } : {}),
       ...(opts?.bookingId ? { booking_id: opts.bookingId } : {}),
     },

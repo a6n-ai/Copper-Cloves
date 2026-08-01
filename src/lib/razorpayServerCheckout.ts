@@ -24,6 +24,7 @@ import {
   type CouponContext,
 } from "@/lib/couponHelpers";
 import { notifyPackagePurchase } from "@/lib/notifications/notifyPackagePurchase";
+import { dropInPassCredits, provisionDropInPass } from "@/lib/provisionDropInPass";
 import { upsertFriendship } from "@/lib/friendship";
 import type { Coupon } from "@/generated/prisma/client";
 import type { PendingBookingCheckout, PendingPackageCheckout } from "@/lib/pendingRazorpayCheckout";
@@ -329,12 +330,24 @@ async function confirmPreCreatedBookingFlow(args: {
           razorpayOrderId: pending.razorpayOrderId,
           bookingId: result.bookingId,
         });
+        // A checkout with no pass behind it is a drop-in: provision the `1 Day Class
+        // Pass` it effectively bought, so the seat is pass-funded like any other.
+        // Without this the booking carries no user_package_id and a before-cutoff
+        // cancel refunds nothing (every refund rule keys on that column) — the money
+        // then needs a manual gateway refund. Studio policy is credit, not cash.
+        const passId =
+          pending.user_package_id ??
+          (await provisionDropInPass(
+            tx,
+            userId,
+            dropInPassCredits(financeSnap ?? pending.finance_snapshot, pending.credits_to_deduct),
+          ));
         await tx.booking.update({
           where: { id: result.bookingId },
           data: {
             extra_guest_count: 0,
             // Link the booking to the pass so it reads as a pass booking in history/finance.
-            ...(pending.user_package_id ? { user_package_id: pending.user_package_id } : {}),
+            ...(passId ? { user_package_id: passId } : {}),
           },
         });
         // Deduct the booker's pass credit for their own seat. Runs only inside the
@@ -345,7 +358,7 @@ async function confirmPreCreatedBookingFlow(args: {
         // the class-pass member who paid for a guest/add-on and kept their credit for free.
         // Log-not-throw: the payment is already captured, so a missing credit (out of
         // credits / pkg gone) must not roll the confirmed booking back to payment_pending.
-        if (pending.user_package_id) {
+        if (passId) {
           const requestedCredits = pending.credits_to_deduct ?? 1;
           // Credits follow seats actually (about to be) created: a member who
           // already holds a confirmed seat for this schedule is skipped by
@@ -364,7 +377,7 @@ async function confirmPreCreatedBookingFlow(args: {
           const creditsToDeduct = requestedCredits > 1 ? 1 + membersInserted : requestedCredits;
           const upd = await tx.userPackage.updateMany({
             where: {
-              id: pending.user_package_id,
+              id: passId,
               user_id: userId,
               credits_remaining: { gte: creditsToDeduct },
             },
@@ -374,7 +387,7 @@ async function confirmPreCreatedBookingFlow(args: {
             logger.error(
               {
                 bookingId: result.bookingId,
-                userPackageId: pending.user_package_id,
+                userPackageId: passId,
                 userId,
                 requestedCredits,
                 creditsToDeduct,
@@ -389,7 +402,7 @@ async function confirmPreCreatedBookingFlow(args: {
             // captured, so we must not roll the confirmed booking back). logActivity
             // itself fires after the transaction settles (see below).
             creditShortfall = {
-              userPackageId: pending.user_package_id,
+              userPackageId: passId,
               requestedCredits,
               creditsToDeduct,
             };

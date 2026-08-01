@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { OCCUPYING_STATUSES, ROSTER_STATUSES, HISTORY_STATUSES, occupiesSeat } from "@/lib/bookingStatus";
 import { isInvoiceable } from "@/lib/invoice/isInvoiceable";
 import { moneyRefundStatusByBooking } from "@/lib/reconcileStatus";
+import { dropInPassCredits, provisionDropInPass } from "@/lib/provisionDropInPass";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import {
@@ -127,8 +128,9 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: stri
   // for every row — both the bookings page and the dashboard consume it.
   const { cancellation_cutoff_hours } = await getStudioSettings();
 
-  // Money-refund state for cancelled seats that were paid at the gateway (drop-ins
-  // hold no pass, so they're owed cash, not a credit — see reconcileStatus.ts).
+  // Money-refund state for cancelled seats paid at the gateway. Drop-ins now
+  // provision a pass and refund as credit, so this covers legacy pass-less rows
+  // and admin-flagged cases only (see reconcileStatus.ts).
   const moneyRefundByBooking = await moneyRefundStatusByBooking(
     bookings.filter((b) => b.status === STATUS_CANCELLED).map((b) => b.id),
   );
@@ -246,11 +248,26 @@ function createBookingTx(args: CreateBookingArgs) {
       await assertPackageBookable(tx, args.packageId, args.userId);
     }
 
+    // Gateway-paid seat with no pass behind it is a drop-in: provision the
+    // `1 Day Class Pass` it bought so the booking is pass-funded like any other and
+    // a before-cutoff cancel returns credit instead of needing a cash refund.
+    // Mirrors confirmPreCreatedBookingFlow. Guarded on rpOrderId so genuinely free
+    // seats (shared credits, comps, invited rows) never mint a pass.
+    const passId =
+      args.packageId ??
+      (args.rpOrderId
+        ? await provisionDropInPass(
+            tx,
+            args.userId,
+            dropInPassCredits(args.financeSnap, args.creditsToDeduct),
+          )
+        : null);
+
     const created = await tx.booking.create({
       data: {
         user_id: args.userId,
         class_schedule_id: args.scheduleId,
-        user_package_id: args.packageId,
+        user_package_id: passId,
         class_name: resolvedClassName,
         class_time: resolvedClassTime,
         email: args.userEmail,
@@ -300,7 +317,7 @@ function createBookingTx(args: CreateBookingArgs) {
       });
     }
 
-    if (args.packageId) {
+    if (passId) {
       // Credits follow the seats actually created: a member who was already
       // booked is skipped above, so covering the "whole group" must not charge
       // for their absent row.
@@ -308,7 +325,7 @@ function createBookingTx(args: CreateBookingArgs) {
         args.creditsToDeduct > 1 ? 1 + membersInserted : args.creditsToDeduct;
       const upd = await tx.userPackage.updateMany({
         where: {
-          id: args.packageId,
+          id: passId,
           user_id: args.userId,
           credits_remaining: { gte: effectiveCredits },
         },
