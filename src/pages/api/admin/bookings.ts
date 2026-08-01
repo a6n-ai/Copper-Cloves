@@ -8,6 +8,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { ensureAdmin } from "@/lib/requireAdmin";
 import { HISTORY_STATUSES, BOOKING_STATUS, type BookingStatus } from "@/lib/bookingStatus";
+import { moneyRefundStatusByBooking } from "@/lib/reconcileStatus";
 import type { Prisma } from "@/generated/prisma/client";
 
 export type AdminBookingPaymentStatus = "paid" | "pending" | "refunded" | "none";
@@ -27,6 +28,8 @@ export type AdminBookingRow = {
   invoiceNumber: string | null;
   refundStatus: string | null;
   refundAmountPaise: number | null;
+  /** PaymentReconcile.status for this booking's gateway payment — display only. */
+  moneyRefundStatus: string | null;
 };
 
 export type AdminBookingsResponse = {
@@ -53,13 +56,16 @@ function deriveRow(
       };
     };
   }>,
-): AdminBookingRow {
+): Omit<AdminBookingRow, "moneyRefundStatus"> {
   const succeededCredit = b.payments.find((p) => p.status === "succeeded" && p.direction === "credit");
   const anyRefunded = b.payments.some((p) => p.status === "refunded");
-  const refundStatusActive = !!b.refund_status && b.refund_status !== "none";
 
+  // Money axis only. `refund_status` describes a CLASS-CREDIT refund (no money
+  // moved), so it now drives the separate refund pill instead of overwriting the
+  // payment state — a pass-refunded booking was reading "Refunded" while its
+  // ₹ was never returned.
   let paymentStatus: AdminBookingPaymentStatus;
-  if (anyRefunded || refundStatusActive) {
+  if (anyRefunded) {
     paymentStatus = "refunded";
   } else if (succeededCredit) {
     paymentStatus = "paid";
@@ -152,7 +158,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }),
   ]);
 
-  const rows: AdminBookingRow[] = bookings.map(deriveRow);
+  // Money-refund state for gateway-paid seats (a cancelled drop-in is owed cash,
+  // not a class credit — that decision lives on the PaymentReconcile row).
+  const moneyRefundByBooking = await moneyRefundStatusByBooking(bookings.map((b) => b.id));
+  const rows: AdminBookingRow[] = bookings.map((b) => ({
+    ...deriveRow(b),
+    moneyRefundStatus: moneyRefundByBooking.get(b.id) ?? null,
+  }));
 
   const response: AdminBookingsResponse = { rows, total, page, pageSize };
   return res.json(response);

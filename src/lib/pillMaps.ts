@@ -78,12 +78,21 @@ export function bookingStatusPill(status: string): PillSpecLabel {
 // class-history / roster row needs to show whether money landed.
 // confirmed => covered (paid or via pass); payment_pending => capture pending;
 // expired => hold lapsed unpaid; cancelled => not applicable.
-export function bookingPaymentPill(status: string): PillSpecLabel {
+// `opts` refines the confirmed case, which otherwise reads "Paid" for every
+// covered seat: a pass-funded booking says so, and an admin-added/comped seat
+// with neither payment nor pass says that instead of implying money changed hands.
+export function bookingPaymentPill(
+  status: string,
+  opts?: { paid?: boolean; viaPass?: boolean },
+): PillSpecLabel {
   switch (status) {
     case "confirmed":
     case "checked_in":
     case "checked-in":
     case "completed":
+      if (opts?.paid) return { tone: "success", label: "Paid" }
+      if (opts?.viaPass) return { tone: "success", label: "Paid by pass" }
+      if (opts && !opts.paid && !opts.viaPass) return { tone: "neutral", label: "No payment on record" }
       return { tone: "success", label: "Paid" }
     case "payment_pending":
     case "pending":
@@ -92,6 +101,47 @@ export function bookingPaymentPill(status: string): PillSpecLabel {
       return { tone: "danger", label: "Unpaid" }
     default:
       return { tone: "neutral", label: "—" }
+  }
+}
+
+// Booking refund axis: what the CANCELLED seat got back as studio credit.
+// Mirrors `refundLabel` in classCancellation.ts (server-side, prisma-bound — not
+// importable from client bundles). Returns null when nothing was credited, so the
+// caller can fall back to the money-refund axis below.
+export function bookingRefundPill(
+  refundStatus: string | null | undefined,
+  amountPaise?: number | null,
+): PillSpecLabel | null {
+  switch (refundStatus) {
+    case "auto_pass":
+    case "approved_pass":
+      return { tone: "success", label: "Refunded · 1 Class Pass" }
+    case "approved_amount":
+      return { tone: "success", label: `Refunded ₹${Math.round((amountPaise ?? 0) / 100).toLocaleString("en-IN")}` }
+    case "requested":
+      return { tone: "warning", label: "Refund requested" }
+    case "denied":
+      return { tone: "danger", label: "Refund denied" }
+    default:
+      return null
+  }
+}
+
+// Money-refund axis: PaymentReconcile status for a gateway payment sitting on a
+// cancelled booking (drop-in payers hold no pass, so they get money back, not a
+// credit). Values match ReconcileStatusValue in reconcileStatus.ts.
+export function moneyRefundPill(reconcileStatus: string | null | undefined): PillSpecLabel | null {
+  switch (reconcileStatus) {
+    case "needs_refund":
+      return { tone: "warning", label: "Refund pending" }
+    case "in_progress":
+      return { tone: "info", label: "Refund in progress" }
+    case "done":
+      return { tone: "success", label: "Refunded" }
+    case "dropped":
+      return { tone: "neutral", label: "No refund due" }
+    default:
+      return null
   }
 }
 

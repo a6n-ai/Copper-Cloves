@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Pill } from "@/components/ui/pill";
 import { FilterBar, FilterSearch, FilterSelect, FilterDateRange } from "@/components/filters";
 import { Pagination } from "@/components/Pagination";
-import { bookingStatusPill } from "@/lib/pillMaps";
+import { bookingStatusPill, bookingRefundPill, moneyRefundPill } from "@/lib/pillMaps";
 import type { AdminBookingRow, AdminBookingsResponse, AdminBookingPaymentStatus } from "@/pages/api/admin/bookings";
 import type { RazorpayPaymentDetail } from "@/pages/api/admin/finance/razorpay-payment-detail";
 
@@ -324,6 +324,9 @@ export function AdminBookingsBrowser() {
                     {rows.map((row) => {
                       const statusMeta = bookingStatusPill(row.status);
                       const paymentMeta = PAYMENT_PILL_META[row.paymentStatus];
+                      const refundMeta =
+                        bookingRefundPill(row.refundStatus, row.refundAmountPaise) ??
+                        moneyRefundPill(row.moneyRefundStatus);
                       const canReconcile = row.status === "payment_pending" || row.status === "expired";
                       const isReconciling = reconcilingId === row.id;
                       return (
@@ -338,7 +341,12 @@ export function AdminBookingsBrowser() {
                             <Pill tone={statusMeta.tone} size="sm">{statusMeta.label}</Pill>
                           </TableCell>
                           <TableCell>
-                            <Pill tone={paymentMeta.tone} size="sm">{paymentMeta.label}</Pill>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <Pill tone={paymentMeta.tone} size="sm">{paymentMeta.label}</Pill>
+                              {/* Refund axis — display only; an admin refunds in Razorpay
+                                  and marks the reconcile row in Finances → Reconcile. */}
+                              {refundMeta && <Pill {...refundMeta} size="sm">{refundMeta.label}</Pill>}
+                            </div>
                           </TableCell>
                           <TableCell className="text-right font-body text-sm tabular-nums text-charcoal">
                             {inr(row.amountPaise)}

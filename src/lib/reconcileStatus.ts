@@ -9,6 +9,41 @@ export function isReconcileStatus(v: unknown): v is ReconcileStatusValue {
 }
 
 /**
+ * Money-refund state per booking: `PaymentReconcile.status` for the gateway payment
+ * sitting on each booking. Drop-in (no-pass) cancellations get money back rather
+ * than a class credit, and that decision lives on the reconcile row — this is how
+ * booking lists surface it ("Refund pending" etc.).
+ *
+ * Joins Payment → PaymentReconcile on `razorpay_payment_id`, NOT the nullable
+ * `PaymentReconcile.payment_id` FK: auto-flagged rows (flagPaidCancelledOrphans)
+ * only ever know the gateway id and leave that FK null.
+ */
+export async function moneyRefundStatusByBooking(
+  bookingIds: string[],
+): Promise<Map<string, ReconcileStatusValue>> {
+  const out = new Map<string, ReconcileStatusValue>();
+  if (bookingIds.length === 0) return out;
+
+  const payments = await prisma.payment.findMany({
+    where: { booking_id: { in: bookingIds }, razorpay_payment_id: { not: null } },
+    select: { booking_id: true, razorpay_payment_id: true },
+  });
+  if (payments.length === 0) return out;
+
+  const records = await prisma.paymentReconcile.findMany({
+    where: { razorpay_payment_id: { in: payments.map((p) => p.razorpay_payment_id as string) } },
+    select: { razorpay_payment_id: true, status: true },
+  });
+  const statusByRzpId = new Map(records.map((r) => [r.razorpay_payment_id, r.status]));
+
+  for (const p of payments) {
+    const status = statusByRzpId.get(p.razorpay_payment_id as string);
+    if (status && p.booking_id && isReconcileStatus(status)) out.set(p.booking_id, status);
+  }
+  return out;
+}
+
+/**
  * Persist (upsert) the admin reconciliation state for one gateway payment.
  * Once a record exists, that payment drops out of the live reconcile tab and
  * shows in the saved/handled log instead.

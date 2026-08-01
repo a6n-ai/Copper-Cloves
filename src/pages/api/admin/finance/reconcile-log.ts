@@ -22,6 +22,9 @@ export type ReconcileLogRow = {
   userPackageId: string | null;
   memberName: string | null;
   memberEmail: string | null;
+  /** Class this payment was for, when the linked Payment carries a booking. */
+  className: string | null;
+  classTimeISO: string | null;
   updatedAt: string;
 };
 
@@ -40,18 +43,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // Enrich with the linked Payment (member/booking/package) + resolver name.
-  const paymentRowIds = records.map((r) => r.payment_id).filter((v): v is string => !!v);
+  //
+  // Join on `razorpay_payment_id`, NOT the `payment_id` FK: rows written by the
+  // auto-flag path (flagPaidCancelledOrphans) only know the gateway id and leave
+  // that FK null, which used to blank out the Member column for every
+  // machine-flagged refund candidate.
+  const gatewayPaymentIds = records.map((r) => r.razorpay_payment_id);
   const resolverIds = Array.from(new Set(records.map((r) => r.resolved_by).filter((v): v is string => !!v)));
 
   const [payments, resolvers] = await Promise.all([
-    paymentRowIds.length
+    gatewayPaymentIds.length
       ? prisma.payment.findMany({
-          where: { id: { in: paymentRowIds } },
+          where: { razorpay_payment_id: { in: gatewayPaymentIds } },
           select: {
             id: true,
+            razorpay_payment_id: true,
             booking_id: true,
             user_package_id: true,
             profile: { select: { full_name: true, email: true } },
+            booking: {
+              select: {
+                class_name: true,
+                class_time: true,
+                class_schedule: {
+                  select: { start_time: true, class_model: { select: { name: true } } },
+                },
+              },
+            },
           },
         })
       : Promise.resolve([]),
@@ -60,24 +78,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : Promise.resolve([]),
   ]);
 
-  const payById = new Map(payments.map((p) => [p.id, p]));
+  const payByGatewayId = new Map(
+    payments.filter((p) => p.razorpay_payment_id).map((p) => [p.razorpay_payment_id as string, p]),
+  );
   const resolverById = new Map(resolvers.map((r) => [r.id, r.full_name]));
 
   const rows: ReconcileLogRow[] = records.map((r) => {
-    const pay = r.payment_id ? payById.get(r.payment_id) : undefined;
+    const pay = payByGatewayId.get(r.razorpay_payment_id);
+    const bk = pay?.booking;
+    const classTime = bk?.class_schedule?.start_time ?? bk?.class_time ?? null;
     return {
       paymentId: r.razorpay_payment_id,
       orderId: r.razorpay_order_id,
       status: r.status,
       amountPaise: r.amount_paise,
       note: r.note,
-      paymentRowId: r.payment_id,
+      paymentRowId: r.payment_id ?? pay?.id ?? null,
       resolvedBy: r.resolved_by,
       resolvedByName: r.resolved_by ? resolverById.get(r.resolved_by) ?? null : null,
       bookingId: pay?.booking_id ?? null,
       userPackageId: pay?.user_package_id ?? null,
       memberName: pay?.profile?.full_name ?? null,
       memberEmail: pay?.profile?.email ?? null,
+      className: bk?.class_schedule?.class_model?.name ?? bk?.class_name ?? null,
+      classTimeISO: classTime ? new Date(classTime).toISOString() : null,
       updatedAt: r.updated_at.toISOString(),
     };
   });

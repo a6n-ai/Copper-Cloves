@@ -37,7 +37,7 @@ import { PassCard } from "@/components/dashboard/PassCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
-import { paymentMethodPill, ticketStatusPill, bookingStatusPill, bookingPaymentPill, memberStatusPill } from "@/lib/pillMaps";
+import { paymentMethodPill, ticketStatusPill, bookingStatusPill, bookingPaymentPill, bookingRefundPill, moneyRefundPill, memberStatusPill } from "@/lib/pillMaps";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/filters";
 import { Label } from "@/components/ui/label";
@@ -115,6 +115,15 @@ interface BookingRow {
   checkedIn: boolean;
   checkInOutcome: string | null;
   invoiceAvailable: boolean;
+  /** A succeeded payment exists for this booking (money, not pass). */
+  paid: boolean;
+  /** Booked against a pass — the seat was covered by credits. */
+  viaPass: boolean;
+  /** Booking.refund_status — the class-credit refund axis. */
+  refundStatus: string | null;
+  refundAmountPaise: number | null;
+  /** PaymentReconcile.status for the gateway payment — the money refund axis. */
+  moneyRefundStatus: string | null;
 }
 interface FoodRow {
   id: string;
@@ -253,7 +262,21 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
       else if (when != null && when < now) status = "missed";
       else status = "upcoming";
       const lifecycle = b.status ? String(b.status) : "confirmed";
-      return { id: String(b.id), name, when, status, lifecycle, checkedIn, checkInOutcome: outcome, invoiceAvailable: !!b.invoiceAvailable };
+      return {
+        id: String(b.id),
+        name,
+        when,
+        status,
+        lifecycle,
+        checkedIn,
+        checkInOutcome: outcome,
+        invoiceAvailable: !!b.invoiceAvailable,
+        paid: !!b.paid,
+        viaPass: !!b.user_package_id,
+        refundStatus: b.refund_status ? String(b.refund_status) : null,
+        refundAmountPaise: b.refund_amount_paise != null ? Number(b.refund_amount_paise) : null,
+        moneyRefundStatus: b.moneyRefundStatus ? String(b.moneyRefundStatus) : null,
+      };
     })
     .sort((a, b) => (b.when ?? 0) - (a.when ?? 0));
 
@@ -1146,9 +1169,20 @@ function MemberBody({
                         <TableCell>
                           <div className="flex flex-wrap items-center gap-1.5">
                             <Pill {...bookingStatusPill(row.lifecycle)}>{bookingStatusPill(row.lifecycle).label}</Pill>
-                            {(row.lifecycle === "payment_pending" || row.lifecycle === "expired") && (
-                              <Pill {...bookingPaymentPill(row.lifecycle)}>{bookingPaymentPill(row.lifecycle).label}</Pill>
+                            {row.lifecycle !== "cancelled" && (
+                              <Pill {...bookingPaymentPill(row.lifecycle, { paid: row.paid, viaPass: row.viaPass })}>
+                                {bookingPaymentPill(row.lifecycle, { paid: row.paid, viaPass: row.viaPass }).label}
+                              </Pill>
                             )}
+                            {/* Cancelled seats: credit refund if any, else the money-refund
+                                state of the gateway payment (drop-ins hold no pass). */}
+                            {row.lifecycle === "cancelled" && (() => {
+                              const refund =
+                                bookingRefundPill(row.refundStatus, row.refundAmountPaise) ??
+                                moneyRefundPill(row.moneyRefundStatus) ??
+                                (row.paid ? { tone: "warning" as const, label: "Paid · no refund yet" } : null);
+                              return refund ? <Pill {...refund}>{refund.label}</Pill> : null;
+                            })()}
                             {row.invoiceAvailable && (
                               <a
                                 href={`/api/bookings/${row.id}/invoice`}

@@ -9,6 +9,7 @@ import { logActivity } from "@/lib/activityLog";
 import { HISTORY_STATUSES } from "@/lib/bookingStatus";
 import { getStudioSettings } from "@/lib/studioSettings";
 import { validateCreditAdjust } from "@/lib/passAdjust";
+import { moneyRefundStatusByBooking } from "@/lib/reconcileStatus";
 import { recordManualPayment, RECORDABLE_METHODS } from "@/lib/payments";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
@@ -154,9 +155,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .filter((p) => p.status === "succeeded" && p.direction === "credit" && p.booking_id)
           .map((p) => p.booking_id as string),
       );
+      // Money-refund state (drop-in cancels get cash back, not a credit) — keyed
+      // on the gateway payment, so it can't be derived from the booking row alone.
+      const moneyRefundByBooking = await moneyRefundStatusByBooking(profile.bookings.map((b) => b.id));
       const bookingsWithInvoice = profile.bookings.map((b) => ({
         ...b,
         invoiceAvailable: paidBookingIds.has(b.id),
+        paid: paidBookingIds.has(b.id),
+        moneyRefundStatus: moneyRefundByBooking.get(b.id) ?? null,
       }));
       return res.json({ ...profile, bookings: bookingsWithInvoice, user_stats: stats });
     }
