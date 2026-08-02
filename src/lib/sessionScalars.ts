@@ -1,6 +1,5 @@
 import type { Session } from "next-auth";
-
-type Role = "user" | "instructor" | "partner" | "admin" | "chef";
+import { primaryRole, parseRoles, type Role } from "@/lib/auth/roles";
 
 /**
  * Tiny typed accessors for `session.user` scalars. NextAuth ships its `User`
@@ -13,9 +12,20 @@ type Role = "user" | "instructor" | "partner" | "admin" | "chef";
  * session refetch tick (the wrapper `Session` object identity changes each
  * tick even when the underlying JWT is unchanged).
  */
+
+/**
+ * The HIGHEST-PRIVILEGE role this session holds. Roles are a comma-separated
+ * string now (better-auth admin plugin), so a single value is a lossy view —
+ * correct for "which portal am I in", wrong for "may I do X". Use
+ * getSessionRoles or hasRole for permission checks.
+ */
 export function getSessionRole(session: Session | null | undefined): Role | undefined {
-  const role = (session?.user as { role?: string } | undefined)?.role;
-  return role as Role | undefined;
+  return primaryRole((session?.user as { role?: string } | undefined)?.role);
+}
+
+/** Every role this session holds, privilege-sorted. */
+export function getSessionRoles(session: Session | null | undefined): Role[] {
+  return parseRoles((session?.user as { role?: string } | undefined)?.role);
 }
 
 export function getSessionUserId(session: Session | null | undefined): string | undefined {

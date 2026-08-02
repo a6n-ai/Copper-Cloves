@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { hasRole } from "@/lib/auth/roles";
 
 /**
  * Shared auth gate for /api/cron/* endpoints.
@@ -24,7 +25,7 @@ export async function authorizeCron(req: NextApiRequest, res: NextApiResponse): 
 
   const session = await getStudioServerSession(req, res);
   const role = (session?.user as { role?: string } | undefined)?.role;
-  if (role === "admin") return true;
+  if (hasRole(role, "admin")) return true;
 
   res.status(401).json({ error: "Unauthorized" });
   return false;

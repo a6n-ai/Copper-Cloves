@@ -1,5 +1,6 @@
 import type { NextApiResponse } from "next";
 import type { Session } from "next-auth";
+import { hasRole } from "@/lib/auth/roles";
 
 /**
  * Enforce admin-only access for API routes under /api/admin/* (and similar).
@@ -11,7 +12,7 @@ export function ensureAdmin(session: Session | null, res: NextApiResponse): bool
     return false;
   }
   const role = (session.user as { role?: string }).role;
-  if (role !== "admin") {
+  if (!hasRole(role, "admin")) {
     res.status(403).json({ error: "Forbidden" });
     return false;
   }

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { hasRole } from "@/lib/auth/roles";
 
 export interface InstructorSession {
   instructorId: string;
@@ -22,7 +23,7 @@ export async function getInstructorSession(
     | { id?: string; name?: string | null; email?: string | null; role?: string; instructor_id?: string | null }
     | undefined;
 
-  if (!user || user.role !== "instructor" || !user.instructor_id) return null;
+  if (!user || !hasRole(user.role, "instructor") || !user.instructor_id) return null;
 
   return {
     instructorId: user.instructor_id,

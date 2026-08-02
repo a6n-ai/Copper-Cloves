@@ -9,6 +9,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getStudioSettings, STUDIO_SETTINGS_ID, STUDIO_SETTINGS_DEFAULTS } from "@/lib/studioSettings";
 import { SHARE_PERCENT_MIN, SHARE_PERCENT_MAX } from "@/lib/sharedCredits";
+import { hasRole } from "@/lib/auth/roles";
 
 /** Returns a positive integer or null if the value is missing/invalid. */
 function posInt(v: unknown): number | null {
@@ -37,7 +38,7 @@ const STR_FIELDS = [
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
-  if ((session.user as { role?: string }).role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole((session.user as { role?: string }).role, "admin")) return res.status(403).json({ error: "Forbidden" });
 
   if (req.method === "GET") {
     const settings = await getStudioSettings();

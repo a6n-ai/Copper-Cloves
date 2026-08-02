@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { hasRole } from "@/lib/auth/roles";
 
 function toMoney(v: unknown) {
   if (v == null) return 0;
@@ -13,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
   const role = (session.user as { role?: string }).role;
-  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole(role, "admin")) return res.status(403).json({ error: "Forbidden" });
   if (req.method !== "GET") return res.status(405).end();
 
   const now = new Date();

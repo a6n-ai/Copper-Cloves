@@ -4,19 +4,20 @@ import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { apiError } from "@/lib/apiError";
+import { hasRole } from "@/lib/auth/roles";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
   const role = (session.user as { role?: string }).role;
-  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole(role, "admin")) return res.status(403).json({ error: "Forbidden" });
 
   if (req.method === "DELETE") {
     const id = typeof req.query.id === "string" ? req.query.id.trim() : "";
     if (!id) return res.status(400).json({ error: "User id is required." });
     const target = await prisma.profile.findUnique({ where: { id }, select: { role: true } });
     if (!target) return res.status(404).json({ error: "User not found." });
-    if (target.role === "admin") return res.status(403).json({ error: "Cannot delete admin accounts." });
+    if (hasRole(target.role, "admin")) return res.status(403).json({ error: "Cannot delete admin accounts." });
     await prisma.profile.delete({ where: { id } });
     return res.status(200).json({ ok: true });
   }

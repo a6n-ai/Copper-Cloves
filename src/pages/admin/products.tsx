@@ -58,6 +58,7 @@ import {
 import { cdnUrl } from "@/lib/cdnUrl";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { toast } from "sonner";
+import { hasRole } from "@/lib/auth/roles";
 interface Product {
   id: string;
   name: string;
@@ -473,11 +474,11 @@ export default function AdminProducts() {
       return;
     }
     const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && role !== "admin") {
+    if (status === "authenticated" && !hasRole(role, "admin")) {
       router.push("/admin/login");
       return;
     }
-    if (status === "authenticated" && role === "admin") {
+    if (status === "authenticated" && hasRole(role, "admin")) {
       void loadRetail();
     }
   }, [status, session, router, loadRetail]);

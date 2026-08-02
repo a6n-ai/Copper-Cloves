@@ -8,6 +8,7 @@ import { sendClassRescheduledEmails } from "@/lib/notifications/sendBookingEmail
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { HIDDEN_SCHEDULE_STATUSES, LOCKED_SCHEDULE_STATUSES } from "@/lib/scheduleStatus";
 import { reconcileScheduleSeats } from "@/lib/seatCounts";
+import { hasRole } from "@/lib/auth/roles";
 
 const VALID_STATUS = new Set<string>(Object.values(ClassScheduleStatus));
 const LOCKED_STATUSES = new Set<string>(LOCKED_SCHEDULE_STATUSES);
@@ -398,7 +399,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
   const role = (session.user as { role?: string }).role;
-  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole(role, "admin")) return res.status(403).json({ error: "Forbidden" });
 
   try {
     if (req.method === "POST") return await handlePost(req, res);

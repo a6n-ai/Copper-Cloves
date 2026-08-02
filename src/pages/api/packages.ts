@@ -2,9 +2,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import type { Prisma } from "@/generated/prisma/client";
+import { hasRole } from "@/lib/auth/roles";
 
 function isAdmin(session: Awaited<ReturnType<typeof getStudioServerSession>>): boolean {
-  return (session?.user as { role?: string } | undefined)?.role === "admin";
+  return hasRole((session?.user as { role?: string } | undefined)?.role, "admin");
 }
 
 /** Build a PackageType write payload from the request body, only for provided keys. */

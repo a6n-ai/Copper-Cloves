@@ -2,6 +2,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { cancelBookingWithRefund } from "@/lib/classCancellation";
 import { requestLogger } from "@/lib/logger";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { hasRole } from "@/lib/auth/roles";
 
 /**
  * Admin direct cancel of a member's booking. Reuses the shared
@@ -14,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const log = requestLogger(req, res);
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
-  if ((session.user as { role?: string }).role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole((session.user as { role?: string }).role, "admin")) return res.status(403).json({ error: "Forbidden" });
   if (req.method !== "POST") return res.status(405).end();
 
   const { bookingId, reason } = req.body as { bookingId?: string; reason?: string };

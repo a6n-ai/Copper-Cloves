@@ -14,6 +14,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
+import { hasRole } from "@/lib/auth/roles";
 
 function PartnerSettingsSkeleton() {
   return (
@@ -205,7 +206,7 @@ export default function PartnerSettings() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const sess = await getStudioServerSession(context.req as never, context.res as never);
   const user = sess?.user as { role?: string; partner_id?: string | null } | undefined;
-  if (!user || user.role !== "partner" || !user.partner_id) {
+  if (!user || !hasRole(user.role, "partner") || !user.partner_id) {
     return { redirect: { destination: "/partner/login", permanent: false } };
   }
   return { props: {} };

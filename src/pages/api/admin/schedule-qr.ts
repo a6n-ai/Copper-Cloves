@@ -4,6 +4,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { ensureScheduleQrCodes } from "@/lib/checkinQr";
 import { withinCheckinWindow } from "@/lib/checkinWindow";
 import { requestLogger } from "@/lib/logger";
+import { hasRole } from "@/lib/auth/roles";
 
 /** Admin: QR codes for any schedule (generated/stored on demand). */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -11,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "GET" && req.method !== "POST") return res.status(405).end();
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
-  if ((session.user as { role?: string }).role !== "admin")
+  if (!hasRole((session.user as { role?: string }).role, "admin"))
     return res.status(403).json({ error: "Forbidden" });
 
   const scheduleId = (req.method === "GET" ? req.query.scheduleId : req.body?.scheduleId) as

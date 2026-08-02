@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { PAYOUT_SETTINGS_ID, PAYOUT_SETTINGS_DEFAULTS } from "@/lib/payoutSettings";
 import { PAYABLE_BASES, type PayableBasis } from "@/lib/payoutCalc";
+import { hasRole } from "@/lib/auth/roles";
 
 function num(v: unknown): number | null {
   if (v === null || v === undefined || v === "") return null;
@@ -14,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
   const role = (session.user as { role?: string }).role;
-  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole(role, "admin")) return res.status(403).json({ error: "Forbidden" });
   const adminId = (session.user as { id?: string }).id ?? null;
 
   if (req.method === "GET") {

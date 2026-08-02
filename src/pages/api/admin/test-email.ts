@@ -1,12 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
+import { hasRole } from "@/lib/auth/roles";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
   const session = await getStudioServerSession(req, res);
   const role = (session?.user as { role?: string })?.role;
-  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole(role, "admin")) return res.status(403).json({ error: "Forbidden" });
 
   const to = typeof req.body?.to === "string" ? req.body.to.trim() : "";
   if (!to) return res.status(400).json({ error: "to is required" });

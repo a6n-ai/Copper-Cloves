@@ -8,6 +8,7 @@ import {
   type ExpenseWithRelations,
 } from "@/lib/expenses";
 import type { ExpenseCategory, PaymentMethod } from "@/generated/prisma/client";
+import { hasRole } from "@/lib/auth/roles";
 
 const PAYMENT_METHODS: PaymentMethod[] = [
   "razorpay_online",
@@ -51,7 +52,7 @@ function serialize(e: ExpenseWithRelations) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
-  if ((session.user as { role?: string }).role !== "admin") {
+  if (!hasRole((session.user as { role?: string }).role, "admin")) {
     return res.status(403).json({ error: "Forbidden" });
   }
   const adminId = (session.user as { id?: string }).id ?? null;

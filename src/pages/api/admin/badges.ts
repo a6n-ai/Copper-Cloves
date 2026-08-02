@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { ensureAdmin } from "@/lib/requireAdmin";
+import { hasRole } from "@/lib/auth/roles";
 
 const PTM_DEFAULTS = [
   {
@@ -54,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // stay admin-only (guarded below). Previously ensureAdmin gated GET too, so every
   // member dashboard 403'd here and SWR retried the failed call repeatedly.
   if (!session?.user?.id) return res.status(401).json({ error: "Unauthorized" });
-  const isAdmin = session.user.role === "admin";
+  const isAdmin = hasRole(session.user.role, "admin");
 
   if (req.method === "GET") {
     let ptmTemplates = await prisma.badgeTemplate.findMany({

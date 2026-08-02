@@ -13,6 +13,7 @@ import { getRazorpay, razorpayConfigured } from "@/lib/razorpayServer";
 import { reconcileRazorpayPaymentFromWebhook } from "@/lib/razorpayPersistence";
 import { sendPendingRecoveryEmail } from "@/lib/notifications/sendPendingRecoveryEmail";
 import { requestLogger } from "@/lib/logger";
+import { hasRole } from "@/lib/auth/roles";
 
 type RazorpayOrderPaymentsClient = {
   orders: { fetchPayments: (id: string) => Promise<{ items?: unknown[] }> };
@@ -22,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const log = requestLogger(req, res);
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
-  if ((session.user as { role?: string }).role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole((session.user as { role?: string }).role, "admin")) return res.status(403).json({ error: "Forbidden" });
   if (req.method !== "POST") return res.status(405).end();
 
   const { bookingId, action } = req.body as { bookingId?: string; action?: string };

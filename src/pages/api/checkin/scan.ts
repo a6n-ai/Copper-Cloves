@@ -4,6 +4,7 @@ import { verifyCheckinToken } from "@/lib/checkinToken";
 import { withinCheckinWindow } from "@/lib/checkinWindow";
 import { getInstructorSession } from "@/lib/instructorAuth";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { hasRole } from "@/lib/auth/roles";
 import { checkInOutcomeFromTimes } from "@/lib/bookingAttendance";
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { reconcileScheduleSeats } from "@/lib/seatCounts";
@@ -117,7 +118,7 @@ async function handleMemberScan(
 ) {
   const session = await getStudioServerSession(req, res);
   const user = session?.user as { id?: string; role?: string } | undefined;
-  if (!user?.id || user.role !== "user")
+  if (!user?.id || !hasRole(user.role, "user"))
     return res.status(401).json({ error: "Sign in as a member first" });
   const userId = user.id;
 

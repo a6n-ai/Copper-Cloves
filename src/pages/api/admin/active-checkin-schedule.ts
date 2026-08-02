@@ -3,12 +3,13 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { ensureScheduleQrCodes } from "@/lib/checkinQr";
 import { CHECKIN_OPEN_BEFORE_MS, CHECKIN_CLOSE_AFTER_MS } from "@/lib/checkinWindow";
+import { hasRole } from "@/lib/auth/roles";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).end();
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
-  if ((session.user as { role?: string }).role !== "admin")
+  if (!hasRole((session.user as { role?: string }).role, "admin"))
     return res.status(403).json({ error: "Forbidden" });
 
   const now = Date.now();

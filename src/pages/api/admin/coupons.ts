@@ -4,10 +4,11 @@ import { Prisma } from "@/generated/prisma/client";
 import { COUPON_CONTEXTS, normalizeCouponCode, type CouponContext } from "@/lib/couponHelpers";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { apiError } from "@/lib/apiError";
+import { hasRole } from "@/lib/auth/roles";
 
 function isAdmin(session: unknown) {
   const role = (session as { user?: { role?: string } } | null | undefined)?.user?.role;
-  return role === "admin";
+  return hasRole(role, "admin");
 }
 
 function parseContext(v: unknown): CouponContext | null {

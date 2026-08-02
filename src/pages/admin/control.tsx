@@ -73,6 +73,7 @@ import PackageCatalogTab from "@/components/admin/control-tabs/PackageCatalogTab
 import StudioSettingsTab from "@/components/admin/control-tabs/StudioSettingsTab";
 import CancellationsTab from "@/components/admin/control-tabs/CancellationsTab";
 import CouponsTab from "@/components/admin/control-tabs/CouponsTab";
+import { hasRole } from "@/lib/auth/roles";
 
 /** Control Panel section nav — grouped vertical rail (desktop) / grouped select (mobile). */
 const CONTROL_NAV: { label: string; items: { value: string; label: string; icon: typeof Users }[] }[] = [
@@ -356,7 +357,7 @@ export default function ControlPanel() {
 
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/admin/login"); return; }
-    if (status === "authenticated" && userRole !== "admin") { router.push("/admin/login"); return; }
+    if (status === "authenticated" && !hasRole(userRole, "admin")) { router.push("/admin/login"); return; }
     if (status === "authenticated") {
       fetchClasses();
       void fetchPauseTickets();

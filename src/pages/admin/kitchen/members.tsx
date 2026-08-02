@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MemberTable, type MemberTableMember } from "@/components/admin/MemberTable";
 import { Search } from "lucide-react";
+import { hasRole } from "@/lib/auth/roles";
 
 interface KitchenMember {
   id: string;
@@ -32,7 +33,7 @@ export default function KitchenMembers() {
       return;
     }
     const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && role !== "admin" && role !== "chef") {
+    if (status === "authenticated" && !hasRole(role, "admin") && !hasRole(role, "chef")) {
       router.push("/login");
       return;
     }

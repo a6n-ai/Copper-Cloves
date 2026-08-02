@@ -5,6 +5,7 @@ import { dedupeInstructorRows } from "@/lib/instructorIdentity";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendStudioEmail } from "@/lib/notifications/email";
 import logger from "@/lib/logger";
+import { hasRole } from "@/lib/auth/roles";
 
 function rateOverride(v: unknown): number | null | undefined {
   if (v === undefined) return undefined; // not provided → leave unchanged
@@ -34,7 +35,7 @@ export const config = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     const session = await getStudioServerSession(req, res);
-    const isAdmin = (session?.user as { role?: string })?.role === "admin";
+    const isAdmin = hasRole((session?.user as { role?: string })?.role, "admin");
     const instructors = await prisma.instructor.findMany({
       where: isAdmin ? undefined : { is_active: true },
       orderBy: { display_order: "asc" },
@@ -45,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
   const role = (session.user as { role?: string }).role;
-  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole(role, "admin")) return res.status(403).json({ error: "Forbidden" });
 
   if (req.method === "POST") {
     const body = req.body ?? {};

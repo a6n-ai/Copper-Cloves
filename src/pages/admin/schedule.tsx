@@ -70,6 +70,7 @@ import {
   ResponsiveDialogFooter,
 } from "@/components/responsive/ResponsiveDialog";
 import { toast } from "sonner";
+import { hasRole } from "@/lib/auth/roles";
 import {
   Select,
   SelectContent,
@@ -476,7 +477,7 @@ export default function AdminSchedule() {
       router.push("/admin/login");
       return;
     }
-    if (status === "authenticated" && userRole !== "admin") {
+    if (status === "authenticated" && !hasRole(userRole, "admin")) {
       router.push("/admin/login");
       return;
     }
@@ -500,7 +501,7 @@ export default function AdminSchedule() {
 
   // Schedule is month-scoped — refetch it (and only it) when the viewed month changes.
   useEffect(() => {
-    if (status !== "authenticated" || userRole !== "admin") return;
+    if (status !== "authenticated" || !hasRole(userRole, "admin")) return;
 
     let cancelled = false;
     (async () => {

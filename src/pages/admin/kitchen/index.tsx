@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Pill } from "@/components/ui/pill";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { ClipboardList, Clock, CheckCircle2, ChefHat, X } from "lucide-react";
+import { hasRole } from "@/lib/auth/roles";
 
 interface CafeOrderRow {
   id: string;
@@ -86,7 +87,7 @@ export default function KitchenDashboard() {
       return;
     }
     const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && role !== "admin" && role !== "chef") {
+    if (status === "authenticated" && !hasRole(role, "admin") && !hasRole(role, "chef")) {
       router.push("/login");
       return;
     }

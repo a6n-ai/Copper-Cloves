@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { hasRole } from "@/lib/auth/roles";
 
 function isAdmin(session: unknown) {
   const role = (session as { user?: { role?: string } } | null | undefined)?.user?.role;
-  return role === "admin";
+  return hasRole(role, "admin");
 }
 
 const STATUSES = new Set(["new", "contacted", "closed"]);

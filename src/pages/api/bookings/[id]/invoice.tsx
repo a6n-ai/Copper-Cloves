@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { buildInvoiceData, InvoiceNotPayableError } from "@/lib/invoice/buildInvoiceData";
 import InvoiceDocument from "@/lib/invoice/InvoiceDocument";
+import { hasRole } from "@/lib/auth/roles";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -19,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Owner gate — admins may pull any booking; members only their own. 404 (not 403)
   // so we never leak the existence of another member's booking.
-  if (user.role !== "admin") {
+  if (!hasRole(user.role, "admin")) {
     const owned = await prisma.booking.findUnique({ where: { id }, select: { user_id: true } });
     if (!owned || owned.user_id !== user.id) return res.status(404).json({ error: "Booking not found" });
   }

@@ -11,6 +11,7 @@ import { DayScheduleList, type ScheduleRow } from "@/components/admin/DaySchedul
 import { CalendarDays, Users, Hourglass, CheckCircle2, ArrowRight } from "lucide-react";
 import { PartnerDashboardSkeleton } from "@/components/dashboard/skeletons";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { hasRole } from "@/lib/auth/roles";
 
 interface ClassRow {
   id: string;
@@ -115,7 +116,7 @@ export default function PartnerDashboard() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const sess = await getStudioServerSession(context.req as never, context.res as never);
   const user = sess?.user as { role?: string; partner_id?: string | null } | undefined;
-  if (!user || user.role !== "partner" || !user.partner_id) {
+  if (!user || !hasRole(user.role, "partner") || !user.partner_id) {
     return { redirect: { destination: "/partner/login", permanent: false } };
   }
   return { props: {} };

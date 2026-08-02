@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { manualCreditPackageIds } from "@/lib/payments";
 import { ROSTER_STATUSES } from "@/lib/bookingStatus";
+import { hasRole } from "@/lib/auth/roles";
 
 function dt(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -13,7 +14,7 @@ function dt(d: Date) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
-  if ((session.user as { role?: string }).role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole((session.user as { role?: string }).role, "admin")) return res.status(403).json({ error: "Forbidden" });
   if (req.method !== "GET") return res.status(405).end();
 
   const take = Math.min(Number(req.query.limit) || 300, 500);

@@ -6,6 +6,7 @@ import { sendStudioEmail } from "@/lib/notifications/email";
 import logger from "@/lib/logger";
 import { logActivity } from "@/lib/activityLog";
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
+import { hasRole } from "@/lib/auth/roles";
 
 const CONFIRMATION_CONFIRMED = "confirmed" as const;
 const CONFIRMATION_PENDING = "pending" as const;
@@ -20,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const sess = await getStudioServerSession(req, res);
   const user = sess?.user as { role?: string; partner_id?: string | null } | undefined;
-  if (!user || user.role !== "partner" || !user.partner_id) {
+  if (!user || !hasRole(user.role, "partner") || !user.partner_id) {
     return res.status(401).json({ error: "Not authenticated" });
   }
   const partnerId = user.partner_id;

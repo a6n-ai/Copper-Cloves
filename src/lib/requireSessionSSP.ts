@@ -1,8 +1,7 @@
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import type { Session } from "next-auth";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
-
-type Role = "user" | "instructor" | "partner" | "admin" | "chef";
+import { hasRole, type Role } from "@/lib/auth/roles";
 
 interface Options {
   /** Required role(s). If empty, any authenticated session passes. */
@@ -41,8 +40,8 @@ export function requireSessionSSP(options: Options = {}) {
     }
 
     if (roles && roles.length > 0) {
-      const role = (session.user as { role?: string }).role as Role | undefined;
-      if (!role || !roles.includes(role)) {
+      const raw = (session.user as { role?: string }).role;
+      if (!roles.some((r) => hasRole(raw, r))) {
         return { redirect: { destination: loginPath, permanent: false } };
       }
     }

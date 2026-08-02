@@ -17,6 +17,7 @@ import {
   type RateCard,
 } from "@/lib/payoutCalc";
 import { getPayoutSettings } from "@/lib/payoutSettings";
+import { hasRole } from "@/lib/auth/roles";
 
 /**
  * Per-attendee payout ledger for ONE instructor in a structured period.
@@ -59,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
   const role = (session.user as { role?: string }).role;
-  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole(role, "admin")) return res.status(403).json({ error: "Forbidden" });
 
   const instructorId =
     typeof req.query.instructorId === "string" ? req.query.instructorId.trim() : "";

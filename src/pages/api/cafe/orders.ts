@@ -4,6 +4,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { apiError } from "@/lib/apiError";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { cafeDiscountPercent } from "@/lib/cafeDiscount";
+import { hasRole } from "@/lib/auth/roles";
 
 async function handleGet(res: NextApiResponse, userId: string, isStaff: boolean) {
   const where = isStaff ? {} : { user_id: userId };
@@ -110,7 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = (session.user as { id: string }).id;
   const userRole = (session.user as { role?: string }).role;
   // Admin + kitchen staff see and manage every order; members see only their own.
-  const isStaff = userRole === "admin" || userRole === "chef";
+  const isStaff = hasRole(userRole, "admin") || hasRole(userRole, "chef");
 
   if (req.method === "GET") return handleGet(res, userId, isStaff);
   if (req.method === "POST") return handlePost(req, res, userId);

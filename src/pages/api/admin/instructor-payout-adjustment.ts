@@ -12,6 +12,7 @@ import {
 import { recordPayoutExpense, removePayoutExpense } from "@/lib/expenses";
 import type { PaymentMethod } from "@/generated/prisma/client";
 import logger from "@/lib/logger";
+import { hasRole } from "@/lib/auth/roles";
 
 function asString(v: unknown): string {
   if (typeof v === "string") return v;
@@ -44,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
   const role = (session.user as { role?: string }).role;
-  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole(role, "admin")) return res.status(403).json({ error: "Forbidden" });
 
   const adminId = (session.user as { id?: string }).id ?? null;
 

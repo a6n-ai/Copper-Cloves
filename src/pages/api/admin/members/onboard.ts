@@ -10,6 +10,7 @@ import { welcomeEmail } from "@/lib/notifications/emailTemplates";
 import { logActivity } from "@/lib/activityLog";
 import logger from "@/lib/logger";
 import { apiError } from "@/lib/apiError";
+import { hasRole } from "@/lib/auth/roles";
 
 /**
  * Atomic member onboarding: create the account and (optionally) assign a pass +
@@ -42,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
   const role = (session.user as { role?: string }).role;
-  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole(role, "admin")) return res.status(403).json({ error: "Forbidden" });
   const adminId = (session.user as { id?: string }).id ?? null;
 
   if (req.method !== "POST") return res.status(405).end();

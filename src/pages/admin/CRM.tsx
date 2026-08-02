@@ -42,6 +42,7 @@ import {
 import { Plus, Edit, Send, Mail, MessageCircle, Zap, Search } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { hasRole } from "@/lib/auth/roles";
 
 interface CRMTrigger {
   id: string;
@@ -333,7 +334,7 @@ export default function CRMPage() {
   const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/login"); return; }
-    if (status === "authenticated" && userRole !== "admin") { router.push("/login"); return; }
+    if (status === "authenticated" && !hasRole(userRole, "admin")) { router.push("/login"); return; }
     if (status === "authenticated") {
       // Messages + insights self-fetch; the page needs templates (trigger picker) + triggers.
       void Promise.all([fetchTemplates(), fetchTriggers()]);

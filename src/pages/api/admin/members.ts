@@ -16,6 +16,7 @@ import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { welcomeSetPasswordEmail } from "@/lib/notifications/emailTemplates";
 import logger from "@/lib/logger";
+import { hasRole } from "@/lib/auth/roles";
 
 const WELCOME_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const DEFAULT_PAGE_SIZE = 10;
@@ -23,7 +24,7 @@ const DEFAULT_PAGE_SIZE = 10;
 // Member Management lists real members only — never staff/partner/instructor logins.
 function isNonMemberRole(role?: string | null): boolean {
   const r = String(role ?? "").trim().toLowerCase();
-  return isStudioAdminProfileRole(role) || r === "partner" || r === "instructor";
+  return isStudioAdminProfileRole(role) || hasRole(r, "partner") || hasRole(r, "instructor");
 }
 
 // Lean field set for the list — no hashedPassword/questionnaire/dob/gender, only
@@ -134,7 +135,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
   const role = (session.user as { role?: string }).role;
-  if (role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  if (!hasRole(role, "admin")) return res.status(403).json({ error: "Forbidden" });
 
   if (req.method === "GET") {
     const id = typeof req.query.id === "string" ? req.query.id.trim() : "";

@@ -33,6 +33,7 @@ import {
   ResponsiveDialogFooter,
 } from "@/components/responsive/ResponsiveDialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { hasRole } from "@/lib/auth/roles";
 import {
   usePassPaymentState,
   PassConfigSection,
@@ -221,7 +222,7 @@ export default function AdminMembers() {
       router.push("/login");
       return;
     }
-    if (status === "authenticated" && userRole !== "admin") {
+    if (status === "authenticated" && !hasRole(userRole, "admin")) {
       router.push("/login");
       return;
     }
@@ -237,7 +238,7 @@ export default function AdminMembers() {
   // debounce coalesces rapid search keystrokes and the page-reset above into one
   // request. Owns the loading flag for the initial paint.
   useEffect(() => {
-    if (status !== "authenticated" || userRole !== "admin") return;
+    if (status !== "authenticated" || !hasRole(userRole, "admin")) return;
     const t = setTimeout(() => {
       void loadMembers().finally(() => setLoading(false));
     }, 250);

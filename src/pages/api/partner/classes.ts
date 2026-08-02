@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { startOfMondayWeekLocal, endOfSundayWeekLocal } from "@/lib/calendarWeek";
 import { ROSTER_STATUSES } from "@/lib/bookingStatus";
+import { hasRole } from "@/lib/auth/roles";
 
 function parseDate(v: unknown): Date | null {
   if (typeof v !== "string" || !v.trim()) return null;
@@ -15,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const sess = await getStudioServerSession(req, res);
   const user = sess?.user as { role?: string; partner_id?: string | null } | undefined;
-  if (!user || user.role !== "partner" || !user.partner_id) {
+  if (!user || !hasRole(user.role, "partner") || !user.partner_id) {
     return res.status(401).json({ error: "Not authenticated" });
   }
   const partnerId = user.partner_id;

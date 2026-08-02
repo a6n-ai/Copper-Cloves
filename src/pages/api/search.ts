@@ -2,8 +2,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { runSearch, type SearchRole } from "@/lib/search";
+import { primaryRole, type Role } from "@/lib/auth/roles";
 
-function toSearchRole(role: string | undefined): SearchRole | null {
+function toSearchRole(role: Role | undefined): SearchRole | null {
   switch (role) {
     case "admin": return "admin";
     case "instructor": return "instructor";
@@ -23,7 +24,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const u = session.user as { id?: string; role?: string; partner_id?: string | null; instructor_id?: string | null };
   if (!u.id) return res.status(403).json({ error: "Forbidden" });
-  const role = toSearchRole(u.role);
+  // Multi-role sessions carry a comma-separated string; search shows one
+  // scope, so resolve to the highest-privilege role first.
+  const role = toSearchRole(primaryRole(u.role));
   // Authenticated role without data search (e.g. kitchen/chef): return empty so the
   // client falls back to page-only search instead of showing an error banner.
   if (!role) return res.status(200).json({ groups: [] });

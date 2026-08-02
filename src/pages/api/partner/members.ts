@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { hasRole } from "@/lib/auth/roles";
 
 /**
  * Distinct members who have ATTENDED (checked in to) at least one of this partner's
@@ -11,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const sess = await getStudioServerSession(req, res);
   const user = sess?.user as { role?: string; partner_id?: string | null } | undefined;
-  if (!user || user.role !== "partner" || !user.partner_id) {
+  if (!user || !hasRole(user.role, "partner") || !user.partner_id) {
     return res.status(401).json({ error: "Not authenticated" });
   }
   const partnerId = user.partner_id;

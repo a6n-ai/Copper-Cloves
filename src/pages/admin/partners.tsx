@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Building2, Plus, X } from "lucide-react";
 import { Spinner, PageLoader } from "@/components/ui/spinner";
 import { toast } from "sonner";
+import { hasRole } from "@/lib/auth/roles";
 
 interface PartnerClass { id: string; name: string }
 interface PartnerManager { id: string; email: string; full_name: string | null }
@@ -120,7 +121,7 @@ export default function AdminPartners() {
       </div>
     );
   }
-  if ((session?.user as { role?: string })?.role !== "admin") {
+  if (!hasRole((session?.user as { role?: string })?.role, "admin")) {
     return <div className="min-h-screen flex items-center justify-center bg-cream font-body text-charcoal/60">Admins only.</div>;
   }
 

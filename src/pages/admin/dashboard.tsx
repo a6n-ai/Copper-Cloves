@@ -118,6 +118,7 @@ const OverviewTab = dynamic(
   () => import("@/components/admin/dashboard-tabs/OverviewTab").then((m) => m.OverviewTab),
   { ssr: false, loading: () => <TabLoadingSkeleton /> },
 );
+import { hasRole } from "@/lib/auth/roles";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -375,7 +376,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (status !== "authenticated") return;
-    if (userRole !== "admin") return;
+    if (!hasRole(userRole, "admin")) return;
     let cancelled = false;
     (async () => {
       const r = await fetch("/api/admin/overview");
@@ -421,7 +422,7 @@ export default function AdminDashboard() {
   /** Overview tab: today's classes, expiring members, member stats (for top-class card), instructor payouts. */
   useEffect(() => {
     if (status !== "authenticated") return;
-    if (userRole !== "admin" || activeTab !== "overview") return;
+    if (!hasRole(userRole, "admin") || activeTab !== "overview") return;
     let cancelled = false;
 
     // Always refetch on date change — bypass loadSection cache. The cache +
@@ -486,7 +487,7 @@ export default function AdminDashboard() {
   /** Members tab. */
   useEffect(() => {
     if (status !== "authenticated") return;
-    if (userRole !== "admin" || activeTab !== "members") return;
+    if (!hasRole(userRole, "admin") || activeTab !== "members") return;
 
     void loadSection("member-stats", async () => {
       const r = await fetch("/api/admin/dashboard/member-stats");
@@ -514,7 +515,7 @@ export default function AdminDashboard() {
   /** Instructors tab. */
   useEffect(() => {
     if (status !== "authenticated") return;
-    if (userRole !== "admin" || activeTab !== "instructors") return;
+    if (!hasRole(userRole, "admin") || activeTab !== "instructors") return;
     let cancelled = false;
 
     void loadSection("instructor-performance", async () => {
@@ -535,7 +536,7 @@ export default function AdminDashboard() {
   /** Classes tab. */
   useEffect(() => {
     if (status !== "authenticated") return;
-    if (userRole !== "admin" || activeTab !== "classes") return;
+    if (!hasRole(userRole, "admin") || activeTab !== "classes") return;
     let cancelled = false;
 
     void loadSection("class-performance", async () => {
@@ -567,7 +568,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (status !== "authenticated") return;
     const role = (session?.user as { role?: string })?.role;
-    if (role !== "admin" || activeTab !== "meal-waitlist") return;
+    if (!hasRole(role, "admin") || activeTab !== "meal-waitlist") return;
     let cancelled = false;
     setMealInquiriesLoading(true);
     void (async () => {
@@ -593,7 +594,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (status !== "authenticated") return;
     const role = (session?.user as { role?: string })?.role;
-    if (role !== "admin" || activeTab !== "rental-inquiries") return;
+    if (!hasRole(role, "admin") || activeTab !== "rental-inquiries") return;
     let cancelled = false;
     setRentalInquiriesLoading(true);
     void (async () => {

@@ -26,7 +26,8 @@ import * as analytics from "@/lib/analytics";
 import { CartProvider } from "@/contexts/CartContext";
 import { SessionProvider, useSession } from "next-auth/react";
 import { useStudioSWR } from "@/lib/swr";
-import { getSessionRole, getSessionOnboardingCompleted } from "@/lib/sessionScalars";
+import { getSessionOnboardingCompleted } from "@/lib/sessionScalars";
+import { hasRole, primaryRole } from "@/lib/auth/roles";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
 import dynamic from "next/dynamic";
 // Dashboard chrome (cmdk/Command, sidebar, radix dropdown/popover, RoleSwitcher)
@@ -70,17 +71,22 @@ function accountPortalKind(role?: string): PortalKind {
   return (role && ACCOUNT_KIND_BY_ROLE[role]) || "member";
 }
 
-function resolvePortalKind(pathname: string, role?: string): PortalKind | null {
-  if (pathname.startsWith("/admin") && role === "admin") return "admin";
+// `rawRole` is the raw (possibly comma-separated multi-role) session string —
+// each portal path is checked with `hasRole` so a multi-role identity (e.g.
+// "admin,partner") gets the right chrome regardless of which of their roles
+// is highest-privilege. Only the `/account` fallback needs a single value
+// (which portal is "home"), so that path resolves the primary role instead.
+function resolvePortalKind(pathname: string, rawRole?: string): PortalKind | null {
+  if (pathname.startsWith("/admin") && hasRole(rawRole, "admin")) return "admin";
   // Chef lives under /admin (café + kitchen) but gets its own scoped chrome.
-  if (pathname.startsWith("/admin") && role === "chef") return "kitchen";
-  if (pathname.startsWith("/partner") && role === "partner") return "partner";
-  if (pathname.startsWith("/instructor") && role === "instructor") return "instructor";
+  if (pathname.startsWith("/admin") && hasRole(rawRole, "chef")) return "kitchen";
+  if (pathname.startsWith("/partner") && hasRole(rawRole, "partner")) return "partner";
+  if (pathname.startsWith("/instructor") && hasRole(rawRole, "instructor")) return "instructor";
   // /portal is the member area: any authenticated user gets member chrome.
   // Role-specific portals above stay strict (server-guarded); /portal is the
   // shared fallback so non-"user" roles previewing it still get sidebar+topbar.
   if (pathname.startsWith("/portal")) return "member";
-  if (pathname === "/account") return accountPortalKind(role);
+  if (pathname === "/account") return accountPortalKind(primaryRole(rawRole));
   return null;
 }
 
@@ -100,12 +106,12 @@ function DashboardChrome({ children }: Readonly<{ children: React.ReactNode }>) 
   // re-run on identity churn.
   const userName = session?.user?.name ?? undefined;
   const userEmail = session?.user?.email ?? undefined;
-  const userRole = getSessionRole(session);
+  const rawRole = (session?.user as { role?: string } | undefined)?.role;
 
   const exempt = CHROME_EXEMPT.some((p) => router.pathname.startsWith(p));
   const kind =
     mounted && !exempt && status === "authenticated"
-      ? resolvePortalKind(router.pathname, userRole)
+      ? resolvePortalKind(router.pathname, rawRole)
       : null;
 
   // SWR-shared with any other consumer of `/api/partner/profile` (e.g. the

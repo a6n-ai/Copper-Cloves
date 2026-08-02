@@ -67,6 +67,7 @@ const CafeStats = dynamic(
 import { OrderStatusTimeline } from "@/components/cafe/OrderStatusTimeline";
 import { SpinningText } from "@/components/shadcn-space/spinning-text/spinning-text-02";
 import type { CafeMenuItem } from "@/components/cafe/types";
+import { hasRole } from "@/lib/auth/roles";
 interface MenuItem {
   id?: string;
   name: string;
@@ -590,7 +591,7 @@ export default function AdminCafe() {
   const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/login"); return; }
-    if (status === "authenticated" && userRole !== "admin" && userRole !== "chef") { router.push("/login"); return; }
+    if (status === "authenticated" && !hasRole(userRole, "admin") && !hasRole(userRole, "chef")) { router.push("/login"); return; }
     if (status === "authenticated") {
       fetchMenuItems();
       fetchAllOrders();

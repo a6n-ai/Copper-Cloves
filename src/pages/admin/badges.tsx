@@ -26,6 +26,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { toast } from "sonner";
+import { hasRole } from "@/lib/auth/roles";
 import {
   Award,
   Plus,
@@ -228,7 +229,7 @@ export default function AdminBadgesPage() {
       router.replace("/login");
     } else if (status === "authenticated") {
       const role = (session?.user as { role?: string })?.role;
-      if (role !== "admin") router.replace("/login");
+      if (!hasRole(role, "admin")) router.replace("/login");
     }
   }, [status, session, router]);
 

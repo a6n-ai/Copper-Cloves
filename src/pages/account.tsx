@@ -2,6 +2,7 @@ import type { GetServerSideProps } from "next";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { ProfileSection, type ProfileRole } from "@/components/profile/ProfileSection";
 import { SEO } from "@/components/SEO";
+import { primaryRole } from "@/lib/auth/roles";
 
 const VALID_ROLES = new Set<ProfileRole>(["user", "admin", "partner", "instructor"]);
 
@@ -10,7 +11,9 @@ export const getServerSideProps: GetServerSideProps<{ role: ProfileRole }> = asy
   if (!session?.user) {
     return { redirect: { destination: "/login", permanent: false } };
   }
-  const role = (session.user as { role?: string }).role;
+  // Multi-role sessions carry a comma-separated string; resolve to the
+  // highest-privilege role first — /account shows one profile shell.
+  const role = primaryRole((session.user as { role?: string }).role);
   if (!role || !VALID_ROLES.has(role as ProfileRole)) {
     return { redirect: { destination: "/login", permanent: false } };
   }

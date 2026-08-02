@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { hasRole } from "@/lib/auth/roles";
 import { financeDemoTransactionsForUi } from "@/lib/adminFinanceDemoTransactions";
 import { downloadFinanceReportExcel, type FinanceReportPeriod } from "@/lib/financeReportExport";
 import { EXPENSE_CATEGORY_LABELS } from "@/lib/expenseConstants";
@@ -121,7 +122,7 @@ export interface AdminFinanceData {
  */
 export function useAdminFinanceData(): AdminFinanceData {
   const { data: session, status } = useSession();
-  const userRole = (session?.user as { role?: string })?.role;
+  const rawRole = (session?.user as { role?: string })?.role;
 
   const [transactions, setTransactions] = useState<DashboardTxn[]>([]);
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
@@ -131,7 +132,7 @@ export function useAdminFinanceData(): AdminFinanceData {
   const [loaded, setLoaded] = useState(false);
 
   const load = useCallback(async () => {
-    if (status !== "authenticated" || userRole !== "admin") return;
+    if (status !== "authenticated" || !hasRole(rawRole, "admin")) return;
 
     // Revenue (month) drives totalRevenue / memberPayments.
     const overviewP = (async () => {
@@ -203,7 +204,7 @@ export function useAdminFinanceData(): AdminFinanceData {
       profit: monthRevenue - totalExpenses,
     });
     setLoaded(true);
-  }, [status, userRole]);
+  }, [status, rawRole]);
 
   useEffect(() => {
     void load();
