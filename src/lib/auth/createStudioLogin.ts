@@ -63,6 +63,11 @@ export async function createStudioLogin({
     // The admin plugin's own user.create.before already writes the default
     // "user"; anything else has to be set after the fact because `role` is an
     // input:false additional field and is stripped from the sign-up body.
+    //
+    // serializeRoles REPLACES the role set, which is only safe because the
+    // pre-check above guarantees a brand-new User with nothing to lose. Anything
+    // pointing this at an EXISTING identity must union instead — see the
+    // parseRoles/serializeRoles union in setup/bootstrap-admin.ts.
     if (role !== "user") {
       await prisma.user.update({ where: { id: userId }, data: { role: serializeRoles([role]) } });
     }

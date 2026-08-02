@@ -66,15 +66,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         role: "partner",
         profile: { full_name: `${name.trim()} Manager`, onboarding_completed: true },
       });
+      await prisma.partnerMember.create({
+        data: { partner_id: partner.id, profile_id: profile.id, role: "manager" },
+      });
     } catch (e) {
-      // Otherwise the half-made partner squats the slug and the admin cannot retry.
+      // Both halves roll back. A partner login with no PartnerMember still passes
+      // the session gate (it has a Profile) and lands on partner_id: null —
+      // signed in and locked out of every partner page — while the taken email
+      // blocks a retry. The half-made partner would also squat the slug.
+      if (profile?.user_id) {
+        await prisma.user.delete({ where: { id: profile.user_id } }).catch(() => {});
+      }
       await prisma.partner.delete({ where: { id: partner.id } }).catch(() => {});
       if (e instanceof LoginEmailTakenError) return res.status(400).json({ error: e.message });
       throw e;
     }
-    await prisma.partnerMember.create({
-      data: { partner_id: partner.id, profile_id: profile.id, role: "manager" },
-    });
     return res.status(201).json({ ok: true, partnerId: partner.id });
   }
 
@@ -108,13 +114,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           role: "partner",
           profile: { full_name: `${partner.name} Manager`, onboarding_completed: true },
         });
+        await prisma.partnerMember.create({
+          data: { partner_id: id, profile_id: profile.id, role: "manager" },
+        });
       } catch (e) {
+        // See the POST path: a login with no PartnerMember signs in to nothing
+        // and cannot be recreated, so it rolls back with the membership.
+        if (profile?.user_id) {
+          await prisma.user.delete({ where: { id: profile.user_id } }).catch(() => {});
+        }
         if (e instanceof LoginEmailTakenError) return res.status(400).json({ error: e.message });
         throw e;
       }
-      await prisma.partnerMember.create({
-        data: { partner_id: id, profile_id: profile.id, role: "manager" },
-      });
       return res.json({ ok: true });
     }
 

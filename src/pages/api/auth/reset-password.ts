@@ -9,8 +9,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { token, password } = req.body as { token?: string; password?: string };
 
   if (!token) return res.status(400).json({ error: "Reset token is required" });
-  if (!password || password.length < 6)
-    return res.status(400).json({ error: "Password must be at least 6 characters" });
+  // 8 = emailAndPassword.minPasswordLength. This route writes the Account
+  // directly, so better-auth never enforces its own floor here — without this a
+  // member could reset to a password sign-up would have rejected.
+  if (!password || password.length < 8)
+    return res.status(400).json({ error: "Password must be at least 8 characters" });
 
   const record = await prisma.passwordResetToken.findUnique({ where: { token } });
 
@@ -56,9 +59,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         }),
     // Legacy column, still read by the NextAuth options Task 13 deletes. Cleared
-    // so the OLD password cannot survive the reset on that path.
+    // so the OLD password cannot survive the reset on that path. NOT filtered by
+    // role: the credential rewritten above is per-identity, so a second Profile
+    // for the same person would otherwise keep the old password alive for its
+    // portal. Matches the per-identity session revocation below.
     prisma.profile.updateMany({
-      where: { email: record.email, role: targetRole },
+      where: { email: record.email },
       data: { hashedPassword: null },
     }),
     prisma.passwordResetToken.update({
