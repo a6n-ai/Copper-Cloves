@@ -1,9 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { timingSafeEqual } from "node:crypto";
-import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
 import { apiError } from "@/lib/apiError";
+import { createStudioLogin } from "@/lib/auth/createStudioLogin";
+import { studioPassword } from "@/lib/auth/password";
+import { parseRoles, serializeRoles } from "@/lib/auth/roles";
 
 /**
  * One-time (or rare) admin creation on live hosts without local psql.
@@ -59,21 +61,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  const hash = await bcrypt.hash(password, 12);
+  // Checked here so a too-short ADMIN_PASSWORD says so, instead of surfacing as
+  // a generic error from better-auth's minPasswordLength on the create path.
+  if (password.length < 8) {
+    return res.status(400).json({
+      error: "ADMIN_PASSWORD must be at least 8 characters.",
+    });
+  }
 
   try {
-    await prisma.profile.upsert({
-      where: { email_role: { email, role: "admin" } },
-      create: {
+    // Re-runnable by design (the documented way to reset a lost admin password),
+    // and after the identity backfill the admin User usually already exists — so
+    // the existing-identity branch is the normal one, not the edge case.
+    const existing = await prisma.user.findUnique({ where: { email }, select: { id: true, role: true } });
+    if (!existing) {
+      await createStudioLogin({
         email,
-        full_name: "Studio Administrator",
+        password,
+        name: "Studio Administrator",
         role: "admin",
-        hashedPassword: hash,
-      },
-      update: {
-        hashedPassword: hash,
-      },
-    });
+        profile: { full_name: "Studio Administrator" },
+      });
+    } else {
+      // Written straight to the credential Account (same shape the backfill
+      // writes) because better-auth's own set-password endpoint is behind the
+      // admin plugin's adminMiddleware and this route has no session at all.
+      // A plain overwrite, never a merge: the old password must stop working.
+      const hash = await studioPassword.hash(password);
+      const credential = await prisma.account.findFirst({
+        where: { userId: existing.id, providerId: "credential" },
+        select: { id: true },
+      });
+      await prisma.$transaction([
+        credential
+          ? prisma.account.update({ where: { id: credential.id }, data: { password: hash } })
+          : prisma.account.create({
+              data: { userId: existing.id, accountId: existing.id, providerId: "credential", password: hash },
+            }),
+        // Union, never a replace — an identity that is also a member keeps that role.
+        prisma.user.update({
+          where: { id: existing.id },
+          data: { role: serializeRoles([...new Set([...parseRoles(existing.role), "admin" as const])]) },
+        }),
+        prisma.profile.upsert({
+          where: { email_role: { email, role: "admin" } },
+          create: { email, full_name: "Studio Administrator", role: "admin", user_id: existing.id },
+          update: { user_id: existing.id },
+        }),
+      ]);
+    }
   } catch (e) {
     return apiError(res, e, "bootstrap-admin", 500, "Database error");
   }

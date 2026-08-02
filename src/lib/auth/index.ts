@@ -98,6 +98,20 @@ const options = {
   emailAndPassword: {
     enabled: true,
     password: studioPassword,
+    // LOAD-BEARING, not a UX preference. /sign-up/email otherwise creates the
+    // session in the same call, and the no-Profile gate below would refuse it —
+    // registration would fail for every new member. The Profile cannot be
+    // provisioned in time by a `databaseHooks.user.create.after` hook either:
+    // better-auth runs the whole sign-up handler inside runWithTransaction and
+    // DEFERS every create.after hook (queueAfterTransactionHook) until that
+    // wrapper resolves, which is after session.create.before has already run.
+    // With auto sign-in off, signUpEmail returns User + credential Account, the
+    // caller writes the Profile (src/lib/auth/createStudioLogin.ts), and the
+    // member signs in at /login — which is what the signup form already does.
+    // Side effect: sign-up now answers 200 with a synthetic user for an email
+    // that already exists (email-enumeration protection), so every caller must
+    // pre-check the email itself. createStudioLogin does.
+    autoSignIn: false,
     // Enforced on sign-up / change / reset only — never on sign-in, so raising
     // this can never lock out an existing account with a shorter password.
     minPasswordLength: 8,

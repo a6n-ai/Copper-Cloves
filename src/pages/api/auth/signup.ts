@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import bcrypt from "bcryptjs";
+import { APIError } from "better-auth/api";
 import { Prisma } from "@/generated/prisma/client";
-import prisma from "@/lib/prisma";
+import { createStudioLogin, LoginEmailTakenError } from "@/lib/auth/createStudioLogin";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { welcomeEmail } from "@/lib/notifications/emailTemplates";
@@ -109,6 +109,20 @@ function parseSignupBody(
 }
 
 function respondWithSignupError(res: NextApiResponse, e: unknown): void {
+  if (e instanceof LoginEmailTakenError) {
+    res.status(409).json({ error: e.message });
+    return;
+  }
+  // better-auth rejects the password itself (min/max length) — its message is
+  // the only one that says which rule was broken, so pass it through.
+  if (e instanceof APIError) {
+    logger.error({ code: e.body?.code }, `[signup] ${e.body?.message ?? e.message}`);
+    res.status(e.statusCode >= 400 && e.statusCode < 500 ? e.statusCode : 400).json({
+      error: e.body?.message ?? "Could not create account.",
+    });
+    return;
+  }
+
   const { code, message } = prismaMeta(e);
 
   logger.error({ code: code || undefined }, `[signup] ${message}`);
@@ -169,20 +183,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Email and password are required." });
     }
 
-    const existing = await prisma.profile.findFirst({ where: { email, role: "user" } });
-    if (existing) {
-      return res.status(409).json({ error: "An account with this email already exists." });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    const createdProfile = await prisma.profile.create({
-      data: {
-        email,
+    // better-auth owns the credential (User + `credential` Account); the Profile
+    // it returns owns studio membership. Duplicate emails throw
+    // LoginEmailTakenError -> 409, the contract the signup form expects.
+    const createdProfile = await createStudioLogin({
+      email,
+      password,
+      name: full_name || email,
+      role: "user",
+      profile: {
         full_name: full_name ?? null,
         phone: typeof phone === "string" ? phone : null,
-        hashedPassword,
-        role: "user",
       },
     });
 

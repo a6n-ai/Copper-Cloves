@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
-import bcrypt from "bcryptjs";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { hasRole } from "@/lib/auth/roles";
+import { createStudioLogin, LoginEmailTakenError } from "@/lib/auth/createStudioLogin";
 
 function slugify(s: string): string {
   return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(?:^-+)|(?:-+$)/g, "");
@@ -36,33 +36,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (typeof managerEmail !== "string" || !managerEmail.includes("@")) {
       return res.status(400).json({ error: "valid managerEmail required" });
     }
-    if (typeof managerPassword !== "string" || managerPassword.length < 6) {
-      return res.status(400).json({ error: "managerPassword must be at least 6 characters" });
+    // 8, not 6 — better-auth's minPasswordLength rejects anything shorter and
+    // the login creation would fail after the Partner row already exists.
+    if (typeof managerPassword !== "string" || managerPassword.length < 8) {
+      return res.status(400).json({ error: "managerPassword must be at least 8 characters" });
     }
     const finalSlug = slugify(typeof slug === "string" && slug.trim() ? slug : name);
     const email = managerEmail.trim().toLowerCase();
 
     const [slugTaken, emailTaken] = await Promise.all([
       prisma.partner.findUnique({ where: { slug: finalSlug } }),
-      prisma.profile.findFirst({ where: { email, role: "partner" } }),
+      // Identity is keyed on email alone now, not on (email, role).
+      prisma.user.findUnique({ where: { email }, select: { id: true } }),
     ]);
     if (slugTaken) {
       return res.status(400).json({ error: "A partner with this slug already exists" });
     }
     if (emailTaken) {
-      return res.status(400).json({ error: "A partner login with this email already exists" });
+      return res.status(400).json({ error: "A login with this email already exists" });
     }
 
     const partner = await prisma.partner.create({ data: { name: name.trim(), slug: finalSlug } });
-    const profile = await prisma.profile.create({
-      data: {
+    let profile;
+    try {
+      profile = await createStudioLogin({
         email,
-        full_name: `${name.trim()} Manager`,
-        hashedPassword: await bcrypt.hash(managerPassword, 12),
+        password: managerPassword,
+        name: `${name.trim()} Manager`,
         role: "partner",
-        onboarding_completed: true,
-      },
-    });
+        profile: { full_name: `${name.trim()} Manager`, onboarding_completed: true },
+      });
+    } catch (e) {
+      // Otherwise the half-made partner squats the slug and the admin cannot retry.
+      await prisma.partner.delete({ where: { id: partner.id } }).catch(() => {});
+      if (e instanceof LoginEmailTakenError) return res.status(400).json({ error: e.message });
+      throw e;
+    }
     await prisma.partnerMember.create({
       data: { partner_id: partner.id, profile_id: profile.id, role: "manager" },
     });
@@ -89,19 +98,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const email = String(req.body?.email ?? "").trim().toLowerCase();
       const password = String(req.body?.password ?? "");
       if (!email.includes("@")) return res.status(400).json({ error: "valid email required" });
-      if (password.length < 6) return res.status(400).json({ error: "password must be at least 6 characters" });
-      if (await prisma.profile.findFirst({ where: { email, role: "partner" } })) {
-        return res.status(400).json({ error: "A partner login with this email already exists" });
-      }
-      const profile = await prisma.profile.create({
-        data: {
+      if (password.length < 8) return res.status(400).json({ error: "password must be at least 8 characters" });
+      let profile;
+      try {
+        profile = await createStudioLogin({
           email,
-          full_name: `${partner.name} Manager`,
-          hashedPassword: await bcrypt.hash(password, 12),
+          password,
+          name: `${partner.name} Manager`,
           role: "partner",
-          onboarding_completed: true,
-        },
-      });
+          profile: { full_name: `${partner.name} Manager`, onboarding_completed: true },
+        });
+      } catch (e) {
+        if (e instanceof LoginEmailTakenError) return res.status(400).json({ error: e.message });
+        throw e;
+      }
       await prisma.partnerMember.create({
         data: { partner_id: id, profile_id: profile.id, role: "manager" },
       });

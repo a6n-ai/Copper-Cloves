@@ -25,7 +25,8 @@ const signupSchema = z
       .string()
       .optional()
       .refine((v) => !v || isValidPhoneNumber(v), "Please enter a valid phone number"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    // 8 mirrors emailAndPassword.minPasswordLength — the server rejects shorter.
+    password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
     acceptAll: z
       .boolean()
@@ -310,7 +311,7 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
                     Suggested: <span className="font-medium text-charcoal">{generated}</span> — save it somewhere safe.
                   </p>
                 ) : (
-                  <p className="text-xs text-charcoal/50 font-body mt-1">Must be at least 6 characters</p>
+                  <p className="text-xs text-charcoal/50 font-body mt-1">Must be at least 8 characters</p>
                 )}
               </div>
 
