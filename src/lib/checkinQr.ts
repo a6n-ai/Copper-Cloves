@@ -17,6 +17,10 @@ export interface ScheduleQr {
 
 function deepLink(token: string): string {
   const origin = (process.env.BETTER_AUTH_URL?.trim() || "").replace(/\/$/, "");
+  // Throws rather than emitting a host-less "/checkin?t=..." — buildQr bakes
+  // this URL into a PNG that is uploaded to S3 and persisted as a File row,
+  // so an empty origin would be reused for the whole check-in window.
+  if (!origin) throw new Error("Server misconfigured: BETTER_AUTH_URL env var is not set");
   return `${origin}/checkin?t=${encodeURIComponent(token)}`;
 }
 
