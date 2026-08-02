@@ -2,7 +2,7 @@
  * The better-auth admin plugin stores roles in `user.role` as a
  * comma-separated string, so one identity can hold several. Order is PRIVILEGE
  * order (highest first) — it decides `primaryRole`, which drives the
- * post-login landing page. Copied from the old login-roles PORTAL_ORDER.
+ * post-login landing page. Copied from the retired portal-picker PORTAL_ORDER.
  */
 export const STUDIO_ROLES = ["admin", "chef", "partner", "instructor", "user"] as const;
 

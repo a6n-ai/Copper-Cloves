@@ -108,7 +108,6 @@
     "libphonenumber-js": "^1.13.2",
     "lucide-react": "^1.28.0",
     "next": "^16.2.12",
-    "next-auth": "^4.24.15",
     "node-schedule": "^2.1.1",
     "nodemailer": "^7.0.13",
     "pg": "^8.22.0",

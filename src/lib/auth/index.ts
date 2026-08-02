@@ -37,7 +37,7 @@ function fingerprintSalt(): string {
  * Stable per-device hash. User-Agent ONLY — including the client IP would sign
  * mobile users out on every WiFi<->cellular switch. Salted with the auth secret
  * so it cannot be forged offline from a known UA string.
- * Algorithm preserved verbatim from src/lib/sessionGuard.ts, which Task 13 deletes.
+ * Algorithm preserved verbatim from the retired session guard.
  */
 export function computeFingerprint(userAgent: string): string {
   return createHash("sha256").update(`${userAgent.toLowerCase()}|${fingerprintSalt()}`).digest("hex");

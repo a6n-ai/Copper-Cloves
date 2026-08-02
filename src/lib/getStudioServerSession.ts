@@ -13,9 +13,9 @@ export interface StudioSession {
   user: {
     id: string;
     role: string;
-    // Optional/nullable to stay assignable FROM next-auth's `Session` — client
-    // components still hold one until Task 12 and pass it to sessionScalars.
-    // `id` and `role` stay required: those are the two this wrapper guarantees.
+    // Optional/nullable so a client-held session object stays assignable here
+    // when passed to sessionScalars. `id` and `role` stay required: those are
+    // the two this wrapper guarantees.
     email?: string | null;
     name?: string | null;
     partner_id?: string | null;
@@ -44,8 +44,8 @@ export async function getStudioServerSession(
     // No fingerprint => this row did NOT come through databaseHooks.session.create
     // (which sets one unconditionally, and the field is `input: false` so nothing
     // else can). A direct DB write, a script, or a future plugin path that bypasses
-    // the hook is exactly what must not be trusted. Reject, same as sessionGuard
-    // rejected a token with no `sid`. There is no legacy population to drain — the
+    // the hook is exactly what must not be trusted. Reject, same as the retired
+    // session guard rejected a token with no `sid`. There is no legacy population to drain — the
     // sessions table was created empty and better-auth has never served production.
     const stored = result.session.fingerprint;
     const ua = (req.headers["user-agent"] as string | undefined) ?? "";
