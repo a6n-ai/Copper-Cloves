@@ -10,6 +10,10 @@
  */
 export type * from './models/Profile'
 export type * from './models/UserSession'
+export type * from './models/User'
+export type * from './models/Session'
+export type * from './models/Account'
+export type * from './models/Verification'
 export type * from './models/Coupon'
 export type * from './models/CouponRedemption'
 export type * from './models/RetailProduct'

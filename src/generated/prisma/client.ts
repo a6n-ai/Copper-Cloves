@@ -55,6 +55,32 @@ export type Profile = Prisma.ProfileModel
  */
 export type UserSession = Prisma.UserSessionModel
 /**
+ * Model User
+ * better-auth identity. One row per person (keyed on email). Studio membership,
+ * roles-as-data, and every domain FK live on `Profile`, which points here.
+ * `role` is the admin plugin's comma-separated role string — see src/lib/auth/roles.ts.
+ */
+export type User = Prisma.UserModel
+/**
+ * Model Session
+ * better-auth session. Replaces the hand-rolled `user_sessions` table.
+ * `fingerprint` is a UA hash binding the session to the device it was issued
+ * to (defence added after the 2026-06-30 session-bleed incident); better-auth
+ * has no native equivalent. GPS columns migrated off `user_sessions`.
+ */
+export type Session = Prisma.SessionModel
+/**
+ * Model Account
+ * Credential and OAuth accounts. `password` holds the bcrypt hash migrated
+ * verbatim from `profiles.hashedPassword` (providerId = "credential").
+ */
+export type Account = Prisma.AccountModel
+/**
+ * Model Verification
+ * Short-lived tokens: email verification, OTP codes, magic links.
+ */
+export type Verification = Prisma.VerificationModel
+/**
  * Model Coupon
  * Promotional codes: food (café), ecommerce (boutique), class_pass, or studio_pass.
  */
