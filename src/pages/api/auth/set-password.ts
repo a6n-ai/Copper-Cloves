@@ -1,7 +1,7 @@
 // src/pages/api/auth/set-password.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { attachStudioCredential, hasStudioCredential } from "@/lib/auth/studioIdentity";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
@@ -12,19 +12,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!record || record.used) return res.status(400).json({ error: "Invalid or already used link" });
     if (new Date() > record.expires_at) return res.status(400).json({ error: "This link has expired" });
 
-    // Guard: only for passwordless accounts. EITHER signal counts as activated —
-    // an identity (what this route will mint after Task 11b) or the legacy
-    // column (all it writes today, so `user_id` alone would never fire for the
-    // invite Profiles this route actually serves). Task 13 drops
-    // `hashedPassword`: delete that clause then, the `user_id` one is already
-    // right. Both are needed while the two halves coexist.
+    // Guard: only for passwordless accounts. "Activated" is now a CREDENTIAL, not
+    // a `user_id` — invite placeholders are created with an identity up front
+    // (resolveStudioUser) so `user_id` alone would reject every legitimate
+    // activation. hasStudioCredential also honours the legacy column until
+    // Task 13 drops it.
     const targetRole = record.role ?? "user";
     const profile = await prisma.profile.findFirst({
       where: { email: record.email, role: targetRole },
       select: { user_id: true, hashedPassword: true },
     });
     if (!profile) return res.status(400).json({ error: "Account not found" });
-    if (profile.user_id || profile.hashedPassword) {
+    if (await hasStudioCredential(profile)) {
       return res.status(400).json({ error: "already_activated" });
     }
 
@@ -47,22 +46,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: { id: true, user_id: true, hashedPassword: true },
     });
     if (!profile) return res.status(400).json({ error: "Account not found" });
-    // Guard: only for passwordless accounts. EITHER signal counts as activated —
-    // an identity (user_id, minted after Task 11b) or the legacy column
-    // (hashedPassword, all this writes today). Both needed while both exist.
-    if (profile.user_id || profile.hashedPassword) return res.status(400).json({ error: "already_activated" });
+    if (await hasStudioCredential(profile)) return res.status(400).json({ error: "already_activated" });
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-    await prisma.$transaction([
-      prisma.profile.updateMany({
-        where: { email: record.email, role: targetRole },
-        data: { hashedPassword },
-      }),
-      prisma.passwordResetToken.update({
-        where: { token },
-        data: { used: true },
-      }),
-    ]);
+    // Writes the better-auth credential Account (and mints the identity if this
+    // is an older placeholder Profile that has none). Burning the token is a
+    // separate write: the credential is what the member needs, and a token left
+    // unburned by a crash between the two is still bounded by its own expiry —
+    // the reverse order would strand them with a used link and no password.
+    await attachStudioCredential({ profileId: profile.id, password });
+    await prisma.passwordResetToken.update({ where: { token }, data: { used: true } });
 
     return res.status(200).json({ ok: true, email: record.email });
   }

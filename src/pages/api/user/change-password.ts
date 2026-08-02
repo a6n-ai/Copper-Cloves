@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { logActivity } from "@/lib/activityLog";
+import { studioPassword } from "@/lib/auth/password";
+import { attachStudioCredential } from "@/lib/auth/studioIdentity";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -10,7 +11,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method !== "POST") return res.status(405).end();
 
-  const userId = (session.user as { id: string }).id;
+  // session.user.id is a Profile id.
+  const profileId = (session.user as { id: string }).id;
   const { currentPassword, newPassword } = req.body ?? {};
 
   if (typeof newPassword !== "string" || newPassword.length < 8) {
@@ -21,10 +23,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const profile = await prisma.profile.findUnique({
-    where: { id: userId },
-    select: { hashedPassword: true },
+    where: { id: profileId },
+    select: { hashedPassword: true, user_id: true },
   });
-  if (!profile?.hashedPassword) {
+  // The credential Account is authoritative; the legacy column is the fallback
+  // for a Profile the backfill has not reached. studioPassword.verify reads both
+  // bcrypt and scrypt, so either stored form checks out.
+  const credential = profile?.user_id
+    ? await prisma.account.findFirst({
+        where: { userId: profile.user_id, providerId: "credential" },
+        select: { password: true },
+      })
+    : null;
+  const storedHash = credential?.password ?? profile?.hashedPassword ?? null;
+  if (!storedHash) {
     return res.status(400).json({ error: "Password login is not set for this account." });
   }
 
@@ -32,14 +44,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Current password is required." });
   }
 
-  const ok = await bcrypt.compare(currentPassword, profile.hashedPassword);
+  const ok = await studioPassword.verify({ hash: storedHash, password: currentPassword });
   if (!ok) return res.status(400).json({ error: "Current password is incorrect." });
 
-  const hashedPassword = await bcrypt.hash(newPassword, 12);
-  await prisma.profile.update({
-    where: { id: userId },
-    data: { hashedPassword },
-  });
+  // Overwrites the credential and clears the legacy column, so the old password
+  // stops working on BOTH sign-in paths.
+  await attachStudioCredential({ profileId, password: newPassword });
 
   await logActivity({ req, action: "auth.password_changed" });
 
