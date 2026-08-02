@@ -14,6 +14,7 @@ import {
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { cn } from "@/lib/utils";
+import { primaryRole } from "@/lib/auth/roles";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 
@@ -65,7 +66,8 @@ const DASH_HREF_BY_ROLE: Record<string, string> = {
   partner: "/partner/dashboard",
   instructor: "/instructor/dashboard",
 };
-function dashHrefForRole(role?: string) {
+function dashHrefForRole(rawRole?: string) {
+  const role = primaryRole(rawRole);
   return (role && DASH_HREF_BY_ROLE[role]) || "/portal/dashboard";
 }
 

@@ -7,7 +7,7 @@ import { APIError } from "better-auth/api";
 import prisma from "@/lib/prisma";
 import logger from "@/lib/logger";
 import { studioPassword } from "./password";
-import { primaryRole, parseRoles } from "./roles";
+import { parseRoles, hasRole } from "./roles";
 
 /** Absolute session lifetime. Matches the old SESSION_MAX_AGE_SECONDS. */
 const SESSION_MAX_AGE_S = 2 * 24 * 60 * 60;
@@ -155,7 +155,6 @@ export const auth = betterAuth({
     // second round trip. NOTE: this callback is never cached — it runs on every
     // authenticated request, so keep the query count minimal.
     customSession(async ({ user, session }) => {
-      const role = primaryRole(user.role);
       // NOT filtered by role. One Profile per identity is the invariant (Task 13
       // enforces it as @@unique([user_id, role])); filtering by primaryRole picked
       // the WRONG row for a multi-role identity — an "instructor,user" login
@@ -166,10 +165,10 @@ export const auth = betterAuth({
         select: { id: true, onboarding_completed: true },
       });
       const [instructor, membership] = await Promise.all([
-        role === "instructor" && profile
+        hasRole(user.role, "instructor") && profile
           ? prisma.instructor.findFirst({ where: { profile_id: profile.id }, select: { id: true } })
           : Promise.resolve(null),
-        role === "partner" && profile
+        hasRole(user.role, "partner") && profile
           ? prisma.partnerMember.findFirst({ where: { profile_id: profile.id }, select: { partner_id: true } })
           : Promise.resolve(null),
       ]);

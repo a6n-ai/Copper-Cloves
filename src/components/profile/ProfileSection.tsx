@@ -107,6 +107,14 @@ function ProfileSkeleton({ memberExtras }: { memberExtras: boolean }) {
 
 interface ProfileSectionProps {
   role: ProfileRole;
+  /**
+   * Whether this identity holds the member ("user") role — gates DOB/gender/
+   * questionnaire fields. Passed separately from `role` (the page-shell/title
+   * role) because a multi-role session's *primary* role can outrank "user"
+   * (e.g. "instructor,user" → primary "instructor") while the person still
+   * holds membership and should still see their member fields.
+   */
+  isMember: boolean;
   /** Override the heading. Defaults to "Your Profile". */
   title?: string;
   subtitle?: string;
@@ -129,8 +137,7 @@ interface ProfileData {
  * - Member role additionally gets: DOB, gender, health questionnaire.
  *   (Pause-subscription requests live on their own /portal/pause page.)
  */
-export function ProfileSection({ role, title, subtitle }: ProfileSectionProps) {
-  const isMember = role === "user";
+export function ProfileSection({ isMember, title, subtitle }: ProfileSectionProps) {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 

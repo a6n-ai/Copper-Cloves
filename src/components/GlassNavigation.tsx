@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { cdnUrl } from "@/lib/cdnUrl";
+import { primaryRole } from "@/lib/auth/roles";
 import GlassSurface from "@/components/GlassSurface";
 
 const NAV_LINKS = [
@@ -31,8 +32,10 @@ const DASH_HREF_BY_ROLE: Record<string, string> = {
   partner: "/partner/dashboard",
   instructor: "/instructor/dashboard",
 };
-const dashHrefForRole = (role?: string) =>
-  (role && DASH_HREF_BY_ROLE[role]) || "/portal/dashboard";
+const dashHrefForRole = (rawRole?: string) => {
+  const role = primaryRole(rawRole);
+  return (role && DASH_HREF_BY_ROLE[role]) || "/portal/dashboard";
+};
 
 /**
  * Floating "liquid glass" nav bar for public pages (reactbits GlassSurface).
