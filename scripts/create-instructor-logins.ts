@@ -48,19 +48,25 @@ async function main() {
           },
         });
 
-    // The credential lives on the better-auth Account; this also mints the
-    // identity when the Profile has none.
-    await attachStudioCredential({ profileId: profile.id, password: PASSWORD });
+    // overwrite: false — this CREATES logins. If the email already has a Studio
+    // identity with a password (a member who also instructs), it keeps it;
+    // clobbering it with the shared literal below would break their login.
+    const { written } = await attachStudioCredential({
+      profileId: profile.id,
+      password: PASSWORD,
+      overwrite: false,
+    });
 
     if (inst.profile_id !== profile.id) {
       await prisma.instructor.update({ where: { id: inst.id }, data: { profile_id: profile.id } });
     }
 
     const action = existing ? "updated existing profile" : "created profile";
-    console.log(`✅ ${inst.name ?? "(no name)"} <${lower}> — ${action} (${profile.id}), linked`);
+    const pw = written ? `password set to ${PASSWORD}` : "KEPT EXISTING PASSWORD";
+    console.log(`✅ ${inst.name ?? "(no name)"} <${lower}> — ${action} (${profile.id}), linked, ${pw}`);
   }
 
-  console.log(`\nDone. Login password for all: ${PASSWORD}`);
+  console.log(`\nDone. Password ${PASSWORD} applied only where the line above says so.`);
 }
 
 main()

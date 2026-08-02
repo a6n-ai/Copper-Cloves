@@ -26,10 +26,12 @@ async function main() {
   const profile = await prisma.profile.upsert({
     where: { email_role: { email, role: "chef" } },
     create: { email, full_name: "Kitchen Team", role: "chef" },
+    // Nothing to update: the password lives on the credential Account now.
     update: {},
     select: { id: true },
   });
-  await attachStudioCredential({ profileId: profile.id, password });
+  // overwrite: true — re-running this seed is how the chef password is reset.
+  await attachStudioCredential({ profileId: profile.id, password, overwrite: true });
 
   console.log("");
   console.log("Chef (kitchen) profile is ready.");

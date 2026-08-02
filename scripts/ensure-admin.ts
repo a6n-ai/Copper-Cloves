@@ -28,10 +28,14 @@ async function main() {
   const profile = await prisma.profile.upsert({
     where: { email_role: { email, role: "admin" } },
     create: { email, full_name: "Studio Administrator", role: "admin" },
+    // Nothing to update: the password is not on this row any more, and the
+    // name/role are already what they should be. The upsert exists purely to
+    // guarantee the Profile is there before the credential is written.
     update: {},
     select: { id: true },
   });
-  await attachStudioCredential({ profileId: profile.id, password });
+  // overwrite: true — this IS the "I have lost admin access" reset.
+  await attachStudioCredential({ profileId: profile.id, password, overwrite: true });
 
   console.log("");
   console.log("Admin profile is ready.");

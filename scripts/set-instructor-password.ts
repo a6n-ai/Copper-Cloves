@@ -41,7 +41,8 @@ async function main() {
   // The credential lives on the better-auth Account, not on the Profile —
   // attachStudioCredential also mints the identity if this Profile has none.
   const { attachStudioCredential } = await import("../src/lib/auth/studioIdentity");
-  await attachStudioCredential({ profileId, password });
+  // overwrite: true — the script is literally "set or reset the password".
+  await attachStudioCredential({ profileId, password, overwrite: true });
   if (instructor.profile_id !== profileId) {
     await prisma.instructor.update({ where: { id: instructor.id }, data: { profile_id: profileId } });
   }
