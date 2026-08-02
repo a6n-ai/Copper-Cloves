@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import bcrypt from "bcryptjs";
 import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { apiError } from "@/lib/apiError";
 import { hasRole } from "@/lib/auth/roles";
+import { createStudioLogin, LoginEmailTakenError } from "@/lib/auth/createStudioLogin";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -54,22 +54,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const existing = await prisma.profile.findFirst({ where: { email, role: "user" } });
   if (existing) return res.status(409).json({ error: "An account with this email already exists." });
 
+  // better-auth owns the credential (User + `credential` Account); the Profile
+  // it returns owns studio membership. It cannot run inside the transaction
+  // below (auth.api opens its own), so the account is created first and rolled
+  // back by hand if the package half fails — preserving the all-or-nothing
+  // behaviour the single transaction used to give.
+  let memberProfile: Awaited<ReturnType<typeof createStudioLogin>> | undefined;
   try {
+    memberProfile = await createStudioLogin({
+      email,
+      password,
+      name: full_name || email,
+      role: "user",
+      profile: {
+        full_name: full_name || null,
+        phone,
+        pass_type,
+        start_date: start_date_raw ? new Date(start_date_raw) : undefined,
+      },
+    });
+
     const profile = await prisma.$transaction(async (tx) => {
-      const hashedPassword = await bcrypt.hash(password, 12);
-
-      const user = await tx.profile.create({
-        data: {
-          email,
-          full_name: full_name || null,
-          phone,
-          hashedPassword,
-          role: "user",
-          pass_type,
-          start_date: start_date_raw ? new Date(start_date_raw) : undefined,
-        },
-      });
-
       let pkgTypeId = package_type_id;
       if (!pkgTypeId) {
         const types = await tx.packageType.findMany({ orderBy: { price: "asc" }, take: 40 });
@@ -131,7 +136,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await tx.userPackage.create({
         data: {
-          user_id: user.id,
+          user_id: memberProfile.id,
           package_type_id: pkgTypeId,
           credits_remaining: pass_type === "class_pass" ? creditsForClass : null,
           credits_total: pass_type === "class_pass" ? creditsForClass : null,
@@ -141,11 +146,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      return user;
+      return memberProfile;
     });
 
     return res.status(201).json({ id: profile.id, email: profile.email });
   } catch (e) {
+    // Deleting the User cascades the credential Account and the Profile, so a
+    // failed package step leaves nothing behind — and does not squat the email.
+    if (memberProfile?.user_id) {
+      await prisma.user.delete({ where: { id: memberProfile.user_id } }).catch(() => {});
+    }
+    if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
     const msg = e instanceof Error ? e.message : String(e);
     if (msg === "NO_PACKAGE_TYPES") {
       return res.status(400).json({

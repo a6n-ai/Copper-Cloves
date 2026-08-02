@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import bcrypt from "bcryptjs";
 import { Prisma, PaymentMethod, PaymentStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
@@ -11,6 +10,7 @@ import { logActivity } from "@/lib/activityLog";
 import logger from "@/lib/logger";
 import { apiError } from "@/lib/apiError";
 import { hasRole } from "@/lib/auth/roles";
+import { createStudioLogin, LoginEmailTakenError } from "@/lib/auth/createStudioLogin";
 
 /**
  * Atomic member onboarding: create the account and (optionally) assign a pass +
@@ -96,9 +96,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const existing = await prisma.profile.findFirst({ where: { email, role: "user" } });
   if (existing) return res.status(409).json({ error: "An account with this email already exists." });
 
+  let profile: Awaited<ReturnType<typeof createStudioLogin>> | undefined;
   try {
-    const hashedPassword = await bcrypt.hash(password, 12);
-
     // Resolve the PackageType + expiry (reads) before opening the transaction.
     let pkgTypeId: string | null = null;
     let expiry: Date | null = null;
@@ -135,21 +134,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (Number.isNaN(startDate.getTime())) return res.status(400).json({ error: "Invalid start date" });
     }
 
-    // All writes in one transaction — account + pass + payment commit together or
-    // not at all.
-    const created = await prisma.$transaction(async (tx) => {
-      const profile = await tx.profile.create({
-        data: {
-          email,
-          full_name: full_name || null,
-          phone,
-          hashedPassword,
-          role: "user",
-          ...(assignPass ? { pass_type: passType } : {}),
-          ...(startDate ? { start_date: startDate } : {}),
-        },
-      });
+    // better-auth owns the credential (User + `credential` Account), and auth.api
+    // opens its own transaction, so the account cannot be created inside the one
+    // below. It is rolled back by hand in the catch instead — deleting the User
+    // cascades the Account and the Profile, keeping the all-or-nothing guarantee
+    // this route exists for (known-issue #9).
+    profile = await createStudioLogin({
+      email,
+      password,
+      name: full_name || email,
+      role: "user",
+      profile: {
+        full_name: full_name || null,
+        phone,
+        ...(assignPass ? { pass_type: passType } : {}),
+        ...(startDate ? { start_date: startDate } : {}),
+      },
+    });
 
+    // Pass + payment commit together or not at all.
+    const created = await prisma.$transaction(async (tx) => {
       let userPackageId: string | null = null;
       if (assignPass && pkgTypeId && expiry) {
         const up = await tx.userPackage.create({
@@ -219,6 +223,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(201).json({ id: created.id, email: created.email, passAssigned: assignPass });
   } catch (e) {
+    if (profile?.user_id) {
+      await prisma.user.delete({ where: { id: profile.user_id } }).catch(() => {});
+    }
+    if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return res.status(409).json({ error: "An account with this email already exists." });
     }

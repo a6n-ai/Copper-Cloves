@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
-import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { isStudioAdminProfileRole } from "@/lib/isStudioAdminProfile";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
@@ -17,6 +16,7 @@ import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { welcomeSetPasswordEmail } from "@/lib/notifications/emailTemplates";
 import logger from "@/lib/logger";
 import { hasRole } from "@/lib/auth/roles";
+import { createStudioLogin, LoginEmailTakenError } from "@/lib/auth/createStudioLogin";
 
 const WELCOME_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const DEFAULT_PAGE_SIZE = 10;
@@ -311,25 +311,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Member never knows this password — they set their own via the welcome link.
     const randomPassword = crypto.randomBytes(24).toString("hex");
-    const hashedPassword = await bcrypt.hash(randomPassword, 12);
     const token = crypto.randomBytes(32).toString("hex");
 
-    // Profile + welcome token land together or neither does — no orphan account
-    // with no way to set a password.
+    // Login + welcome token land together or neither does — no orphan account
+    // with no way to set a password. createStudioLogin cannot join the token's
+    // transaction (auth.api opens its own), so the User is deleted by hand on
+    // failure, cascading its credential Account and Profile.
     let created;
     try {
-      created = await prisma.$transaction(async (tx) => {
-        const profile = await tx.profile.create({
-          data: { email, full_name, phone, hashedPassword, role: "user" },
-        });
-        await tx.passwordResetToken.create({
-          data: { email, role: "user", token, expires_at: new Date(Date.now() + WELCOME_TOKEN_TTL_MS) },
-        });
-        return profile;
+      created = await createStudioLogin({
+        email,
+        password: randomPassword,
+        name: full_name,
+        role: "user",
+        profile: { full_name, phone },
+      });
+      await prisma.passwordResetToken.create({
+        data: { email, role: "user", token, expires_at: new Date(Date.now() + WELCOME_TOKEN_TTL_MS) },
       });
     } catch (e) {
-      // Lost the read-then-write race against @@unique([email, role]).
-      if ((e as { code?: string }).code === "P2002") {
+      if (created?.user_id) {
+        await prisma.user.delete({ where: { id: created.user_id } }).catch(() => {});
+      }
+      // Lost the read-then-write race against the unique index.
+      if (e instanceof LoginEmailTakenError || (e as { code?: string }).code === "P2002") {
         return res.status(409).json({ error: "A member with this email already exists." });
       }
       logger.error({ err: e }, "[admin/members POST] member create failed");

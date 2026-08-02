@@ -6,6 +6,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendStudioEmail } from "@/lib/notifications/email";
 import logger from "@/lib/logger";
 import { hasRole } from "@/lib/auth/roles";
+import { attachStudioCredential } from "@/lib/auth/studioIdentity";
 
 function rateOverride(v: unknown): number | null | undefined {
   if (v === undefined) return undefined; // not provided → leave unchanged
@@ -52,7 +53,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const body = req.body ?? {};
     const email = typeof body.email === "string" ? body.email.trim() : "";
 
-    // Generate + hash a one-time password for the new instructor login.
+    // One-time password for the new instructor login. The bcrypt hash on the
+    // Instructor row is legacy and read by nothing on the sign-in path; the
+    // usable credential is written by attachStudioCredential below.
     const tempPassword = generateTempPassword();
     const hashed_password = await bcrypt.hash(tempPassword, 12);
 
@@ -74,17 +77,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const profile = existing
         ? await prisma.profile.update({
             where: { id: existing.id },
-            data: { hashedPassword: hashed_password, full_name: instructor.name ?? undefined, onboarding_completed: true },
+            data: { full_name: instructor.name ?? undefined, onboarding_completed: true },
           })
         : await prisma.profile.create({
             data: {
               email: lower,
               full_name: instructor.name ?? null,
-              hashedPassword: hashed_password,
+              // Identity resolved by attachStudioCredential below — which adopts
+              // an existing User for this email (a member becoming an
+              // instructor) rather than failing on User.email's unique index.
               role: "instructor",
               onboarding_completed: true,
             },
           });
+      await attachStudioCredential({ profileId: profile.id, password: tempPassword });
       await prisma.instructor.update({ where: { id: instructor.id }, data: { profile_id: profile.id } });
     }
 
