@@ -64,7 +64,9 @@
     "db:catalog:dry": "tsx scripts/migrate-package-catalog.ts",
     "db:catalog:apply": "tsx scripts/migrate-package-catalog.ts --apply",
     "db:members:dry": "tsx scripts/migrate-member-packages.ts",
-    "db:members:apply": "tsx scripts/migrate-member-packages.ts --apply"
+    "db:members:apply": "tsx scripts/migrate-member-packages.ts --apply",
+    "backfill:better-auth": "tsx scripts/backfill-better-auth.ts",
+    "verify:better-auth": "tsx scripts/verify-better-auth-backfill.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1049.0",
