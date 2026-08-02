@@ -4,7 +4,6 @@
  */
 import { config } from "dotenv";
 import { resolve } from "node:path";
-import bcrypt from "bcryptjs";
 
 config({ path: resolve(process.cwd(), ".env") });
 config({ path: resolve(process.cwd(), ".env.local"), override: true });
@@ -26,12 +25,6 @@ async function main() {
     process.exit(1);
   }
 
-  const hashed = await bcrypt.hash(password, 12);
-  await prisma.instructor.update({
-    where: { id: instructor.id },
-    data: { hashed_password: hashed },
-  });
-
   // Unified login: the actual login lives on the linked role "instructor" Profile.
   const lower = (instructor.email ?? email).trim().toLowerCase();
   let profileId = instructor.profile_id;
@@ -39,14 +32,16 @@ async function main() {
     const existing = await prisma.profile.findFirst({ where: { email: lower, role: "instructor" }, select: { id: true } });
     profileId = existing?.id ?? null;
   }
-  if (profileId) {
-    await prisma.profile.update({ where: { id: profileId }, data: { hashedPassword: hashed } });
-  } else {
+  if (!profileId) {
     const created = await prisma.profile.create({
-      data: { email: lower, full_name: instructor.name, hashedPassword: hashed, role: "instructor", onboarding_completed: true },
+      data: { email: lower, full_name: instructor.name, role: "instructor", onboarding_completed: true },
     });
     profileId = created.id;
   }
+  // The credential lives on the better-auth Account, not on the Profile —
+  // attachStudioCredential also mints the identity if this Profile has none.
+  const { attachStudioCredential } = await import("../src/lib/auth/studioIdentity");
+  await attachStudioCredential({ profileId, password });
   if (instructor.profile_id !== profileId) {
     await prisma.instructor.update({ where: { id: instructor.id }, data: { profile_id: profileId } });
   }

@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import { attachStudioCredential } from "@/lib/auth/studioIdentity";
 
 /** Instructors to provision a login for (matched by their Instructor.email). */
 const TARGET_EMAILS = [
@@ -16,8 +16,6 @@ const TARGET_EMAILS = [
 const PASSWORD = "Qwerty@123";
 
 async function main() {
-  const hashed = await bcrypt.hash(PASSWORD, 12);
-
   for (const rawEmail of TARGET_EMAILS) {
     const lower = rawEmail.toLowerCase();
 
@@ -39,17 +37,20 @@ async function main() {
     const profile = existing
       ? await prisma.profile.update({
           where: { id: existing.id },
-          data: { hashedPassword: hashed, full_name: inst.name ?? undefined, onboarding_completed: true },
+          data: { full_name: inst.name ?? undefined, onboarding_completed: true },
         })
       : await prisma.profile.create({
           data: {
             email: lower,
             full_name: inst.name ?? null,
-            hashedPassword: hashed,
             role: "instructor",
             onboarding_completed: true,
           },
         });
+
+    // The credential lives on the better-auth Account; this also mints the
+    // identity when the Profile has none.
+    await attachStudioCredential({ profileId: profile.id, password: PASSWORD });
 
     if (inst.profile_id !== profile.id) {
       await prisma.instructor.update({ where: { id: inst.id }, data: { profile_id: profile.id } });

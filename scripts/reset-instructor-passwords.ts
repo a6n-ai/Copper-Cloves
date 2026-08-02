@@ -1,11 +1,9 @@
 import prisma from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import { attachStudioCredential } from "@/lib/auth/studioIdentity";
 
 const PASSWORD = "Qwerty@123";
 
 async function main() {
-  const hashed = await bcrypt.hash(PASSWORD, 12);
-
   const instructors = await prisma.instructor.findMany({
     where: { profile_id: { not: null } },
     select: { id: true, name: true, email: true, profile_id: true },
@@ -17,9 +15,12 @@ async function main() {
   for (const inst of instructors) {
     const profile = await prisma.profile.update({
       where: { id: inst.profile_id! },
-      data: { hashedPassword: hashed, onboarding_completed: true },
-      select: { email: true },
+      data: { onboarding_completed: true },
+      select: { id: true, email: true },
     });
+    // Writes the better-auth credential Account (and clears the legacy column),
+    // which is the only thing sign-in reads.
+    await attachStudioCredential({ profileId: profile.id, password: PASSWORD });
     rows.push({ name: inst.name ?? "(no name)", email: profile.email });
   }
 
