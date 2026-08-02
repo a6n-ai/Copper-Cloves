@@ -13,14 +13,34 @@ import { primaryRole, parseRoles } from "./roles";
 const SESSION_MAX_AGE_S = 2 * 24 * 60 * 60;
 
 /**
+ * The salt for computeFingerprint. Resolved lazily and loudly.
+ *
+ * better-auth itself boots on `options.secret || BETTER_AUTH_SECRET || AUTH_SECRET`,
+ * or on the `secrets[]` / BETTER_AUTH_SECRETS rotation array — so a deployment can
+ * have a perfectly strong auth secret while BETTER_AUTH_SECRET is unset. Falling
+ * back to "" there would leave the fingerprint unsalted and offline-precomputable
+ * with no warning, which is exactly the defence the session-bleed incident bought.
+ * Throw instead. Called only on the request path, never at module load, so this
+ * cannot fire during `next build` when env is not loaded.
+ */
+function fingerprintSalt(): string {
+  const secret = process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error(
+      "[auth] BETTER_AUTH_SECRET (or AUTH_SECRET) is not set — refusing to issue an unsalted session fingerprint.",
+    );
+  }
+  return secret;
+}
+
+/**
  * Stable per-device hash. User-Agent ONLY — including the client IP would sign
  * mobile users out on every WiFi<->cellular switch. Salted with the auth secret
  * so it cannot be forged offline from a known UA string.
- * Preserved verbatim from the retired src/lib/sessionGuard.ts.
+ * Algorithm preserved verbatim from src/lib/sessionGuard.ts, which Task 13 deletes.
  */
 export function computeFingerprint(userAgent: string): string {
-  const secret = process.env.BETTER_AUTH_SECRET ?? "";
-  return createHash("sha256").update(`${userAgent.toLowerCase()}|${secret}`).digest("hex");
+  return createHash("sha256").update(`${userAgent.toLowerCase()}|${fingerprintSalt()}`).digest("hex");
 }
 
 /**
@@ -95,13 +115,20 @@ const options = {
           const ua = ctx?.headers?.get("user-agent") ?? "";
           const user = await prisma.user.findUnique({
             where: { id: session.userId },
-            select: { banned: true, role: true },
+            select: { banned: true, role: true, profiles: { select: { id: true }, take: 1 } },
           });
           if (user?.banned) {
             throw new APIError("FORBIDDEN", { message: "This account is not active. Contact support." });
           }
           if (!parseRoles(user?.role).length) {
             logger.error({ userId: session.userId }, "[auth] refusing session: user has no valid role");
+            throw new APIError("FORBIDDEN", { message: "This account is not configured. Contact support." });
+          }
+          // No Profile means customSession would hand back profile_id: null, and
+          // Task 8 maps that into session.user.id — which ~40 routes use directly
+          // as a Prisma FK. Fail once at sign-in rather than at an arbitrary route.
+          if (!user?.profiles.length) {
+            logger.error({ userId: session.userId }, "[auth] refusing session: user has no Profile row");
             throw new APIError("FORBIDDEN", { message: "This account is not configured. Contact support." });
           }
           return { data: { ...session, fingerprint: computeFingerprint(ua) } };
@@ -123,8 +150,13 @@ export const auth = betterAuth({
     // authenticated request, so keep the query count minimal.
     customSession(async ({ user, session }) => {
       const role = primaryRole(user.role);
+      // NOT filtered by role. One Profile per identity is the invariant (Task 13
+      // enforces it as @@unique([user_id, role])); filtering by primaryRole picked
+      // the WRONG row for a multi-role identity — an "instructor,user" login
+      // resolved to the instructor Profile while every member-facing FK (bookings,
+      // packages, credits, streaks, badges) hung off the other one. Do not reinstate.
       const profile = await prisma.profile.findFirst({
-        where: { user_id: user.id, ...(role ? { role } : {}) },
+        where: { user_id: user.id },
         select: { id: true, onboarding_completed: true },
       });
       const [instructor, membership] = await Promise.all([
