@@ -105,8 +105,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           : prisma.account.create({
               data: { userId: existing.id, accountId: existing.id, providerId: "credential", password: hash },
             }),
-        // Normalise, never union: the guard above already established this is
-        // the admin identity, so the role set is exactly ["admin"].
+        // Normalise, never union: the guard above only established that the
+        // role set CONTAINS admin, so this rewrites it to exactly ["admin"],
+        // dropping any other role a legacy multi-role row may still carry.
         prisma.user.update({ where: { id: existing.id }, data: { role: serializeRoles(["admin"]) } }),
         prisma.profile.upsert({
           where: { email_role: { email, role: "admin" } },

@@ -25,6 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     "STUDIO_DATABASE_URL",
     "DATABASE_URL",
     "BETTER_AUTH_URL",
+    // NextAuth still serves every session until the cutover — operators need both.
+    "NEXTAUTH_URL",
     "NEXTAUTH_SECRET",
     "RAZORPAY_KEY_ID",
     "RAZORPAY_KEY_SECRET",

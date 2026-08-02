@@ -85,7 +85,13 @@ export async function resolveStudioUser({
     // somehow holds two roles is adopted for either rather than being locked
     // out of both.
     if (!hasRole(existing.role, role)) {
-      throw new LoginEmailTakenError(email, primaryRole(existing.role));
+      const conflicting = primaryRole(existing.role);
+      // No parseable role means the 409 carries no role at all and the operator
+      // is left with a generic message — log the raw value so it is diagnosable.
+      if (!conflicting) {
+        logger.warn({ userId: existing.id, rawRole: existing.role }, "[auth] identity has an unparseable role");
+      }
+      throw new LoginEmailTakenError(email, conflicting);
     }
     return { userId: existing.id, created: false };
   }
