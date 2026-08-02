@@ -45,6 +45,7 @@
     "instructor:set-password": "tsx scripts/set-instructor-password.ts",
     "scheduler": "tsx scripts/scheduler.ts",
     "test:payout": "tsx scripts/test-payoutCalc.ts",
+    "test:auth": "tsx scripts/test-auth-password.ts && tsx scripts/test-auth-roles.ts",
     "test:refund-pills": "tsx scripts/test-refund-pills.ts",
     "test:dropin-pass": "tsx scripts/test-dropin-pass.ts",
     "test:cafe-discount": "tsx scripts/test-cafeDiscount.ts",
@@ -68,6 +69,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1049.0",
     "@aws-sdk/s3-request-presigner": "^3.1049.0",
+    "@better-auth/prisma-adapter": "^1.6.25",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
@@ -93,6 +95,7 @@
     "@types/pg": "^8.20.0",
     "@yudiel/react-qr-scanner": "^2.6.0",
     "bcryptjs": "^3.0.3",
+    "better-auth": "^1.6.25",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
