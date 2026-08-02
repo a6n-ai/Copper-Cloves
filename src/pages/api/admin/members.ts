@@ -19,6 +19,7 @@ import { hasRole } from "@/lib/auth/roles";
 import {
   createStudioProfile,
   rollbackStudioProfile,
+  LoginEmailTakenError,
   type CreatedStudioProfile,
 } from "@/lib/auth/studioIdentity";
 
@@ -320,8 +321,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Login + welcome token land together or neither does — no orphan account
     // with no way to set a password. createStudioProfile spans several
     // statements so it cannot join the token's transaction; it is rolled back by
-    // hand instead. It also ADOPTS an existing identity, so an instructor or
-    // partner can be added as a member.
+    // hand instead. It throws LoginEmailTakenError -> 409 if the email already
+    // has a login in another role (one email, one role).
     // Typed, not `let created;` — an evolving `any` under noImplicitAny: false
     // hides every field-shape mistake on the result.
     let created: CreatedStudioProfile | undefined;
@@ -342,6 +343,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     } catch (e) {
       await rollbackStudioProfile(created);
+      // The email already has a login in another role. Nothing was written.
+      if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
       // Lost the read-then-write race against @@unique([email, role]).
       if ((e as { code?: string }).code === "P2002") {
         return res.status(409).json({ error: "A member with this email already exists." });

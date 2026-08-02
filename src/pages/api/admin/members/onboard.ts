@@ -13,6 +13,7 @@ import { hasRole } from "@/lib/auth/roles";
 import {
   createStudioProfile,
   rollbackStudioProfile,
+  LoginEmailTakenError,
   type CreatedStudioProfile,
 } from "@/lib/auth/studioIdentity";
 
@@ -138,11 +139,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (Number.isNaN(startDate.getTime())) return res.status(400).json({ error: "Invalid start date" });
     }
 
-    // createStudioProfile ADOPTS an existing identity, so an instructor or
-    // partner can be onboarded as a member. It spans several statements and so
-    // cannot join the transaction below; it is rolled back by hand in the catch
-    // instead, keeping the all-or-nothing guarantee this route exists for
-    // (known-issue #9).
+    // createStudioProfile throws LoginEmailTakenError -> 409 if the email
+    // already has a login in another role (one email, one role). It spans
+    // several statements and so cannot join the transaction below; it is rolled
+    // back by hand in the catch instead, keeping the all-or-nothing guarantee
+    // this route exists for (known-issue #9).
     created = await createStudioProfile({
       email,
       password,
@@ -238,6 +239,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Deletes the User only if this request minted it; an ADOPTED identity
     // loses just the Profile it gained here.
     await rollbackStudioProfile(created);
+    // The email already has a login in another role. Nothing was written.
+    if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return res.status(409).json({ error: "An account with this email already exists." });
     }

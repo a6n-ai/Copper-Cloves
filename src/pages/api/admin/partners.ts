@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
-import { hasRole } from "@/lib/auth/roles";
+import { hasRole, primaryRole } from "@/lib/auth/roles";
 import { createStudioLogin, LoginEmailTakenError } from "@/lib/auth/createStudioLogin";
 
 function slugify(s: string): string {
@@ -47,13 +47,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const [slugTaken, emailTaken] = await Promise.all([
       prisma.partner.findUnique({ where: { slug: finalSlug } }),
       // Identity is keyed on email alone now, not on (email, role).
-      prisma.user.findUnique({ where: { email }, select: { id: true } }),
+      prisma.user.findUnique({ where: { email }, select: { role: true } }),
     ]);
     if (slugTaken) {
       return res.status(400).json({ error: "A partner with this slug already exists" });
     }
+    // Pre-check so the Partner row is never created for a doomed login. Same
+    // 409 + message createStudioLogin would raise below (one email, one role).
     if (emailTaken) {
-      return res.status(400).json({ error: "A login with this email already exists" });
+      return res.status(409).json({ error: new LoginEmailTakenError(email, primaryRole(emailTaken.role)).message });
     }
 
     const partner = await prisma.partner.create({ data: { name: name.trim(), slug: finalSlug } });
@@ -78,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await prisma.user.delete({ where: { id: profile.user_id } }).catch(() => {});
       }
       await prisma.partner.delete({ where: { id: partner.id } }).catch(() => {});
-      if (e instanceof LoginEmailTakenError) return res.status(400).json({ error: e.message });
+      if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
       throw e;
     }
     return res.status(201).json({ ok: true, partnerId: partner.id });
@@ -123,7 +125,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (profile?.user_id) {
           await prisma.user.delete({ where: { id: profile.user_id } }).catch(() => {});
         }
-        if (e instanceof LoginEmailTakenError) return res.status(400).json({ error: e.message });
+        if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
         throw e;
       }
       return res.json({ ok: true });

@@ -7,6 +7,7 @@ import { hasRole } from "@/lib/auth/roles";
 import {
   createStudioProfile,
   rollbackStudioProfile,
+  LoginEmailTakenError,
   type CreatedStudioProfile,
 } from "@/lib/auth/studioIdentity";
 
@@ -59,9 +60,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (existing) return res.status(409).json({ error: "An account with this email already exists." });
 
   // better-auth owns the credential (User + `credential` Account); the Profile
-  // owns studio membership. createStudioProfile ADOPTS an existing identity, so
-  // an instructor or partner can be added as a member — createStudioLogin would
-  // reject the email outright. It cannot run inside the transaction below
+  // owns studio membership. createStudioProfile throws LoginEmailTakenError ->
+  // 409 if the email already has a login in another role (one email, one role).
+  // It cannot run inside the transaction below
   // (auth.api / multiple statements), so it runs first and is rolled back by
   // hand if the package half fails, preserving the all-or-nothing behaviour the
   // single transaction used to give.
@@ -167,6 +168,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Deletes the User only if this request minted it (cascading Account +
     // Profile); an ADOPTED identity loses just the Profile it gained here.
     await rollbackStudioProfile(created);
+    // One email, one role: the email already has a login in another portal.
+    // Nothing was written — `created` is undefined, so the rollback is a no-op.
+    if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
     const msg = e instanceof Error ? e.message : String(e);
     if (msg === "NO_PACKAGE_TYPES") {
       return res.status(400).json({

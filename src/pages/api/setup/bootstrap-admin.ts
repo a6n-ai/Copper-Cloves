@@ -4,8 +4,9 @@ import prisma from "@/lib/prisma";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
 import { apiError } from "@/lib/apiError";
 import { createStudioLogin } from "@/lib/auth/createStudioLogin";
+import { LoginEmailTakenError } from "@/lib/auth/studioIdentity";
 import { studioPassword } from "@/lib/auth/password";
-import { parseRoles, serializeRoles } from "@/lib/auth/roles";
+import { hasRole, primaryRole, serializeRoles } from "@/lib/auth/roles";
 
 /**
  * One-time (or rare) admin creation on live hosts without local psql.
@@ -74,6 +75,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // and after the identity backfill the admin User usually already exists — so
     // the existing-identity branch is the normal one, not the edge case.
     const existing = await prisma.user.findUnique({ where: { email }, select: { id: true, role: true } });
+    // One email, one role: this route resets the ADMIN identity's password. If
+    // the email belongs to some other portal it is refused outright — silently
+    // promoting a member to admin is exactly what a leaked setup secret wants.
+    if (existing && !hasRole(existing.role, "admin")) {
+      return res.status(409).json({ error: new LoginEmailTakenError(email, primaryRole(existing.role)).message });
+    }
     if (!existing) {
       await createStudioLogin({
         email,
@@ -98,11 +105,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           : prisma.account.create({
               data: { userId: existing.id, accountId: existing.id, providerId: "credential", password: hash },
             }),
-        // Union, never a replace — an identity that is also a member keeps that role.
-        prisma.user.update({
-          where: { id: existing.id },
-          data: { role: serializeRoles([...new Set([...parseRoles(existing.role), "admin" as const])]) },
-        }),
+        // Normalise, never union: the guard above already established this is
+        // the admin identity, so the role set is exactly ["admin"].
+        prisma.user.update({ where: { id: existing.id }, data: { role: serializeRoles(["admin"]) } }),
         prisma.profile.upsert({
           where: { email_role: { email, role: "admin" } },
           create: { email, full_name: "Studio Administrator", role: "admin", user_id: existing.id },

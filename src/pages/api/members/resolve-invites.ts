@@ -5,7 +5,11 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
-import { createStudioProfile } from "@/lib/auth/studioIdentity";
+import {
+  createStudioProfile,
+  LoginEmailTakenError,
+  type CreatedStudioProfile,
+} from "@/lib/auth/studioIdentity";
 
 const INVITE_TOKEN_TTL_MS = 72 * 60 * 60 * 1000; // 72 hours
 
@@ -102,15 +106,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Create minimal account (no password — invite email sets it). The
       // identity is minted up front with no `credential` Account, so the guest
       // cannot sign in until set-password runs, but `user_id` is never null —
-      // the invariant getStudioServerSession and Task 13's
-      // @@unique([user_id, role]) both rely on. createStudioProfile adopts an
-      // existing identity and rolls back only a User it minted itself.
-      const created = await createStudioProfile({
-        email,
-        name: member.name.trim() || email,
-        role: "user",
-        profile: { full_name: member.name.trim() || email, phone: memberPhone || null },
-      });
+      // the invariant getStudioServerSession and Task 13's @@unique([user_id])
+      // both rely on. An email that already has a login in another portal is a
+      // hard 409 (one email, one role) — the guest needs their own address.
+      // Typed, not `let created;` — an evolving `any` under noImplicitAny:false
+      // hides every field-shape mistake on the result.
+      let created: CreatedStudioProfile;
+      try {
+        created = await createStudioProfile({
+          email,
+          name: member.name.trim() || email,
+          role: "user",
+          profile: { full_name: member.name.trim() || email, phone: memberPhone || null },
+        });
+      } catch (e) {
+        if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
+        throw e;
+      }
       profile = { id: created.profile.id, hashedPassword: null, phone: memberPhone || null };
     } else if (memberPhone && !profile.phone?.trim()) {
       // Existing account found by email but no phone on file — backfill it.

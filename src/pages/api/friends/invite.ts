@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { upsertFriendship } from "@/lib/friendship";
-import { createStudioProfile } from "@/lib/auth/studioIdentity";
+import { createStudioProfile, LoginEmailTakenError } from "@/lib/auth/studioIdentity";
 import logger from "@/lib/logger";
 
 const INVITE_TOKEN_TTL_MS = 72 * 60 * 60 * 1000; // 72 hours
@@ -46,9 +46,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // `credential` Account, so they cannot sign in until the invite email's
       // set-password link runs attachStudioCredential — but `user_id` is never
       // null, which is what getStudioServerSession and Task 13's
-      // @@unique([user_id, role]) both rely on. createStudioProfile adopts an
-      // existing identity (inviting someone who already has another portal
-      // login) and rolls back only a User it minted itself.
+      // @@unique([user_id]) both rely on. Inviting an email that already has a
+      // login in another portal throws LoginEmailTakenError -> 409 (one email,
+      // one role); a User this call minted is rolled back on failure.
       const created = await createStudioProfile({
         email,
         name: fullName || email,
@@ -104,6 +104,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ ok: true, isNew });
   } catch (e) {
+    // The email belongs to a staff/partner login, not a member one. Not a
+    // server error — tell the member so they can use their friend's own email.
+    if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
     logger.error({ err: e }, "[friends invite POST]");
     return res.status(500).json({ error: "Could not send invite" });
   }

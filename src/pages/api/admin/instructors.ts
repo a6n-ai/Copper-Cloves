@@ -6,7 +6,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendStudioEmail } from "@/lib/notifications/email";
 import logger from "@/lib/logger";
 import { hasRole } from "@/lib/auth/roles";
-import { attachStudioCredential, createStudioProfile } from "@/lib/auth/studioIdentity";
+import { attachStudioCredential, createStudioProfile, LoginEmailTakenError } from "@/lib/auth/studioIdentity";
 
 function rateOverride(v: unknown): number | null | undefined {
   if (v === undefined) return undefined; // not provided → leave unchanged
@@ -85,8 +85,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
           profileId = existing.id;
         } else {
-          // Adopts an existing User for this email (a member becoming an
-          // instructor) instead of failing on User.email's unique index.
+          // Throws LoginEmailTakenError if this email already has a login in
+          // another role (one email, one role) — surfaced as 409 below, with
+          // the member's identity, role and password untouched.
           const created = await createStudioProfile({
             email: lower,
             name: instructor.name ?? lower,
@@ -110,6 +111,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // duplicate row. The Profile is left in place — it is repairable, and a
         // retry routes back through attachStudioCredential.
         await prisma.instructor.delete({ where: { id: instructor.id } }).catch(() => {});
+        // Not a server error: the admin gave an email that already belongs to
+        // another portal. Say so, so they use a different one.
+        if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
         logger.error({ err: e }, "[instructors] login provisioning failed; instructor rolled back");
         return res.status(500).json({ error: "Could not create the instructor login." });
       }

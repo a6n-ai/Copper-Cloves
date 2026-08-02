@@ -1,21 +1,19 @@
 import prisma from "@/lib/prisma";
 import logger from "@/lib/logger";
 import { auth } from "@/lib/auth";
-import { serializeRoles, type Role } from "@/lib/auth/roles";
+import { primaryRole, serializeRoles, type Role } from "@/lib/auth/roles";
+import { LoginEmailTakenError } from "@/lib/auth/studioIdentity";
 import type { Prisma } from "@/generated/prisma/client";
 
 /**
- * Thrown when the email already has a better-auth identity. Identity is keyed on
- * email ALONE now (User.email is unique), so unlike the old per-role Profile
- * check there is no second login row for the same person in another portal —
- * a second role is granted on the existing User, never re-registered.
+ * Thrown when the email already has a better-auth identity in ANY role.
+ * Identity is keyed on email ALONE (User.email is unique) and holds exactly one
+ * role, so there is no second login row for the same person in another portal
+ * and no role to union on — this is a hard 409. Declared in studioIdentity.ts
+ * (which resolveStudioUser can import without dragging in `@/lib/auth`) and
+ * re-exported here for the routes that already import it from this module.
  */
-export class LoginEmailTakenError extends Error {
-  constructor(public readonly email: string) {
-    super("An account with this email already exists.");
-    this.name = "LoginEmailTakenError";
-  }
-}
+export { LoginEmailTakenError };
 
 type ProfileFields = Omit<Prisma.ProfileUncheckedCreateInput, "email" | "role" | "user_id">;
 
@@ -49,9 +47,8 @@ export async function createStudioLogin({
   role: Role;
   profile?: ProfileFields;
 }) {
-  if (await prisma.user.findUnique({ where: { email }, select: { id: true } })) {
-    throw new LoginEmailTakenError(email);
-  }
+  const taken = await prisma.user.findUnique({ where: { email }, select: { role: true } });
+  if (taken) throw new LoginEmailTakenError(email, primaryRole(taken.role));
 
   // Throws APIError on a password shorter than minPasswordLength / longer than
   // maxPasswordLength — callers surface it rather than swallowing it.
@@ -64,10 +61,9 @@ export async function createStudioLogin({
     // "user"; anything else has to be set after the fact because `role` is an
     // input:false additional field and is stripped from the sign-up body.
     //
-    // serializeRoles REPLACES the role set, which is only safe because the
-    // pre-check above guarantees a brand-new User with nothing to lose. Anything
-    // pointing this at an EXISTING identity must union instead — see the
-    // parseRoles/serializeRoles union in setup/bootstrap-admin.ts.
+    // serializeRoles REPLACES the role set, which is safe because the pre-check
+    // above guarantees a brand-new User with nothing to lose — and under
+    // one-email-one-role there is never a second role to preserve anyway.
     if (role !== "user") {
       await prisma.user.update({ where: { id: userId }, data: { role: serializeRoles([role]) } });
     }

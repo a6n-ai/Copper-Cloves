@@ -1,17 +1,53 @@
 import prisma from "@/lib/prisma";
 import logger from "@/lib/logger";
 import { studioPassword } from "./password";
-import { parseRoles, serializeRoles, type Role } from "./roles";
+import { hasRole, parseRoles, primaryRole, serializeRoles, type Role } from "./roles";
 import type { Prisma } from "@/generated/prisma/client";
 
+const ROLE_LABEL: Record<Role, string> = {
+  admin: "admin",
+  chef: "kitchen",
+  partner: "partner manager",
+  instructor: "instructor",
+  user: "member",
+};
+
 /**
- * The ADOPT-CAPABLE counterpart to createStudioLogin.
+ * Thrown when the email already has a better-auth identity in a role other than
+ * the one being provisioned. ONE EMAIL = ONE ROLE (user ruling 2026-08-02):
+ * identity is keyed on email alone and may hold exactly one role, so this is a
+ * hard reject — every route maps it to 409. The admin uses a different email,
+ * or converts the existing identity in a separate deliberate action.
  *
- * createStudioLogin's first act is to throw if a User exists for the email, so
- * it can only ever mint a brand-new identity — right for self-signup, wrong for
- * everything here. Identity is keyed on email ALONE, so a person who already
- * has one portal login and is being given another must land on the SAME User
- * with the second role unioned on, never a second identity and never a 409.
+ * Re-exported from createStudioLogin.ts, where it used to live, so the routes
+ * that already import it from there are unchanged. It is declared HERE because
+ * createStudioLogin.ts pulls in `@/lib/auth` (the whole better-auth instance)
+ * and the seed scripts that use studioIdentity must not.
+ */
+export class LoginEmailTakenError extends Error {
+  constructor(
+    public readonly email: string,
+    public readonly existingRole?: Role,
+  ) {
+    super(
+      existingRole
+        ? `This email already has a ${ROLE_LABEL[existingRole]} account. One email can hold only one role — use a different email address.`
+        : "An account with this email already exists.",
+    );
+    this.name = "LoginEmailTakenError";
+  }
+}
+
+/**
+ * The SAME-ROLE-ADOPTING counterpart to createStudioLogin.
+ *
+ * createStudioLogin's first act is to throw if a User exists for the email at
+ * all, so it can only ever mint a brand-new identity — right for self-signup,
+ * wrong for the idempotent re-provisioning paths here. Identity is keyed on
+ * email ALONE, and under the one-email-one-role ruling it may hold exactly one
+ * role: re-provisioning the SAME role lands on the same User (that is what lets
+ * ensure-admin.ts / seed-chef.ts be re-run), and a DIFFERENT role is a
+ * LoginEmailTakenError, never a union.
  */
 
 /**
@@ -24,8 +60,10 @@ import type { Prisma } from "@/generated/prisma/client";
  * Task 13's @@unique([user_id, role]) has something to key on), with no way in
  * until the invitee sets a password.
  *
- * An existing User is ADOPTED and the role UNIONED onto whatever it already
- * holds — never serializeRoles([role]), which would drop the others.
+ * An existing User is ADOPTED only when it already holds the requested role
+ * (idempotent re-provisioning). Any other role throws LoginEmailTakenError —
+ * the role is never unioned on, and the existing identity, its role and its
+ * password are left completely untouched.
  *
  * `created` is load-bearing: it is the ONLY thing that makes a rollback safe.
  * Deleting an adopted User would destroy a real member's identity, sessions and
@@ -42,12 +80,12 @@ export async function resolveStudioUser({
 }): Promise<{ userId: string; created: boolean }> {
   const existing = await prisma.user.findUnique({ where: { email }, select: { id: true, role: true } });
   if (existing) {
-    const roles = parseRoles(existing.role);
-    if (!roles.includes(role)) {
-      await prisma.user.update({
-        where: { id: existing.id },
-        data: { role: serializeRoles([...roles, role]) },
-      });
+    // hasRole, not a substring test: "administrator" must not satisfy "admin".
+    // It also still reads a legacy comma role correctly, so an identity that
+    // somehow holds two roles is adopted for either rather than being locked
+    // out of both.
+    if (!hasRole(existing.role, role)) {
+      throw new LoginEmailTakenError(email, primaryRole(existing.role));
     }
     return { userId: existing.id, created: false };
   }
@@ -79,7 +117,9 @@ export type CreatedStudioProfile = {
 };
 
 /**
- * Create a Profile on the identity for `email`, adopting an existing User.
+ * Create a Profile on the identity for `email`, adopting an existing User only
+ * when it holds the SAME role. A different role throws LoginEmailTakenError
+ * (409 at every caller) and nothing is written.
  *
  * With `password`, the credential is written NON-destructively: an adopted
  * identity that already has a working password keeps it, and `passwordApplied`
@@ -150,8 +190,8 @@ export async function rollbackStudioProfile(created: CreatedStudioProfile | unde
  * password nothing can read.
  *
  * `overwrite` is REQUIRED, with no default, on purpose. Credentials are
- * per-IDENTITY, not per-Profile: an admin adding an instructor for an email
- * that already has a member login is writing to that member's User. Silently
+ * per-IDENTITY, not per-Profile: a provisioning route re-run against an email
+ * that already has a working login is writing to that person's User. Silently
  * replacing their chosen password — and clearing the legacy column, killing it
  * on the NextAuth path too — is what an unconditional overwrite does. Every
  * caller must say which it means:
