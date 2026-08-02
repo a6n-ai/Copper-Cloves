@@ -484,6 +484,10 @@ export interface InstructorWelcomeEmailOpts {
 }
 
 export function instructorWelcomeEmail(opts: InstructorWelcomeEmailOpts): string {
+  // Empty tempPassword = this email already had a Studio login, and it keeps
+  // its own password (credentials are per-identity). Printing a temporary one
+  // would print a password that does not work.
+  const hasTempPassword = Boolean(opts.tempPassword);
   return emailWrapper(`
     ${logoHeader("instructor portal")}
     <div style="padding:32px 32px 0">
@@ -505,15 +509,17 @@ export function instructorWelcomeEmail(opts: InstructorWelcomeEmailOpts): string
           <p style="font-family:monospace;font-size:15px;font-weight:700;color:${CHARCOAL};margin:0">${h(opts.email)}</p>
         </div>
         <div style="background:${CREAM};border-radius:8px;padding:16px;text-align:center">
-          <p style="font-family:Georgia,serif;font-size:12px;color:${MUTED};margin:0 0 6px;letter-spacing:0.05em;text-transform:uppercase">Temporary Password</p>
-          <p style="font-family:monospace;font-size:15px;font-weight:700;color:${CHARCOAL};margin:0">${h(opts.tempPassword)}</p>
+          <p style="font-family:Georgia,serif;font-size:12px;color:${MUTED};margin:0 0 6px;letter-spacing:0.05em;text-transform:uppercase">Password</p>
+          <p style="font-family:${hasTempPassword ? "monospace" : "Georgia,serif"};font-size:15px;font-weight:700;color:${CHARCOAL};margin:0">${
+            hasTempPassword ? h(opts.tempPassword) : "your existing Studio password"
+          }</p>
         </div>
       </div>
 
       <div style="background:#FFFBF0;border:1px solid #E8D8A0;border-radius:12px;padding:20px;margin-bottom:24px">
         <p style="font-family:Georgia,serif;font-size:14px;font-weight:700;color:#8B6914;margin:0 0 10px">🔒 security reminder</p>
         <ul style="font-family:Georgia,serif;font-size:14px;color:#8B6914;margin:0;padding-left:20px;line-height:1.8">
-          <li>please change your password after your first login</li>
+          ${hasTempPassword ? "<li>please change your password after your first login</li>" : "<li>sign in with the password you already use at The Studio</li>"}
           <li>do not share these credentials with anyone</li>
           <li>if you didn't expect this email, contact the studio immediately</li>
         </ul>

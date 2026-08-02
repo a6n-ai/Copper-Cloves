@@ -6,7 +6,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendStudioEmail } from "@/lib/notifications/email";
 import logger from "@/lib/logger";
 import { hasRole } from "@/lib/auth/roles";
-import { attachStudioCredential } from "@/lib/auth/studioIdentity";
+import { attachStudioCredential, createStudioProfile } from "@/lib/auth/studioIdentity";
 
 function rateOverride(v: unknown): number | null | undefined {
   if (v === undefined) return undefined; // not provided → leave unchanged
@@ -68,33 +68,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // Unified login: give the instructor a role "instructor" Profile and link it.
+    // `false` = this person already had a password and keeps it.
+    let tempPasswordUsable = false;
     if (email) {
       const lower = email.toLowerCase();
-      const existing = await prisma.profile.findFirst({
-        where: { email: lower, role: "instructor" },
-        select: { id: true },
-      });
-      const profile = existing
-        ? await prisma.profile.update({
+      try {
+        const existing = await prisma.profile.findFirst({
+          where: { email: lower, role: "instructor" },
+          select: { id: true },
+        });
+        let profileId: string;
+        if (existing) {
+          await prisma.profile.update({
             where: { id: existing.id },
             data: { full_name: instructor.name ?? undefined, onboarding_completed: true },
-          })
-        : await prisma.profile.create({
-            data: {
-              email: lower,
-              full_name: instructor.name ?? null,
-              // Identity resolved by attachStudioCredential below — which adopts
-              // an existing User for this email (a member becoming an
-              // instructor) rather than failing on User.email's unique index.
-              role: "instructor",
-              onboarding_completed: true,
-            },
           });
-      await attachStudioCredential({ profileId: profile.id, password: tempPassword });
-      await prisma.instructor.update({ where: { id: instructor.id }, data: { profile_id: profile.id } });
+          profileId = existing.id;
+        } else {
+          // Adopts an existing User for this email (a member becoming an
+          // instructor) instead of failing on User.email's unique index.
+          const created = await createStudioProfile({
+            email: lower,
+            name: instructor.name ?? lower,
+            role: "instructor",
+            profile: { full_name: instructor.name ?? null, onboarding_completed: true },
+          });
+          profileId = created.profile.id;
+        }
+        // overwrite: false — this route PROVISIONS a login, it is not a reset.
+        // Credentials are per-identity, so overwriting here would replace the
+        // password of the member whose email this is.
+        const { written } = await attachStudioCredential({
+          profileId,
+          password: tempPassword,
+          overwrite: false,
+        });
+        tempPasswordUsable = written;
+        await prisma.instructor.update({ where: { id: instructor.id }, data: { profile_id: profileId } });
+      } catch (e) {
+        // Without this the retry runs instructor.create again and leaves a
+        // duplicate row. The Profile is left in place — it is repairable, and a
+        // retry routes back through attachStudioCredential.
+        await prisma.instructor.delete({ where: { id: instructor.id } }).catch(() => {});
+        logger.error({ err: e }, "[instructors] login provisioning failed; instructor rolled back");
+        return res.status(500).json({ error: "Could not create the instructor login." });
+      }
     }
 
-    // Best-effort welcome email with the plain password. Errors don't block creation.
+    // Best-effort welcome email. Errors don't block creation.
     if (email) {
       try {
         const baseUrl =
@@ -107,7 +128,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           data: {
             Instructor_Name: instructor.name ?? "Instructor",
             Email: email,
-            Temp_Password: tempPassword,
+            // Empty when this email already had a login: they keep their own
+            // password, so mailing the temp one would be mailing a password
+            // that does not work. The template swaps in "your existing
+            // password" instead.
+            Temp_Password: tempPasswordUsable ? tempPassword : "",
             Login_Link: loginUrl,
           },
         });
