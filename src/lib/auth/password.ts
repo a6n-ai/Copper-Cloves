@@ -30,7 +30,9 @@ export function packMultiHash(hashes: string[]): string {
   return MULTI + unique.join(MULTI_SEP);
 }
 
-function unpack(hash: string): string[] {
+/** Inverse of packMultiHash. Bare hash -> single-element array; "" -> []. */
+export function unpack(hash: string): string[] {
+  if (!hash) return [];
   return hash.startsWith(MULTI) ? hash.slice(MULTI.length).split(MULTI_SEP).filter(Boolean) : [hash];
 }
 

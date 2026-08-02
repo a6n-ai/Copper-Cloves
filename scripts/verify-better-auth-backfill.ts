@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import prisma from "@/lib/prisma";
 import { parseRoles } from "@/lib/auth/roles";
-import { describeHash } from "@/lib/auth/password";
+import { describeHash, unpack } from "@/lib/auth/password";
 
 /** Structural assertions only — never touches plaintext. Run before cutover. */
 async function main() {
@@ -31,10 +31,43 @@ async function main() {
     assert.ok(parseRoles(u!.role).includes(p.role as never), `profile ${p.id} role "${p.role}" absent from user role "${u!.role}"`);
   }
 
+  // Orphan check: every User must be pointed at by at least one Profile.
+  // Shape/count assertions alone would only catch this incidentally (as a
+  // perturbed total), and not at all if a profile were simultaneously missing.
+  const linkedUserIds = new Set(profiles.map((p) => p.user_id).filter((id): id is string => !!id));
+  for (const u of users) {
+    assert.ok(linkedUserIds.has(u.id), `user ${u.id} (${u.email}) has no profile pointing at it — orphan`);
+  }
+
   const withPassword = profiles.filter((p) => p.hashedPassword);
   const accountsByUser = new Map(accounts.map((a) => [a.userId, a]));
   for (const p of withPassword) {
     assert.ok(accountsByUser.has(p.user_id!), `profile ${p.id} (${p.email}) has a password but no credential account`);
+  }
+
+  // Exact hash-SET equality per identity — shape checks alone (bcrypt/scrypt/
+  // multi(N)) pass on an under-packed merge, a truncated hash, or a hash
+  // copied from the wrong profile. Compare in memory; never log a hash.
+  const profilesByUser = new Map<string, typeof profiles>();
+  for (const p of withPassword) {
+    profilesByUser.set(p.user_id!, [...(profilesByUser.get(p.user_id!) ?? []), p]);
+  }
+  for (const [userId, group] of profilesByUser) {
+    const expected = new Set(group.map((p) => p.hashedPassword).filter((h): h is string => !!h));
+    const account = accountsByUser.get(userId);
+    assert.ok(account, `user ${userId} has ${expected.size} password-holding profile(s) but no credential account`);
+    const stored = new Set(unpack(account!.password ?? ""));
+    assert.equal(
+      stored.size,
+      expected.size,
+      `user ${userId}: stored credential hash count (${stored.size}) != expected from linked profiles (${expected.size})`,
+    );
+    for (const h of expected) {
+      assert.ok(
+        stored.has(h),
+        `user ${userId}: a linked profile's password hash (${describeHash(h)}) is missing from the stored credential account`,
+      );
+    }
   }
 
   // Exactly one credential account per identity — a second would make sign-in

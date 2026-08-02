@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import bcrypt from "bcryptjs";
 import { hashPassword as scryptHash } from "better-auth/crypto";
-import { studioPassword, describeHash, packMultiHash } from "../src/lib/auth/password";
+import { studioPassword, describeHash, packMultiHash, unpack } from "../src/lib/auth/password";
 
 async function main() {
   const PLAIN = "correct-horse-battery";
@@ -51,6 +51,13 @@ async function main() {
   assert.equal(describeHash("$2b$10$abcdefghijklmnopqrstuv"), "bcrypt");
   assert.equal(describeHash("zzz"), "unrecognised");
   assert.equal(describeHash(multi), "multi(2)");
+
+  // unpack: inverse of packMultiHash, used by the backfill/verify scripts to
+  // compare stored hash sets without ever logging a hash.
+  const bare = await bcrypt.hash(PLAIN, 12);
+  assert.deepEqual(unpack(bare), [bare], "unpack of a bare hash returns a single-element array");
+  assert.deepEqual(unpack(multi), [...multi.slice("multi:".length).split("|")], "unpack of a multi: value splits back into its members");
+  assert.deepEqual(unpack(""), [], "unpack of an empty string returns []");
 
   console.log("test-auth-password: all assertions passed");
   process.exit(0);
