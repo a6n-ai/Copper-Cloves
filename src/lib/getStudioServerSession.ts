@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@/lib/nextAuthOptions";
 import { ensureNextAuthUrlFromRequest } from "@/lib/ensureNextAuthUrlFromRequest";
 import { isRequestSessionValid } from "@/lib/sessionGuard";
 
