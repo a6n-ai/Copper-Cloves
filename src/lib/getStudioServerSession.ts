@@ -41,21 +41,20 @@ export async function getStudioServerSession(
     const result = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
     if (!result?.user || !result.session) return null;
 
-    // Sessions created before the fingerprint field existed have none. Every
-    // session that survives Task 13's cutover is issued by the create hook, which
-    // always sets one — so a missing fingerprint is a legacy row, not a bypass a
-    // caller can induce (the field is `input: false`). Skip the check for those
-    // rather than logging every legacy session out on deploy.
+    // No fingerprint => this row did NOT come through databaseHooks.session.create
+    // (which sets one unconditionally, and the field is `input: false` so nothing
+    // else can). A direct DB write, a script, or a future plugin path that bypasses
+    // the hook is exactly what must not be trusted. Reject, same as sessionGuard
+    // rejected a token with no `sid`. There is no legacy population to drain — the
+    // sessions table was created empty and better-auth has never served production.
     const stored = result.session.fingerprint;
-    if (stored) {
-      const ua = (req.headers["user-agent"] as string | undefined) ?? "";
-      if (stored !== computeFingerprint(ua)) {
-        logger.warn(
-          { sessionId: result.session.id },
-          "[auth] session fingerprint mismatch — rejecting",
-        );
-        return null;
-      }
+    const ua = (req.headers["user-agent"] as string | undefined) ?? "";
+    if (!stored || stored !== computeFingerprint(ua)) {
+      logger.warn(
+        { sessionId: result.session.id, hasFingerprint: Boolean(stored) },
+        "[auth] session fingerprint missing or mismatched — rejecting",
+      );
+      return null;
     }
 
     // No profile => the identity exists but has no studio membership row. Treat

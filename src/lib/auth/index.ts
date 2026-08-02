@@ -162,6 +162,11 @@ export const auth = betterAuth({
       // packages, credits, streaks, badges) hung off the other one. Do not reinstate.
       const profile = await prisma.profile.findFirst({
         where: { user_id: user.id },
+        // Deterministic: oldest Profile wins, matching the backfill's "oldest row is
+        // the original account". Without it Postgres may return a different row per
+        // request for a multi-Profile identity, repointing every FK hung off
+        // session.user.id. Task 13's @@unique([user_id, role]) makes this moot.
+        orderBy: { created_at: "asc" },
         select: { id: true, onboarding_completed: true },
       });
       const [instructor, membership] = await Promise.all([
