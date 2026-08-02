@@ -370,7 +370,10 @@ export default function Dashboard() {
 
   // Auth enforced server-side via `getServerSideProps` → `requireSessionSSP`.
   // No client-side redirect needed; just kick off the data load once we have
-  // the session id from the JWT.
+  // a session. NOTE: this is better-auth's User id, NOT a Profile id (unlike
+  // every other id on this page, which are Profile-keyed) — it's only ever
+  // used as a truthy re-fetch trigger below (`fetchUserData` ignores its
+  // argument), never passed to an API. Don't start passing it to one.
   const sessionUserId = (session?.user as { id?: string } | undefined)?.id;
   useEffect(() => {
     if (sessionUserId) {

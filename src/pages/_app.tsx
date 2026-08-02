@@ -26,7 +26,6 @@ import * as analytics from "@/lib/analytics";
 import { CartProvider } from "@/contexts/CartContext";
 import { useSession } from "@/lib/auth/client";
 import { useStudioSWR } from "@/lib/swr";
-import { getSessionOnboardingCompleted } from "@/lib/sessionScalars";
 import { hasRole, primaryRole } from "@/lib/auth/roles";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
 import dynamic from "next/dynamic";
@@ -47,6 +46,7 @@ import { PublicMobileNav } from "@/components/PublicMobileNav";
 import { PageTransition } from "@/components/transitions/PageTransition";
 import { RouteProgress } from "@/components/transitions/RouteProgress";
 import { isPublicSite, PUBLIC_NAV_ROUTES } from "@/lib/isPublicSite";
+import { PageLoader } from "@/components/ui/spinner";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 
@@ -92,7 +92,7 @@ function resolvePortalKind(pathname: string, rawRole?: string): PortalKind | nul
 
 /** Single chrome for every authenticated dashboard (admin/partner/member/instructor). */
 function DashboardChrome({ children }: Readonly<{ children: React.ReactNode }>) {
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
   // The shell decision depends on whether we have a session, which is unresolved
   // on the client's first paint but resolved on the server — branching the tree
@@ -146,6 +146,21 @@ function DashboardChrome({ children }: Readonly<{ children: React.ReactNode }>) 
     [kind, partnerBrand?.name, partnerBrand?.logoUrl, userName, userEmail, avatarUrl],
   );
 
+  // Better Auth's session atom starts empty and fetches on mount (no more
+  // SSR-provided `pageProps.session`), so `isPending` is briefly true on every
+  // dashboard-route navigation. Without this, `kind` resolves to null and the
+  // shell-less `children` branch below flashes before the sidebar/topbar pop
+  // in. Route-shape guess only (role-agnostic) — it can't mis-render the wrong
+  // portal's chrome, just avoid a blank flash while the real session resolves.
+  const looksLikeDashboardRoute =
+    !exempt &&
+    (router.pathname.startsWith("/admin") ||
+      router.pathname.startsWith("/partner") ||
+      router.pathname.startsWith("/instructor") ||
+      router.pathname.startsWith("/portal") ||
+      router.pathname === "/account");
+  if (mounted && isPending && looksLikeDashboardRoute) return <PageLoader />;
+
   if (!kind) return <>{children}</>;
 
   return (
@@ -182,9 +197,12 @@ const PORTAL_EXEMPT = ["/portal/login", "/portal/signup", "/portal/onboarding", 
 function OnboardingGate() {
   const { data: session } = useSession();
   const router = useRouter();
-  // Scalar read so the effect only re-fires when the actual onboarding flag
-  // flips — not on every session-refetch tick.
-  const onboardingCompleted = getSessionOnboardingCompleted(session);
+  // Client session shape (better-auth's customSession) puts onboarding_completed
+  // at the TOP LEVEL, not on `session.user` — unlike the server's StudioSession,
+  // which getStudioServerSession flattens onto `user` for ~40 API routes.
+  // getSessionOnboardingCompleted (sessionScalars.ts) reads the server shape and
+  // is always undefined here — read the client shape directly instead.
+  const onboardingCompleted = session?.onboarding_completed;
 
   useEffect(() => {
     if (!session?.user) return;

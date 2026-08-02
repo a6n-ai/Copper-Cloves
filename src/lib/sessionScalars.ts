@@ -8,9 +8,22 @@ import { primaryRole, parseRoles, type Role } from "@/lib/auth/roles";
  * mess and a magnet for typos.
  *
  * Use these inside components/effects when you only need a primitive.
- * Returning primitives keeps `useEffect` dep arrays stable across the 4-min
+ * Returning primitives keeps `useEffect` dep arrays stable across the
  * session refetch tick (the wrapper `Session` object identity changes each
  * tick even when the underlying JWT is unchanged).
+ *
+ * SERVER SHAPE ONLY. `Session` here is `StudioSession` — the shape
+ * `getStudioServerSession` returns, with `role`/`partner_id`/`instructor_id`/
+ * `onboarding_completed` flattened onto `session.user`. Better Auth's client
+ * `useSession().data` is a DIFFERENT shape (its `customSession` payload puts
+ * `partner_id`/`instructor_id`/`onboarding_completed` at the top level, not
+ * under `.user`) — passing it into these functions silently returns
+ * `undefined` (optional properties, no tsc error). `getSessionRole` /
+ * `getSessionRoles` / `getSessionUserId` work for both shapes because `role`
+ * and `id` genuinely live on `.user` in both. Do not call
+ * `getSessionPartnerId`/`getSessionInstructorId`/`getSessionOnboardingCompleted`
+ * with a client `useSession().data` — read `session.partner_id` /
+ * `session.instructor_id` / `session.onboarding_completed` directly instead.
  */
 
 /**

@@ -365,8 +365,8 @@ export default function AdminDashboard() {
   const [dashboardInstructors, setDashboardInstructors] = useState<DashboardInstructorRow[]>([]);
 
   // Auth enforced server-side (see `getServerSideProps` above). Client-side
-  // `useSession()` is kept so existing effects that key on `status`/`session`
-  // for runtime decisions still work; the redirect dance + ~200ms flash that
+  // `useSession()` is kept so existing effects that key on `session` for
+  // runtime decisions still work; the redirect dance + ~200ms flash that
   // used to live here is gone.
   const { data: session } = useSession();
   const userRole = (session?.user as { role?: string })?.role;
