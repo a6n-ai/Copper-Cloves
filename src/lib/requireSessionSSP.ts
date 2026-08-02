@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
-import type { Session } from "next-auth";
+import type { StudioSession as Session } from "@/lib/getStudioServerSession";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { hasRole, type Role } from "@/lib/auth/roles";
 

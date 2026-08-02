@@ -1,4 +1,4 @@
-import type { Session } from "next-auth";
+import type { StudioSession as Session } from "@/lib/getStudioServerSession";
 import { primaryRole, parseRoles, type Role } from "@/lib/auth/roles";
 
 /**

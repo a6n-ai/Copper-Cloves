@@ -1,5 +1,5 @@
 import type { NextApiResponse } from "next";
-import type { Session } from "next-auth";
+import type { StudioSession as Session } from "@/lib/getStudioServerSession";
 import { hasRole } from "@/lib/auth/roles";
 
 /**
