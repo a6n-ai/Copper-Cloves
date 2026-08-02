@@ -181,7 +181,7 @@ export async function attachStudioCredential({
 
   const profile = await prisma.profile.findUnique({
     where: { id: profileId },
-    select: { id: true, email: true, role: true, full_name: true, user_id: true },
+    select: { id: true, email: true, role: true, full_name: true, user_id: true, hashedPassword: true },
   });
   if (!profile) throw new Error("[auth] attachStudioCredential: profile not found");
 
@@ -196,11 +196,18 @@ export async function attachStudioCredential({
     await prisma.profile.update({ where: { id: profile.id }, data: { user_id: userId } });
   }
 
+  // The SAME predicate the activation guard uses, so the two cannot disagree.
+  // A narrower "does an Account row exist" test would overwrite — and legacy-
+  // clear — an identity whose only password is still in the legacy column,
+  // which is exactly what these provisioning callers must not do.
+  if (!overwrite && (await hasStudioCredential({ user_id: userId, hashedPassword: profile.hashedPassword }))) {
+    return { userId, written: false };
+  }
+
   const credential = await prisma.account.findFirst({
     where: { userId, providerId: "credential" },
-    select: { id: true, password: true },
+    select: { id: true },
   });
-  if (credential?.password && !overwrite) return { userId, written: false };
 
   const hashedPassword = await studioPassword.hash(password);
   await prisma.$transaction([

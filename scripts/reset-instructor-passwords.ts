@@ -23,18 +23,26 @@ async function main() {
     orderBy: { name: "asc" },
   });
 
-  const targets: { name: string; email: string; profileId: string; otherRoles: string[] }[] = [];
+  const targets: { name: string; email: string; profileId: string; otherRoles: string[]; unlinked: boolean }[] = [];
   for (const inst of instructors) {
     const profile = await prisma.profile.findUnique({
       where: { id: inst.profile_id! },
-      select: { id: true, email: true, identity: { select: { role: true } } },
+      select: { id: true, email: true, user_id: true, identity: { select: { role: true } } },
     });
     if (!profile) continue;
+    // A Profile with no user_id is NOT risk-free: attachStudioCredential will
+    // adopt whatever User owns this email and overwrite ITS password. Resolve
+    // the identity the same way (by email) before deciding, or the guard misses
+    // precisely the case it exists for.
+    const identityRole =
+      profile.identity?.role ??
+      (await prisma.user.findUnique({ where: { email: profile.email }, select: { role: true } }))?.role;
     targets.push({
       name: inst.name ?? "(no name)",
       email: profile.email,
       profileId: profile.id,
-      otherRoles: parseRoles(profile.identity?.role).filter((r) => r !== "instructor"),
+      otherRoles: parseRoles(identityRole).filter((r) => r !== "instructor"),
+      unlinked: !profile.user_id,
     });
   }
   targets.sort((a, b) => a.name.localeCompare(b.name));
@@ -47,7 +55,12 @@ async function main() {
       `\n⚠  ${shared.length} of them share an identity with another portal — resetting these ` +
         `replaces that person's own password:\n`,
     );
-    for (const t of shared) console.log(`   ${t.name} <${t.email}> also: ${t.otherRoles.join(", ")}`);
+    for (const t of shared) {
+      console.log(
+        `   ${t.name} <${t.email}> also: ${t.otherRoles.join(", ")}` +
+          (t.unlinked ? "  (profile has no user_id — identity matched by email)" : ""),
+      );
+    }
     console.log(force ? "\n--force given: these WILL be overwritten.\n" : "\nSkipping them. Pass --force to overwrite.\n");
   }
 
