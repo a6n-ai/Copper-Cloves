@@ -53,7 +53,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // separate write: the credential is what the member needs, and a token left
     // unburned by a crash between the two is still bounded by its own expiry —
     // the reverse order would strand them with a used link and no password.
-    await attachStudioCredential({ profileId: profile.id, password });
+    // overwrite: false — activation, not a reset. The guard above already
+    // proved there is no credential; this is belt-and-braces against a race
+    // with a concurrent activation of the same placeholder.
+    await attachStudioCredential({ profileId: profile.id, password, overwrite: false });
     await prisma.passwordResetToken.update({ where: { token }, data: { used: true } });
 
     return res.status(200).json({ ok: true, email: record.email });

@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { upsertFriendship } from "@/lib/friendship";
-import { resolveStudioUser } from "@/lib/auth/studioIdentity";
+import { createStudioProfile } from "@/lib/auth/studioIdentity";
 import logger from "@/lib/logger";
 
 const INVITE_TOKEN_TTL_MS = 72 * 60 * 60 * 1000; // 72 hours
@@ -46,18 +46,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // `credential` Account, so they cannot sign in until the invite email's
       // set-password link runs attachStudioCredential — but `user_id` is never
       // null, which is what getStudioServerSession and Task 13's
-      // @@unique([user_id, role]) both rely on.
-      const userId = await resolveStudioUser({ email, name: fullName || email, role: "user" });
-      profile = await prisma.profile.create({
-        data: {
-          email,
-          full_name: fullName || email,
-          phone: phone || null,
-          role: "user",
-          user_id: userId,
-        },
-        select: { id: true, phone: true },
+      // @@unique([user_id, role]) both rely on. createStudioProfile adopts an
+      // existing identity (inviting someone who already has another portal
+      // login) and rolls back only a User it minted itself.
+      const created = await createStudioProfile({
+        email,
+        name: fullName || email,
+        role: "user",
+        profile: { full_name: fullName || email, phone: phone || null },
       });
+      profile = { id: created.profile.id, phone: phone || null };
     } else if (phone && !profile.phone?.trim()) {
       await prisma.profile.update({ where: { id: profile.id }, data: { phone } });
     }

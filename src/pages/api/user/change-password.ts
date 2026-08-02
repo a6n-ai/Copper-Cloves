@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Overwrites the credential and clears the legacy column, so the old password
   // stops working on BOTH sign-in paths.
-  await attachStudioCredential({ profileId, password: newPassword });
+  await attachStudioCredential({ profileId, password: newPassword, overwrite: true });
 
   await logActivity({ req, action: "auth.password_changed" });
 
