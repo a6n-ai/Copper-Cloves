@@ -45,7 +45,7 @@
     "instructor:set-password": "tsx scripts/set-instructor-password.ts",
     "scheduler": "tsx scripts/scheduler.ts",
     "test:payout": "tsx scripts/test-payoutCalc.ts",
-    "test:auth": "tsx scripts/test-auth-password.ts && tsx scripts/test-auth-roles.ts",
+    "test:auth": "LOG_LEVEL=silent tsx scripts/test-auth-password.ts && LOG_LEVEL=silent tsx scripts/test-auth-roles.ts",
     "test:refund-pills": "tsx scripts/test-refund-pills.ts",
     "test:dropin-pass": "tsx scripts/test-dropin-pass.ts",
     "test:cafe-discount": "tsx scripts/test-cafeDiscount.ts",
