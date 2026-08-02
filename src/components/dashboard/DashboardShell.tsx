@@ -32,7 +32,6 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { cdnUrl } from "@/lib/cdnUrl";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { CheckinBeacon } from "@/components/checkin/CheckinBeacon";
 import { SIGN_OUT_HREF, type PortalConfig } from "@/components/dashboard/dashboardNav";
 import { GlobalSearch } from "@/components/dashboard/GlobalSearch";
@@ -196,7 +195,6 @@ export function DashboardShell({ config, user, children }: DashboardShellProps) 
               </div>
             </div>
             <div className="flex items-center gap-2.5 shrink-0">
-              <RoleSwitcher className="hidden sm:inline-flex" />
               <Pill appearance="solid" className={cn("hidden lg:inline-flex font-body", config.badgeClass)}>{config.badgeLabel}</Pill>
               <Separator orientation="vertical" className="hidden lg:block h-6" />
               <button

@@ -29,7 +29,7 @@ import { useStudioSWR } from "@/lib/swr";
 import { hasRole, primaryRole } from "@/lib/auth/roles";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
 import dynamic from "next/dynamic";
-// Dashboard chrome (cmdk/Command, sidebar, radix dropdown/popover, RoleSwitcher)
+// Dashboard chrome (cmdk/Command, sidebar, radix dropdown/popover)
 // only ever renders for authenticated portal routes (kind !== null). Loading it
 // via next/dynamic splits it into its own chunk so public marketing pages — the
 // bulk of first-load traffic — never download it. SSR stays on (default) so the
