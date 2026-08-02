@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { getSessionCookie } from "better-auth/cookies";
+import { fromNodeHeaders } from "better-auth/node";
 import { Prisma, ClassScheduleStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
@@ -95,14 +97,24 @@ function normalizeScheduleInput(
   };
 }
 
+/**
+ * Any cookie whose name contains `session-token` / `session_token`, whatever the
+ * vendor, `__Secure-` prefix or chunk suffix. Fail-closed backstop for auth
+ * cookies getSessionCookie() does not know about (e.g. a NextAuth cookie while
+ * it is still the rollback path).
+ */
+const ANY_SESSION_TOKEN_COOKIE = /(?:^|;)\s*[^=;]*session[-_]token[^=;]*\s*=/i;
+
 function isAnonGet(req: NextApiRequest): boolean {
   // Anonymous callers (e.g. public /classes page) can hit a CDN-cached copy;
   // authed callers always bypass since responses can include user-scoped
-  // booking joins downstream.
-  return (
-    !req.headers.cookie?.includes("next-auth.session-token") &&
-    !req.headers.cookie?.includes("__Secure-next-auth.session-token")
-  );
+  // booking joins downstream. Serving a cached authed response to another
+  // member is the 2026-06-30 session-bleed failure mode, so this MUST fail
+  // closed: when in doubt, not anonymous (a cache miss costs latency, a cache
+  // hit costs a data leak). Never match a hardcoded cookie name —
+  // getSessionCookie knows the configured name and prefix.
+  if (getSessionCookie(fromNodeHeaders(req.headers))) return false;
+  return !ANY_SESSION_TOKEN_COOKIE.test(req.headers.cookie ?? "");
 }
 
 function buildScheduleWhere(query: NextApiRequest["query"]): Prisma.ClassScheduleWhereInput {

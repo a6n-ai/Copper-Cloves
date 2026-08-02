@@ -559,8 +559,8 @@ export default function AdminSchedule() {
         toMs: String(rangeEnd.getTime()),
         expand: "0",
       });
-      // Public GET — do not send cookies. Large __Secure-next-auth.session-token headers can exceed
-      // CloudFront/API limits and produce 413 Content Too Large on Amplify.
+      // Public GET — do not send cookies. Large session cookie headers can exceed
+      // CDN/API limits and produce 413 Content Too Large.
       const res = await fetch(`/api/class-schedules?${params}`, {
         credentials: "omit",
       });
