@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const resetProfile = await prisma.profile.findFirst({
     where: { email: record.email, role: targetRole },
-    select: { id: true, role: true, full_name: true },
+    select: { id: true, role: true, full_name: true, user_id: true },
   });
 
   await prisma.$transaction([
@@ -37,8 +37,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: { used: true },
     }),
     // Force re-login on all devices for the reset account (kills any live session).
-    prisma.userSession.deleteMany({
-      where: { profile: { email: record.email, role: targetRole } },
+    // No user_id (identity not yet linked) => harmless zero-update.
+    prisma.session.deleteMany({
+      where: { userId: resetProfile?.user_id ?? "__no_such_user__" },
     }),
   ]);
 

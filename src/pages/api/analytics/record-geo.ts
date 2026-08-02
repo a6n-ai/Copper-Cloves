@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getToken } from "next-auth/jwt";
+import { fromNodeHeaders } from "better-auth/node";
 import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -12,10 +13,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const session = await getStudioServerSession(req, res);
   if (!session?.user) return res.status(401).json({ error: "Unauthenticated" });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const token = await getToken({ req: req as any, secret: process.env.NEXTAUTH_SECRET });
-  const sid = (token as { sid?: string } | null)?.sid;
-  if (!sid) return res.status(400).json({ error: "No session id" });
+  // StudioSession doesn't carry the raw better-auth session id (it's a Profile-
+  // shaped view ~40 routes rely on), so this is a second getSession round trip.
+  const result = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
+  const sessionId = result?.session?.id;
+  if (!sessionId) return res.status(400).json({ error: "No session id" });
 
   const { latitude, longitude, accuracy } = req.body ?? {};
   const lat = Number(latitude);
@@ -25,16 +27,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Invalid coordinates" });
   }
 
-  // updateMany scopes strictly to the caller's own session row by sid — a caller
-  // can never write GPS onto another account's session. No row (sid already
-  // ended) => harmless zero-update.
-  await prisma.userSession.updateMany({
-    where: { session_id: sid },
+  // Scoped strictly to the caller's own session row by id — a caller can never
+  // write GPS onto another account's session. No row (session already ended)
+  // => harmless zero-update.
+  await prisma.session.updateMany({
+    where: { id: sessionId },
     data: {
       latitude: lat,
       longitude: lon,
       accuracy: Number.isFinite(acc) ? acc : null,
-      geo_captured_at: new Date(),
+      geoCapturedAt: new Date(),
     },
   });
 

@@ -27,30 +27,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(403).json({ error: "Forbidden" });
   }
 
-  const sessions = await prisma.userSession.findMany({
-    orderBy: { created_at: "desc" },
+  const sessions = await prisma.session.findMany({
+    orderBy: { createdAt: "desc" },
     take: 100,
     select: {
       id: true,
-      ip: true,
-      user_agent: true,
-      created_at: true,
+      ipAddress: true,
+      userAgent: true,
+      createdAt: true,
       latitude: true,
       longitude: true,
       accuracy: true,
-      profile: { select: { email: true } },
+      user: { select: { email: true } },
     },
   });
 
   const rows: AccessRow[] = sessions.map((s) => ({
     id: s.id,
-    email: s.profile?.email ?? null,
-    time: s.created_at.toISOString(),
+    email: s.user?.email ?? null,
+    time: s.createdAt.toISOString(),
     latitude: s.latitude ?? null,
     longitude: s.longitude ?? null,
     accuracy: s.accuracy ?? null,
-    device: parseUserAgent(s.user_agent),
-    ip: s.ip ?? null,
+    device: parseUserAgent(s.userAgent),
+    ip: s.ipAddress ?? null,
   }));
 
   return res.status(200).json({ rows });
