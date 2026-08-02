@@ -38,6 +38,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }),
     // Force re-login on all devices for the reset account (kills any live session).
     // No user_id (identity not yet linked) => harmless zero-update.
+    // Scope is per-identity (User), not per-role (Profile), because better-auth's
+    // Session FK is userId only — it has no role dimension. This is a deliberate
+    // widening from the old per-role UserSession.deleteMany: resetting one portal's
+    // password now also logs out any other role that same identity holds. Fails
+    // safe (revokes more, never fewer) and matches standard "reset kills all
+    // sessions" practice. No live effect today (no identity holds 2+ roles yet)
+    // but the admin plugin can grant a second role at any time.
     prisma.session.deleteMany({
       where: { userId: resetProfile?.user_id ?? "__no_such_user__" },
     }),

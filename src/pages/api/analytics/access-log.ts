@@ -44,6 +44,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const rows: AccessRow[] = sessions.map((s) => ({
     id: s.id,
+    // Assumes one Profile per identity (User) — not yet structurally enforced;
+    // Profile still carries @@unique([email, role]) until Task 13, so a
+    // historically divergent per-role email would not surface here.
     email: s.user?.email ?? null,
     time: s.createdAt.toISOString(),
     latitude: s.latitude ?? null,
