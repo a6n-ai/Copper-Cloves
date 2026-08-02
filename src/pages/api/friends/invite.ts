@@ -105,8 +105,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ ok: true, isNew });
   } catch (e) {
     // The email belongs to a staff/partner login, not a member one. Not a
-    // server error — tell the member so they can use their friend's own email.
-    if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
+    // server error — tell the member so they can use their friend's own email,
+    // but generically: any signed-in member can call this, and e.message names
+    // the existing role, which would turn invites into an account-type probe.
+    if (e instanceof LoginEmailTakenError)
+      return res.status(409).json({ error: "An account with this email already exists." });
     logger.error({ err: e }, "[friends invite POST]");
     return res.status(500).json({ error: "Could not send invite" });
   }

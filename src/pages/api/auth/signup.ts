@@ -110,7 +110,11 @@ function parseSignupBody(
 
 function respondWithSignupError(res: NextApiResponse, e: unknown): void {
   if (e instanceof LoginEmailTakenError) {
-    res.status(409).json({ error: e.message });
+    // Generic on purpose: this route is UNAUTHENTICATED, so e.message (which
+    // names the existing role — "already has an instructor account") would let
+    // anyone probe an address and learn what kind of account it is. The
+    // specific wording stays on the admin-gated provisioning routes.
+    res.status(409).json({ error: "An account with this email already exists." });
     return;
   }
   // better-auth rejects the password itself (min/max length) — its message is
