@@ -120,7 +120,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           profile: { full_name: member.name.trim() || email, phone: memberPhone || null },
         });
       } catch (e) {
-        if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
+        // Any signed-in member can call this, and e.message names the existing
+        // role — surfacing it verbatim would turn invite-resolution into an
+        // account-type probe. Generic message, same 409.
+        if (e instanceof LoginEmailTakenError) {
+          return res.status(409).json({ error: "An account with this email already exists." });
+        }
         throw e;
       }
       profile = { id: created.profile.id, hashedPassword: null, phone: memberPhone || null };
