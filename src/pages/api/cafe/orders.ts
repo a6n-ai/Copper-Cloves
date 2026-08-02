@@ -7,8 +7,21 @@ import { cafeDiscountPercent } from "@/lib/cafeDiscount";
 import { hasRole } from "@/lib/auth/roles";
 
 async function handleGet(res: NextApiResponse, userId: string, isStaff: boolean) {
-  const where = isStaff ? {} : { user_id: userId };
   const now = new Date();
+  // Kitchen screen only needs recent/open orders, not the entire history.
+  // 48h window is generous enough to always contain "today" (incl. late-night
+  // service crossing midnight) while still bounding the scan; anything still
+  // open (not completed/cancelled) is included regardless of age so a stale
+  // pending order doesn't silently vanish from the queue.
+  const recentCutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+  const where = isStaff
+    ? {
+        OR: [
+          { order_date: { gte: recentCutoff } },
+          { status: { notIn: ["completed", "cancelled"] } },
+        ],
+      }
+    : { user_id: userId };
   const orders = await prisma.cafeOrder.findMany({
     where,
     include: {

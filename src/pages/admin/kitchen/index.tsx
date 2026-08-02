@@ -20,6 +20,12 @@ interface CafeOrderRow {
   profile: { full_name: string | null; email: string } | null;
   member_pass_name: string | null;
   member_cafe_discount_percent: number;
+  booking: {
+    class_schedule: {
+      start_time: string;
+      class_model: { name: string } | null;
+    } | null;
+  } | null;
 }
 
 /** Absolute order date + time, e.g. "18 Jul, 11:52 AM". */
@@ -53,6 +59,25 @@ function minsAgo(iso: string) {
   const m = mins % 60;
   return m ? `${h}h ${m}m ago` : `${h}h ago`;
 }
+
+/** Relative countdown/elapsed to a class start time, e.g. "in 25m" / "started 5m ago". */
+function relativeToNow(iso: string) {
+  const mins = Math.round((new Date(iso).getTime() - Date.now()) / 60000);
+  if (mins > 0) {
+    if (mins < 60) return `in ${mins}m`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m ? `in ${h}h ${m}m` : `in ${h}h`;
+  }
+  const ago = Math.abs(mins);
+  if (ago < 1) return "starting now";
+  if (ago < 60) return `started ${ago}m ago`;
+  const h = Math.floor(ago / 60);
+  const m = ago % 60;
+  return `started ${m ? `${h}h ${m}m` : `${h}h`} ago`;
+}
+
+const URGENT_MINS = 15;
 
 function isToday(iso: string) {
   const d = new Date(iso);
@@ -120,8 +145,8 @@ export default function KitchenDashboard() {
     }
   }
 
-  // Single pass over `orders`: build active list (sorted asc by date), count pending,
-  // count completed-today. Was three separate filters/scans per render.
+  // Single pass over `orders`: build active list (sorted by when the food is needed —
+  // the class start time, not order time), count pending, count completed-today.
   const { active, pendingCount, completedToday } = useMemo(() => {
     const activeRows: Array<typeof orders[number] & { _ms: number }> = [];
     let pending = 0;
@@ -130,7 +155,9 @@ export default function KitchenDashboard() {
       if (o.status === "completed" && isToday(o.order_date)) completed += 1;
       if (!(o.status === "completed" || o.status === "cancelled")) {
         if (o.status === "pending") pending += 1;
-        activeRows.push({ ...o, _ms: new Date(o.order_date).getTime() });
+        const startTime = o.booking?.class_schedule?.start_time;
+        // No class → no deadline; push to the end of the queue (Infinity sorts last).
+        activeRows.push({ ...o, _ms: startTime ? new Date(startTime).getTime() : Infinity });
       }
     }
     activeRows.sort((a, b) => a._ms - b._ms);
@@ -165,6 +192,10 @@ export default function KitchenDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {active.map((o) => {
           const step = NEXT_STATUS[o.status];
+          const startTime = o.booking?.class_schedule?.start_time;
+          const className = o.booking?.class_schedule?.class_model?.name;
+          const minsToClass = startTime ? Math.round((new Date(startTime).getTime() - Date.now()) / 60000) : null;
+          const isUrgent = minsToClass !== null && minsToClass <= URGENT_MINS;
           return (
             <Card key={o.id} className="rounded-2xl border-sage/15 hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)] transition-shadow">
               <CardContent className="p-5 space-y-3">
@@ -189,13 +220,32 @@ export default function KitchenDashboard() {
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-body text-xs text-charcoal/45">
-                    {orderDateTime(o.order_date)} · {minsAgo(o.order_date)}
+                    Ordered {orderDateTime(o.order_date)} · {minsAgo(o.order_date)}
                   </p>
                   {o.member_cafe_discount_percent > 0 ? (
                     <Pill tone="success" size="sm" className="shrink-0 font-body font-medium">
                       {o.member_cafe_discount_percent}% off{o.member_pass_name ? ` · ${o.member_pass_name}` : ""}
                     </Pill>
                   ) : null}
+                </div>
+                <div className="flex items-center justify-between gap-2 rounded-lg bg-sand/40 px-3 py-2">
+                  {startTime ? (
+                    <>
+                      <p className="font-body text-sm text-charcoal min-w-0 truncate">
+                        <span className="font-medium">{className ?? "Class"}</span>
+                        <span className="text-charcoal/55"> · {orderDateTime(startTime)}</span>
+                      </p>
+                      <Pill
+                        tone={isUrgent ? "danger" : "warning"}
+                        size="sm"
+                        className="shrink-0 font-body font-medium"
+                      >
+                        {relativeToNow(startTime)}
+                      </Pill>
+                    </>
+                  ) : (
+                    <p className="font-body text-sm text-charcoal/55">Walk-in — no class</p>
+                  )}
                 </div>
                 <div className="flex gap-2 pt-1">
                   {step ? (
