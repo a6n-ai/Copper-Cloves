@@ -4,7 +4,11 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { apiError } from "@/lib/apiError";
 import { hasRole } from "@/lib/auth/roles";
-import { createStudioLogin, LoginEmailTakenError } from "@/lib/auth/createStudioLogin";
+import {
+  createStudioProfile,
+  rollbackStudioProfile,
+  type CreatedStudioProfile,
+} from "@/lib/auth/studioIdentity";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getStudioServerSession(req, res);
@@ -55,13 +59,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (existing) return res.status(409).json({ error: "An account with this email already exists." });
 
   // better-auth owns the credential (User + `credential` Account); the Profile
-  // it returns owns studio membership. It cannot run inside the transaction
-  // below (auth.api opens its own), so the account is created first and rolled
-  // back by hand if the package half fails — preserving the all-or-nothing
-  // behaviour the single transaction used to give.
-  let memberProfile: Awaited<ReturnType<typeof createStudioLogin>> | undefined;
+  // owns studio membership. createStudioProfile ADOPTS an existing identity, so
+  // an instructor or partner can be added as a member — createStudioLogin would
+  // reject the email outright. It cannot run inside the transaction below
+  // (auth.api / multiple statements), so it runs first and is rolled back by
+  // hand if the package half fails, preserving the all-or-nothing behaviour the
+  // single transaction used to give.
+  let created: CreatedStudioProfile | undefined;
   try {
-    memberProfile = await createStudioLogin({
+    created = await createStudioProfile({
       email,
       password,
       name: full_name || email,
@@ -73,6 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         start_date: start_date_raw ? new Date(start_date_raw) : undefined,
       },
     });
+    const memberProfile = created.profile;
 
     const profile = await prisma.$transaction(async (tx) => {
       let pkgTypeId = package_type_id;
@@ -149,14 +156,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return memberProfile;
     });
 
-    return res.status(201).json({ id: profile.id, email: profile.email });
+    return res.status(201).json({
+      id: profile.id,
+      email: profile.email,
+      // False = this email already had a Studio login and keeps its own
+      // password; the one the admin typed was not applied.
+      password_applied: created.passwordApplied,
+    });
   } catch (e) {
-    // Deleting the User cascades the credential Account and the Profile, so a
-    // failed package step leaves nothing behind — and does not squat the email.
-    if (memberProfile?.user_id) {
-      await prisma.user.delete({ where: { id: memberProfile.user_id } }).catch(() => {});
-    }
-    if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
+    // Deletes the User only if this request minted it (cascading Account +
+    // Profile); an ADOPTED identity loses just the Profile it gained here.
+    await rollbackStudioProfile(created);
     const msg = e instanceof Error ? e.message : String(e);
     if (msg === "NO_PACKAGE_TYPES") {
       return res.status(400).json({

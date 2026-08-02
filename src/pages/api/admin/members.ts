@@ -16,7 +16,7 @@ import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { welcomeSetPasswordEmail } from "@/lib/notifications/emailTemplates";
 import logger from "@/lib/logger";
 import { hasRole } from "@/lib/auth/roles";
-import { createStudioLogin, LoginEmailTakenError } from "@/lib/auth/createStudioLogin";
+import { createStudioProfile, rollbackStudioProfile } from "@/lib/auth/studioIdentity";
 
 const WELCOME_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const DEFAULT_PAGE_SIZE = 10;
@@ -314,12 +314,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const token = crypto.randomBytes(32).toString("hex");
 
     // Login + welcome token land together or neither does — no orphan account
-    // with no way to set a password. createStudioLogin cannot join the token's
-    // transaction (auth.api opens its own), so the User is deleted by hand on
-    // failure, cascading its credential Account and Profile.
+    // with no way to set a password. createStudioProfile spans several
+    // statements so it cannot join the token's transaction; it is rolled back by
+    // hand instead. It also ADOPTS an existing identity, so an instructor or
+    // partner can be added as a member.
     let created;
     try {
-      created = await createStudioLogin({
+      created = await createStudioProfile({
         email,
         password: randomPassword,
         name: full_name,
@@ -330,11 +331,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: { email, role: "user", token, expires_at: new Date(Date.now() + WELCOME_TOKEN_TTL_MS) },
       });
     } catch (e) {
-      if (created?.user_id) {
-        await prisma.user.delete({ where: { id: created.user_id } }).catch(() => {});
-      }
-      // Lost the read-then-write race against the unique index.
-      if (e instanceof LoginEmailTakenError || (e as { code?: string }).code === "P2002") {
+      await rollbackStudioProfile(created);
+      // Lost the read-then-write race against @@unique([email, role]).
+      if ((e as { code?: string }).code === "P2002") {
         return res.status(409).json({ error: "A member with this email already exists." });
       }
       logger.error({ err: e }, "[admin/members POST] member create failed");

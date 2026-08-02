@@ -10,7 +10,11 @@ import { logActivity } from "@/lib/activityLog";
 import logger from "@/lib/logger";
 import { apiError } from "@/lib/apiError";
 import { hasRole } from "@/lib/auth/roles";
-import { createStudioLogin, LoginEmailTakenError } from "@/lib/auth/createStudioLogin";
+import {
+  createStudioProfile,
+  rollbackStudioProfile,
+  type CreatedStudioProfile,
+} from "@/lib/auth/studioIdentity";
 
 /**
  * Atomic member onboarding: create the account and (optionally) assign a pass +
@@ -96,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const existing = await prisma.profile.findFirst({ where: { email, role: "user" } });
   if (existing) return res.status(409).json({ error: "An account with this email already exists." });
 
-  let profile: Awaited<ReturnType<typeof createStudioLogin>> | undefined;
+  let created: CreatedStudioProfile | undefined;
   try {
     // Resolve the PackageType + expiry (reads) before opening the transaction.
     let pkgTypeId: string | null = null;
@@ -134,12 +138,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (Number.isNaN(startDate.getTime())) return res.status(400).json({ error: "Invalid start date" });
     }
 
-    // better-auth owns the credential (User + `credential` Account), and auth.api
-    // opens its own transaction, so the account cannot be created inside the one
-    // below. It is rolled back by hand in the catch instead — deleting the User
-    // cascades the Account and the Profile, keeping the all-or-nothing guarantee
-    // this route exists for (known-issue #9).
-    profile = await createStudioLogin({
+    // createStudioProfile ADOPTS an existing identity, so an instructor or
+    // partner can be onboarded as a member. It spans several statements and so
+    // cannot join the transaction below; it is rolled back by hand in the catch
+    // instead, keeping the all-or-nothing guarantee this route exists for
+    // (known-issue #9).
+    created = await createStudioProfile({
       email,
       password,
       name: full_name || email,
@@ -151,9 +155,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ...(startDate ? { start_date: startDate } : {}),
       },
     });
+    const profile = created.profile;
 
     // Pass + payment commit together or not at all.
-    const created = await prisma.$transaction(async (tx) => {
+    const member = await prisma.$transaction(async (tx) => {
       let userPackageId: string | null = null;
       if (assignPass && pkgTypeId && expiry) {
         const up = await tx.userPackage.create({
@@ -199,13 +204,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await logActivity({
       req,
       action: "auth.signup",
-      actor: { id: created.id, role: created.role, name: created.full_name },
+      actor: { id: member.id, role: member.role, name: member.full_name },
     });
     if (assignPass) {
       await logActivity({
         req,
         action: "admin.package_assigned",
-        targetProfileId: created.id,
+        targetProfileId: member.id,
         metadata: { pass_type: passType, is_comp: isComp },
       });
     }
@@ -221,12 +226,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
       .catch((err) => logger.error({ err }, "[members/onboard] welcome email threw"));
 
-    return res.status(201).json({ id: created.id, email: created.email, passAssigned: assignPass });
+    return res.status(201).json({
+      id: member.id,
+      email: member.email,
+      passAssigned: assignPass,
+      // False = this email already had a Studio login and keeps its own
+      // password; the one the admin typed was not applied.
+      password_applied: created.passwordApplied,
+    });
   } catch (e) {
-    if (profile?.user_id) {
-      await prisma.user.delete({ where: { id: profile.user_id } }).catch(() => {});
-    }
-    if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
+    // Deletes the User only if this request minted it; an ADOPTED identity
+    // loses just the Profile it gained here.
+    await rollbackStudioProfile(created);
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return res.status(409).json({ error: "An account with this email already exists." });
     }
