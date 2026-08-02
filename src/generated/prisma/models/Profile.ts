@@ -415,12 +415,12 @@ export type ProfileOrderByWithRelationInput = {
 
 export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  email?: string
   avatar_file_id?: string
   user_id?: string
   AND?: Prisma.ProfileWhereInput | Prisma.ProfileWhereInput[]
   OR?: Prisma.ProfileWhereInput[]
   NOT?: Prisma.ProfileWhereInput | Prisma.ProfileWhereInput[]
-  email?: Prisma.StringFilter<"Profile"> | string
   full_name?: Prisma.StringNullableFilter<"Profile"> | string | null
   phone?: Prisma.StringNullableFilter<"Profile"> | string | null
   whatsapp_phone?: Prisma.StringNullableFilter<"Profile"> | string | null
@@ -465,7 +465,7 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   recorded_payments?: Prisma.PaymentListRelationFilter
   cancellation_requests?: Prisma.ClassCancellationRequestListRelationFilter
   identity?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
-}, "id" | "avatar_file_id" | "user_id">
+}, "id" | "avatar_file_id" | "user_id" | "email">
 
 export type ProfileOrderByWithAggregationInput = {
   id?: Prisma.SortOrder

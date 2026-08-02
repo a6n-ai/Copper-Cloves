@@ -65,6 +65,14 @@ model Profile {
   /// 2026-08-02). Supersedes the old @@unique([email, role]), which permitted a
   /// second role on the same person. Also serves as the user_id index.
   @@unique([user_id])
+  /// The literal encoding of the same ruling on the column the ruling is
+  /// actually about. @@unique([user_id]) alone leaves `email` unconstrained —
+  /// two Profiles can share an email if either has a null user_id (Postgres
+  /// does not compare NULLs), which is exactly the state a lost-admin recovery
+  /// path (bootstrap-admin.ts) can hit: a miss on a mislinked row now creates a
+  /// second Profile instead of repairing the first. Production already
+  /// satisfies this — 0 emails held by more than one Profile.
+  @@unique([email])
   @@map("profiles")
 }
 
