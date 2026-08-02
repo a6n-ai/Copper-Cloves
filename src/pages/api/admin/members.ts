@@ -13,10 +13,14 @@ import { recordManualPayment, RECORDABLE_METHODS } from "@/lib/payments";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
-import { welcomeSetPasswordEmail } from "@/lib/notifications/emailTemplates";
+import { welcomeEmail, welcomeSetPasswordEmail } from "@/lib/notifications/emailTemplates";
 import logger from "@/lib/logger";
 import { hasRole } from "@/lib/auth/roles";
-import { createStudioProfile, rollbackStudioProfile } from "@/lib/auth/studioIdentity";
+import {
+  createStudioProfile,
+  rollbackStudioProfile,
+  type CreatedStudioProfile,
+} from "@/lib/auth/studioIdentity";
 
 const WELCOME_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const DEFAULT_PAGE_SIZE = 10;
@@ -318,7 +322,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // statements so it cannot join the token's transaction; it is rolled back by
     // hand instead. It also ADOPTS an existing identity, so an instructor or
     // partner can be added as a member.
-    let created;
+    // Typed, not `let created;` — an evolving `any` under noImplicitAny: false
+    // hides every field-shape mistake on the result.
+    let created: CreatedStudioProfile | undefined;
     try {
       created = await createStudioProfile({
         email,
@@ -327,9 +333,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         role: "user",
         profile: { full_name, phone },
       });
-      await prisma.passwordResetToken.create({
-        data: { email, role: "user", token, expires_at: new Date(Date.now() + WELCOME_TOKEN_TTL_MS) },
-      });
+      // No token when the identity was adopted and already has a password: the
+      // set-password link would answer `already_activated`.
+      if (created.passwordApplied) {
+        await prisma.passwordResetToken.create({
+          data: { email, role: "user", token, expires_at: new Date(Date.now() + WELCOME_TOKEN_TTL_MS) },
+        });
+      }
     } catch (e) {
       await rollbackStudioProfile(created);
       // Lost the read-then-write race against @@unique([email, role]).
@@ -340,10 +350,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: "Could not create member." });
     }
 
+    const member = created.profile;
+
     logActivity({
       req,
       action: "auth.signup",
-      actor: { id: created.id, role: created.role, name: created.full_name },
+      actor: { id: member.id, role: member.role, name: member.full_name },
     }).catch((err) => logger.error({ err }, "[admin/members POST] activity log threw"));
 
     // Security-sensitive set-password link must come from a trusted origin only —
@@ -356,8 +368,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const setPasswordUrl = `${baseUrl}/portal/reset-password?token=${token}`;
       sendHtmlEmail({
         to: email,
-        subject: "welcome to The Studio by Copper + Cloves — set your password",
-        html: welcomeSetPasswordEmail({ memberName: full_name, setPasswordUrl, portalUrl: baseUrl }),
+        // An adopted identity keeps its own password, so there is no token and
+        // no link to send — the plain welcome replaces the set-password one.
+        subject: created.passwordApplied
+          ? "welcome to The Studio by Copper + Cloves — set your password"
+          : "welcome to The Studio by Copper + Cloves",
+        html: created.passwordApplied
+          ? welcomeSetPasswordEmail({ memberName: full_name, setPasswordUrl, portalUrl: baseUrl })
+          : welcomeEmail({ memberName: full_name, portalUrl: baseUrl }),
       })
         .then((result) => {
           if (!result.ok) logger.error({ result }, "[admin/members POST] welcome email failed");
@@ -365,7 +383,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .catch((err) => logger.error({ err }, "[admin/members POST] welcome email threw"));
     }
 
-    return res.status(201).json({ id: created.id, email: created.email, full_name: created.full_name });
+    return res.status(201).json({
+      id: member.id,
+      email: member.email,
+      full_name: member.full_name,
+      // False = this email already had a Studio login and keeps its own
+      // password; no set-password link was sent.
+      password_applied: created.passwordApplied,
+    });
   }
 
   if (req.method === "PATCH") {

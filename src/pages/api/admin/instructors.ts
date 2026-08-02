@@ -141,7 +141,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    return res.status(201).json(instructor);
+    // password_applied false = this email already had a Studio login and keeps
+    // its own password; no temp password was issued or mailed.
+    return res.status(201).json({ ...instructor, password_applied: tempPasswordUsable });
   }
 
   if (req.method === "PUT") {
