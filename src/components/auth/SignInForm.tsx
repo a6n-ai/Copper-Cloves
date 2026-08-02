@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { authClient } from "@/lib/auth/client";
+import { authService } from "@/services/authService";
 import { primaryRole } from "@/lib/auth/roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,16 +33,13 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
     setError(null);
     setLoading(true);
     try {
-      const { data, error: signInError } = await authClient.signIn.email({
-        email: email.trim(),
-        password,
-      });
-      if (signInError || !data?.user) {
+      const { user, error: signInError } = await authService.signIn(email.trim(), password);
+      if (signInError || !user) {
         setError("Invalid email or password");
         setLoading(false);
         return;
       }
-      const role = primaryRole((data.user as { role?: string }).role) ?? "user";
+      const role = primaryRole(user.role) ?? "user";
       // Hard navigation so the new session starts with a clean in-memory SWR
       // cache — a soft router.replace would reuse the previous user's cached
       // data (profile/packages/stats) and land you in "someone else's account".
