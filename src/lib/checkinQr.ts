@@ -16,7 +16,7 @@ export interface ScheduleQr {
 }
 
 function deepLink(token: string): string {
-  const origin = (process.env.NEXTAUTH_URL?.trim() || "").replace(/\/$/, "");
+  const origin = (process.env.BETTER_AUTH_URL?.trim() || "").replace(/\/$/, "");
   return `${origin}/checkin?t=${encodeURIComponent(token)}`;
 }
 

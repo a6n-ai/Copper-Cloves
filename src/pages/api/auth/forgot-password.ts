@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: { email: normalised, role: targetRole, token, expires_at: expiresAt },
   });
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? `https://${req.headers.host}`;
+  const baseUrl = process.env.BETTER_AUTH_URL ?? `https://${req.headers.host}`;
   const resetUrl = `${baseUrl}/portal/reset-password?token=${token}`;
 
   const result = await sendHtmlEmail({

@@ -119,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (email) {
       try {
         const baseUrl =
-          process.env.NEXTAUTH_URL?.trim() ||
+          process.env.BETTER_AUTH_URL?.trim() ||
           process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
           "https://www.thestudiobycopperandcloves.in";
         const loginUrl = `${baseUrl.replace(/\/$/, "")}/login`;

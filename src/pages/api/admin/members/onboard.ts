@@ -215,7 +215,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    const portalUrl = process.env.NEXTAUTH_URL?.replace(/\/$/, "") ?? "";
+    const portalUrl = process.env.BETTER_AUTH_URL?.replace(/\/$/, "") ?? "";
     await sendHtmlEmail({
       to: email,
       subject: "welcome to The Studio by Copper + Cloves",

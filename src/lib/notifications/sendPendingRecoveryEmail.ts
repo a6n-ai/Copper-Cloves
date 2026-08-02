@@ -99,7 +99,7 @@ export async function sendPendingRecoveryEmail(bookingId: string): Promise<void>
   const dateStr = sch ? formatDate(sch.start_time) : "";
   const startTime = sch ? formatTime(sch.start_time) : "";
   const memberName = booking.profile.full_name?.trim() || booking.profile.email.split("@")[0] || "there";
-  const bookingsUrl = (process.env.NEXTAUTH_URL ?? "").replace(/\/$/, "") + "/portal/bookings";
+  const bookingsUrl = (process.env.BETTER_AUTH_URL ?? "").replace(/\/$/, "") + "/portal/bookings";
 
   const html = emailWrapper(`
     ${logoHeader("complete your booking")}

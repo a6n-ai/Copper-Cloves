@@ -49,7 +49,7 @@ export async function sendClassRescheduledEmails(
 
   const className = sch.class_model?.name || "your class";
   const instructorName = sch.instructor?.name || "your instructor";
-  const portalUrl = (process.env.NEXTAUTH_URL ?? "").replace(/\/$/, "");
+  const portalUrl = (process.env.BETTER_AUTH_URL ?? "").replace(/\/$/, "");
 
   for (const b of sch.bookings) {
     const email = b.profile?.email?.trim();

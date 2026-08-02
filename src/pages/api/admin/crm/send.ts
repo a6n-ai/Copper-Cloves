@@ -19,7 +19,7 @@ function asString(v: unknown): string {
 }
 
 function siteBaseUrl(): string {
-  return (process.env.NEXTAUTH_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim() || "").replace(/\/$/, "");
+  return (process.env.BETTER_AUTH_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim() || "").replace(/\/$/, "");
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

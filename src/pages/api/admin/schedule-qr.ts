@@ -61,10 +61,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .status(500)
         .json({ error: "Server misconfigured: CHECKIN_QR_SECRET env var is not set" });
     }
-    if (!process.env.NEXTAUTH_URL?.trim()) {
+    if (!process.env.BETTER_AUTH_URL?.trim()) {
       return res
         .status(500)
-        .json({ error: "Server misconfigured: NEXTAUTH_URL env var is not set" });
+        .json({ error: "Server misconfigured: BETTER_AUTH_URL env var is not set" });
     }
 
     const force = req.method === "POST";

@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const interesting = [
     "STUDIO_DATABASE_URL",
     "DATABASE_URL",
-    "NEXTAUTH_URL",
+    "BETTER_AUTH_URL",
     "NEXTAUTH_SECRET",
     "RAZORPAY_KEY_ID",
     "RAZORPAY_KEY_SECRET",

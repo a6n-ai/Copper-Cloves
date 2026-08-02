@@ -359,11 +359,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }).catch((err) => logger.error({ err }, "[admin/members POST] activity log threw"));
 
     // Security-sensitive set-password link must come from a trusted origin only —
-    // never the client-controlled Host header. If NEXTAUTH_URL is unset, the
+    // never the client-controlled Host header. If BETTER_AUTH_URL is unset, the
     // account still exists; we just skip the welcome email.
-    const baseUrl = (process.env.NEXTAUTH_URL ?? "").replace(/\/$/, "");
+    const baseUrl = (process.env.BETTER_AUTH_URL ?? "").replace(/\/$/, "");
     if (!baseUrl) {
-      logger.warn("[admin/members POST] NEXTAUTH_URL unset — welcome email skipped (no set-password link sent)");
+      logger.warn("[admin/members POST] BETTER_AUTH_URL unset — welcome email skipped (no set-password link sent)");
     } else {
       const setPasswordUrl = `${baseUrl}/portal/reset-password?token=${token}`;
       sendHtmlEmail({

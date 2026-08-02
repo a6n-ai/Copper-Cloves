@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: { email, role: "user", token, expires_at: new Date(Date.now() + INVITE_TOKEN_TTL_MS) },
       });
       const inviterName = session.user?.name ?? "A friend";
-      const baseUrl = process.env.NEXTAUTH_URL ?? `https://${req.headers.host}`;
+      const baseUrl = process.env.BETTER_AUTH_URL ?? `https://${req.headers.host}`;
       const setPasswordUrl = `${baseUrl}/portal/set-password?token=${token}`;
       await sendHtmlEmail({
         to: email,

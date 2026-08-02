@@ -203,7 +203,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       actor: { id: createdProfile.id, role: createdProfile.role, name: createdProfile.full_name },
     });
 
-    const portalUrl = process.env.NEXTAUTH_URL?.replace(/\/$/, "") ?? "";
+    const portalUrl = process.env.BETTER_AUTH_URL?.replace(/\/$/, "") ?? "";
     // Awaited so the email actually sends on serverless (the handler would
     // otherwise return and the function freezes before delivery). Failures are
     // logged but never block account creation.

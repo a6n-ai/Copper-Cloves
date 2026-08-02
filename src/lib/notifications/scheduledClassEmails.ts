@@ -46,7 +46,7 @@ async function activeTriggerTemplate(triggerType: string) {
 }
 
 function siteBase(): string {
-  return (process.env.NEXTAUTH_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim() || "").replace(/\/$/, "");
+  return (process.env.BETTER_AUTH_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim() || "").replace(/\/$/, "");
 }
 
 /** Send the ~1h pre-class reminder to each booked member. Idempotent via reminder_sent_at. */

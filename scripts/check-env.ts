@@ -29,6 +29,8 @@ const VARS: VarDef[] = [
   { name: "DATABASE_URL", severity: "recommended", group: "Database", hint: "Fallback if STUDIO_DATABASE_URL not set" },
   { name: "NEXTAUTH_URL", severity: "required", group: "Auth", hint: "https://yourdomain — no trailing slash" },
   { name: "NEXTAUTH_SECRET", severity: "required", group: "Auth", hint: "openssl rand -base64 32" },
+  // Also the origin every outbound email/QR link is built from — not just auth.
+  { name: "BETTER_AUTH_URL", severity: "required", group: "Auth", hint: "https://yourdomain — no trailing slash; must equal APP_DOMAIN" },
 
   // Razorpay
   { name: "RAZORPAY_KEY_ID", severity: "required", group: "Payments" },
@@ -124,8 +126,10 @@ function check() {
   if (!isSet("STUDIO_DATABASE_URL") && !isSet("DATABASE_URL")) {
     warnings.push("Neither STUDIO_DATABASE_URL nor DATABASE_URL is set — DB queries will fail");
   }
-  if (process.env.NEXTAUTH_URL?.endsWith("/")) {
-    warnings.push("NEXTAUTH_URL ends with trailing slash — strip it");
+  for (const v of ["NEXTAUTH_URL", "BETTER_AUTH_URL"]) {
+    if (process.env[v]?.endsWith("/")) {
+      warnings.push(`${v} ends with trailing slash — strip it`);
+    }
   }
 
   const requiredMissing = missing.filter((v) => v.severity === "required");

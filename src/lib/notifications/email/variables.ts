@@ -7,7 +7,7 @@ export function formatRupeesFromPaise(paise: number): string {
 }
 
 export function studioLinks(base?: string): Record<string, string> {
-  const b = (base ?? process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
+  const b = (base ?? process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
   return { Studio_Link: b, Portal_Link: b ? `${b}/portal/dashboard` : "/portal/dashboard" };
 }
 

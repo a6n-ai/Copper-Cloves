@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     EMAIL_PASS: process.env.EMAIL_PASS ? "set" : "MISSING",
     EMAIL_FROM: process.env.EMAIL_FROM ?? "MISSING",
     RESEND_API_KEY: process.env.RESEND_API_KEY ? "set" : "MISSING",
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL ?? "MISSING",
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL ?? "MISSING",
     NODE_ENV: process.env.NODE_ENV,
     AWS_EXECUTION_ENV: process.env.AWS_EXECUTION_ENV ?? "not set",
   };

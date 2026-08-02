@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const inviterName = session.user.name ?? "A studio member";
-  const baseUrl = process.env.NEXTAUTH_URL ?? `https://${req.headers.host}`;
+  const baseUrl = process.env.BETTER_AUTH_URL ?? `https://${req.headers.host}`;
   const selfId = session.user.id;
   const selfEmail = (session.user.email ?? "").trim().toLowerCase();
   // Booker's own phone — a guest must not be saved with the booker's number
