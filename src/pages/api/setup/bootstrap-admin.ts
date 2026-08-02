@@ -109,10 +109,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // role set CONTAINS admin, so this rewrites it to exactly ["admin"],
         // dropping any other role a legacy multi-role row may still carry.
         prisma.user.update({ where: { id: existing.id }, data: { role: serializeRoles(["admin"]) } }),
+        // Keyed on user_id, now @@unique: one Profile per identity. The old
+        // email_role composite key is gone (one email holds one role).
         prisma.profile.upsert({
-          where: { email_role: { email, role: "admin" } },
+          where: { user_id: existing.id },
           create: { email, full_name: "Studio Administrator", role: "admin", user_id: existing.id },
-          update: { user_id: existing.id },
+          update: { role: "admin" },
         }),
       ]);
     }

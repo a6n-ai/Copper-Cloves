@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { serializeRoles, parseRoles, STUDIO_ROLES, type Role } from "@/lib/auth/roles";
 import { packMultiHash, unpack, describeHash } from "@/lib/auth/password";
+import { legacyHashedPasswords } from "./legacyProfilePasswords";
 
 const APPLY = process.argv.includes("--apply");
 
@@ -15,9 +16,10 @@ const APPLY = process.argv.includes("--apply");
  */
 async function main() {
   const profiles = await prisma.profile.findMany({
-    select: { id: true, email: true, role: true, full_name: true, hashedPassword: true, created_at: true, user_id: true },
+    select: { id: true, email: true, role: true, full_name: true, created_at: true, user_id: true },
     orderBy: { created_at: "asc" },
   });
+  const legacy = await legacyHashedPasswords();
 
   const byEmail = new Map<string, typeof profiles>();
   for (const p of profiles) {
@@ -49,7 +51,7 @@ async function main() {
     // EVERY distinct password is kept. Where two profile rows for one person
     // carried different passwords, both continue to work — the identity merge
     // must not silently invalidate a password someone is still using.
-    const hashes = group.map((p) => p.hashedPassword).filter((h): h is string => !!h);
+    const hashes = group.map((p) => legacy.get(p.id)).filter((h): h is string => !!h);
     const password = hashes.length ? packMultiHash(hashes) : null;
 
     if (!APPLY) {

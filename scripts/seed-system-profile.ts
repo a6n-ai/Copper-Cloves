@@ -22,15 +22,15 @@ async function main() {
     process.exit(0);
   }
 
-  const created = await prisma.profile.upsert({
-    where: { email_role: { email: SYSTEM_EMAIL, role: "admin" } },
-    create: {
+  // Plain create — the is_system guard above already established there is none,
+  // and @@unique([email, role]) no longer exists to upsert on.
+  const created = await prisma.profile.create({
+    data: {
       email: SYSTEM_EMAIL,
       full_name: "The Studio (system)",
       role: "admin",
       is_system: true,
     },
-    update: { is_system: true },
   });
 
   console.log(`System profile ready: ${created.id} (${created.email})`);

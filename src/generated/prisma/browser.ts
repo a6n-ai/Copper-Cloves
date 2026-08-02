@@ -23,14 +23,6 @@ export * from './enums';
  */
 export type Profile = Prisma.ProfileModel
 /**
- * Model UserSession
- * One row per active device session. `session_id` is embedded as `sid` in the JWT;
- * validation looks up by sid directly so multiple devices can coexist. Each new login
- * creates a new row; logout/idle-expire deletes the matching row only. `fingerprint`
- * (UA hash) binds the token to the browser; `last_seen_at` powers idle timeout.
- */
-export type UserSession = Prisma.UserSessionModel
-/**
  * Model User
  * better-auth identity. One row per person (keyed on email). Studio membership,
  * roles-as-data, and every domain FK live on `Profile`, which points here.
@@ -48,7 +40,7 @@ export type Session = Prisma.SessionModel
 /**
  * Model Account
  * Credential and OAuth accounts. `password` holds the bcrypt hash migrated
- * verbatim from `profiles.hashedPassword` (providerId = "credential").
+ * verbatim from the retired `profiles.hashedPassword` (providerId = "credential").
  */
 export type Account = Prisma.AccountModel
 /**

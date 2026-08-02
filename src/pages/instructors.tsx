@@ -19,7 +19,7 @@ export const getStaticProps: GetStaticProps<InstructorsPageProps> = async () => 
     const rows = await prisma.instructor.findMany({
       where: { is_active: true },
       orderBy: { display_order: "asc" },
-      omit: { studio_payout_cut_percent: true, hashed_password: true },
+      omit: { studio_payout_cut_percent: true },
     });
     const instructors = dedupeInstructorRows(rows).map(toInstructorView);
     // Strip `undefined` (unset socials) — getStaticProps cannot serialize it.

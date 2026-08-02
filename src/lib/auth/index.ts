@@ -129,7 +129,7 @@ const options = {
           const ua = ctx?.headers?.get("user-agent") ?? "";
           const user = await prisma.user.findUnique({
             where: { id: session.userId },
-            select: { banned: true, role: true, profiles: { select: { id: true }, take: 1 } },
+            select: { banned: true, role: true, profile: { select: { id: true } } },
           });
           if (user?.banned) {
             throw new APIError("FORBIDDEN", { message: "This account is not active. Contact support." });
@@ -141,7 +141,7 @@ const options = {
           // No Profile means customSession would hand back profile_id: null, and
           // Task 8 maps that into session.user.id — which ~40 routes use directly
           // as a Prisma FK. Fail once at sign-in rather than at an arbitrary route.
-          if (!user?.profiles.length) {
+          if (!user?.profile) {
             logger.error({ userId: session.userId }, "[auth] refusing session: user has no Profile row");
             throw new APIError("FORBIDDEN", { message: "This account is not configured. Contact support." });
           }

@@ -1,6 +1,6 @@
 /**
  * Ensures the kitchen/chef login exists (role "chef" → /admin/kitchen).
- * Writes the better-auth credential, not the legacy Profile.hashedPassword.
+ * Writes the better-auth credential (User + `credential` Account).
  * Loads .env then .env.local before importing Prisma (imports are hoisted otherwise).
  */
 import { config } from "dotenv";
@@ -23,13 +23,14 @@ async function main() {
   // Profile first, then the credential: attachStudioCredential resolves (or
   // creates) the identity behind it, so re-running resets the password instead
   // of failing on User.email's unique index.
-  const profile = await prisma.profile.upsert({
-    where: { email_role: { email, role: "chef" } },
-    create: { email, full_name: "Kitchen Team", role: "chef" },
-    // Nothing to update: the password lives on the credential Account now.
-    update: {},
-    select: { id: true },
-  });
+  // findFirst-then-create: @@unique([email, role]) is gone, and there is nothing
+  // to update anyway — the password lives on the credential Account now.
+  const profile =
+    (await prisma.profile.findFirst({ where: { email, role: "chef" }, select: { id: true } })) ??
+    (await prisma.profile.create({
+      data: { email, full_name: "Kitchen Team", role: "chef" },
+      select: { id: true },
+    }));
   // overwrite: true — re-running this seed is how the chef password is reset.
   await attachStudioCredential({ profileId: profile.id, password, overwrite: true });
 

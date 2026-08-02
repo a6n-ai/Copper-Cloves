@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // `studio_payout_cut_percent` (internal-only) is omitted via `omit`
         // to plug the leak that the previous `include: instructor` had.
         instructor: {
-          omit: { studio_payout_cut_percent: true, hashed_password: true },
+          omit: { studio_payout_cut_percent: true },
         },
       },
     });

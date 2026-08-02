@@ -159,7 +159,7 @@ export const getStaticProps: GetStaticProps<ClassesPageProps> = async () => {
       orderBy: [{ display_order: "asc" }, { name: "asc" }],
       include: {
         instructor: {
-          omit: { studio_payout_cut_percent: true, hashed_password: true },
+          omit: { studio_payout_cut_percent: true },
         },
       },
     });

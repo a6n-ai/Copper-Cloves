@@ -15,12 +15,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Guard: only for passwordless accounts. "Activated" is now a CREDENTIAL, not
     // a `user_id` — invite placeholders are created with an identity up front
     // (resolveStudioUser) so `user_id` alone would reject every legitimate
-    // activation. hasStudioCredential also honours the legacy column until
-    // Task 13 drops it.
+    // activation.
     const targetRole = record.role ?? "user";
     const profile = await prisma.profile.findFirst({
       where: { email: record.email, role: targetRole },
-      select: { user_id: true, hashedPassword: true },
+      select: { user_id: true },
     });
     if (!profile) return res.status(400).json({ error: "Account not found" });
     if (await hasStudioCredential(profile)) {
@@ -43,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const targetRole = record.role ?? "user";
     const profile = await prisma.profile.findFirst({
       where: { email: record.email, role: targetRole },
-      select: { id: true, user_id: true, hashedPassword: true },
+      select: { id: true, user_id: true },
     });
     if (!profile) return res.status(400).json({ error: "Account not found" });
     if (await hasStudioCredential(profile)) return res.status(400).json({ error: "already_activated" });

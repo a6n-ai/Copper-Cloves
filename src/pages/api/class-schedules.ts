@@ -158,10 +158,10 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
           include: {
             class_model: true,
             instructor: {
-              omit: { hashed_password: true, studio_payout_cut_percent: true },
+              omit: { studio_payout_cut_percent: true },
             },
             actual_instructor: {
-              omit: { hashed_password: true, studio_payout_cut_percent: true },
+              omit: { studio_payout_cut_percent: true },
             },
           },
           orderBy: { start_time: "asc" },

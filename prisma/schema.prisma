@@ -19,7 +19,6 @@ model Profile {
   avatar_file_id String?  @unique
   movement_streak      Int      @default(0)
   pass_type            String?
-  hashedPassword       String?
   role                 String   @default("user")
   is_system            Boolean  @default(false)
   dob                  DateTime?
@@ -59,36 +58,14 @@ model Profile {
   payments          Payment[]
   recorded_payments Payment[] @relation("PaymentRecordedBy")
   cancellation_requests ClassCancellationRequest[]
-  sessions          UserSession[]
   identity          User? @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([is_system])
-  @@index([user_id])
-  @@unique([email, role])
+  /// ONE Profile per identity — one email holds exactly one role (ruling
+  /// 2026-08-02). Supersedes the old @@unique([email, role]), which permitted a
+  /// second role on the same person. Also serves as the user_id index.
+  @@unique([user_id])
   @@map("profiles")
-}
-
-/// One row per active device session. `session_id` is embedded as `sid` in the JWT;
-/// validation looks up by sid directly so multiple devices can coexist. Each new login
-/// creates a new row; logout/idle-expire deletes the matching row only. `fingerprint`
-/// (UA hash) binds the token to the browser; `last_seen_at` powers idle timeout.
-model UserSession {
-  id           String   @id @default(cuid())
-  profile_id   String
-  session_id   String   @unique
-  fingerprint  String
-  ip           String?
-  user_agent   String?
-  latitude        Float?
-  longitude       Float?
-  accuracy        Float?
-  geo_captured_at DateTime?
-  created_at   DateTime @default(now())
-  last_seen_at DateTime @default(now())
-  profile      Profile  @relation(fields: [profile_id], references: [id], onDelete: Cascade)
-
-  @@index([profile_id])
-  @@map("user_sessions")
 }
 
 /// better-auth identity. One row per person (keyed on email). Studio membership,
@@ -110,7 +87,8 @@ model User {
 
   sessions Session[]
   accounts Account[]
-  profiles Profile[]
+  /// Singular: Profile.user_id is @@unique, so this is one-to-one.
+  profile  Profile?
 
   @@map("users")
 }
@@ -144,7 +122,7 @@ model Session {
 }
 
 /// Credential and OAuth accounts. `password` holds the bcrypt hash migrated
-/// verbatim from `profiles.hashedPassword` (providerId = "credential").
+/// verbatim from the retired `profiles.hashedPassword` (providerId = "credential").
 model Account {
   id           String  @id @default(uuid())
   accountId    String  @map("account_id")
@@ -162,7 +140,12 @@ model Account {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  /// At most ONE account per provider per identity. Both reset-password.ts and
+  /// attachStudioCredential do findFirst-then-create, so two concurrent requests
+  /// on an identity with no credential row could otherwise create two
+  /// `credential` accounts — after which sign-in depends on row read order.
+  /// Doubles as the userId index (leftmost prefix).
+  @@unique([userId, providerId])
   @@map("accounts")
 }
 
@@ -305,9 +288,8 @@ model Instructor {
   social_twitter     String?
   social_linkedin    String?
   social_whatsapp    String?
-  hashed_password          String?
   is_active                Boolean  @default(true)
-  /// Links this instructor to their unified-login user account (NextAuth Profile).
+  /// Links this instructor to their unified-login user account (Profile).
   profile_id               String?  @unique
   created_at               DateTime @default(now())
   updated_at               DateTime @default(now()) @updatedAt

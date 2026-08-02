@@ -398,7 +398,6 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Profile: 'Profile',
-  UserSession: 'UserSession',
   User: 'User',
   Session: 'Session',
   Account: 'Account',
@@ -463,7 +462,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "userSession" | "user" | "session" | "account" | "verification" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "sharedCredit" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "cronRun" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
+    modelProps: "profile" | "user" | "session" | "account" | "verification" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "sharedCredit" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "cronRun" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -538,80 +537,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProfileCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProfileCountAggregateOutputType> | number
-        }
-      }
-    }
-    UserSession: {
-      payload: Prisma.$UserSessionPayload<ExtArgs>
-      fields: Prisma.UserSessionFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.UserSessionFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSessionPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.UserSessionFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSessionPayload>
-        }
-        findFirst: {
-          args: Prisma.UserSessionFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSessionPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.UserSessionFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSessionPayload>
-        }
-        findMany: {
-          args: Prisma.UserSessionFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSessionPayload>[]
-        }
-        create: {
-          args: Prisma.UserSessionCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSessionPayload>
-        }
-        createMany: {
-          args: Prisma.UserSessionCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.UserSessionCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSessionPayload>[]
-        }
-        delete: {
-          args: Prisma.UserSessionDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSessionPayload>
-        }
-        update: {
-          args: Prisma.UserSessionUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSessionPayload>
-        }
-        deleteMany: {
-          args: Prisma.UserSessionDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.UserSessionUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.UserSessionUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSessionPayload>[]
-        }
-        upsert: {
-          args: Prisma.UserSessionUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserSessionPayload>
-        }
-        aggregate: {
-          args: Prisma.UserSessionAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateUserSession>
-        }
-        groupBy: {
-          args: Prisma.UserSessionGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.UserSessionGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.UserSessionCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.UserSessionCountAggregateOutputType> | number
         }
       }
     }
@@ -4290,7 +4215,6 @@ export const ProfileScalarFieldEnum = {
   avatar_file_id: 'avatar_file_id',
   movement_streak: 'movement_streak',
   pass_type: 'pass_type',
-  hashedPassword: 'hashedPassword',
   role: 'role',
   is_system: 'is_system',
   dob: 'dob',
@@ -4305,24 +4229,6 @@ export const ProfileScalarFieldEnum = {
 } as const
 
 export type ProfileScalarFieldEnum = (typeof ProfileScalarFieldEnum)[keyof typeof ProfileScalarFieldEnum]
-
-
-export const UserSessionScalarFieldEnum = {
-  id: 'id',
-  profile_id: 'profile_id',
-  session_id: 'session_id',
-  fingerprint: 'fingerprint',
-  ip: 'ip',
-  user_agent: 'user_agent',
-  latitude: 'latitude',
-  longitude: 'longitude',
-  accuracy: 'accuracy',
-  geo_captured_at: 'geo_captured_at',
-  created_at: 'created_at',
-  last_seen_at: 'last_seen_at'
-} as const
-
-export type UserSessionScalarFieldEnum = (typeof UserSessionScalarFieldEnum)[keyof typeof UserSessionScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -4493,7 +4399,6 @@ export const InstructorScalarFieldEnum = {
   social_twitter: 'social_twitter',
   social_linkedin: 'social_linkedin',
   social_whatsapp: 'social_whatsapp',
-  hashed_password: 'hashed_password',
   is_active: 'is_active',
   profile_id: 'profile_id',
   created_at: 'created_at',
@@ -5614,7 +5519,6 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
   profile?: Prisma.ProfileOmit
-  userSession?: Prisma.UserSessionOmit
   user?: Prisma.UserOmit
   session?: Prisma.SessionOmit
   account?: Prisma.AccountOmit

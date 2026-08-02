@@ -32,7 +32,7 @@ function isNonMemberRole(role?: string | null): boolean {
   return isStudioAdminProfileRole(role) || hasRole(r, "partner") || hasRole(r, "instructor");
 }
 
-// Lean field set for the list — no hashedPassword/questionnaire/dob/gender, only
+// Lean field set for the list — no questionnaire/dob/gender, only
 // what the table + filters/sort need. Detail uses memberDetailInclude separately.
 const memberListSelect = {
   id: true,
@@ -147,7 +147,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (id) {
       const profile = await prisma.profile.findFirst({
         where: { id },
-        omit: { hashedPassword: true, questionnaire: true },
+        omit: { questionnaire: true },
         include: memberDetailInclude,
       });
       if (!profile || isNonMemberRole(profile.role)) {

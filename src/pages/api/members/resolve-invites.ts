@@ -98,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Find or create the profile
     let profile = await prisma.profile.findFirst({
       where: { email, role: "user" },
-      select: { id: true, hashedPassword: true, phone: true },
+      select: { id: true, phone: true },
     });
 
     const isNew = !profile;
@@ -128,7 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         throw e;
       }
-      profile = { id: created.profile.id, hashedPassword: null, phone: memberPhone || null };
+      profile = { id: created.profile.id, phone: memberPhone || null };
     } else if (memberPhone && !profile.phone?.trim()) {
       // Existing account found by email but no phone on file — backfill it.
       await prisma.profile.update({ where: { id: profile.id }, data: { phone: memberPhone } });

@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { dedupeInstructorRows } from "@/lib/instructorIdentity";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
@@ -53,18 +52,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const body = req.body ?? {};
     const email = typeof body.email === "string" ? body.email.trim() : "";
 
-    // One-time password for the new instructor login. The bcrypt hash on the
-    // Instructor row is legacy and read by nothing on the sign-in path; the
-    // usable credential is written by attachStudioCredential below.
+    // One-time password for the new instructor login. The usable credential is
+    // written by attachStudioCredential below.
     const tempPassword = generateTempPassword();
-    const hashed_password = await bcrypt.hash(tempPassword, 12);
 
     const r12 = rateOverride(body.rate_12_paise); if (r12 !== undefined) body.rate_12_paise = r12;
     const r8 = rateOverride(body.rate_8_paise); if (r8 !== undefined) body.rate_8_paise = r8;
     const r4 = rateOverride(body.rate_4_paise); if (r4 !== undefined) body.rate_4_paise = r4;
     const r1 = rateOverride(body.rate_1_paise); if (r1 !== undefined) body.rate_1_paise = r1;
     const instructor = await prisma.instructor.create({
-      data: { ...body, hashed_password },
+      data: { ...body },
     });
 
     // Unified login: give the instructor a role "instructor" Profile and link it.

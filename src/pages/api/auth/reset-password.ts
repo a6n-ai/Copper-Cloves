@@ -58,27 +58,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             password: hashedPassword,
           },
         }),
-    // Legacy column, still read by the NextAuth options Task 13 deletes. Cleared
-    // so the OLD password cannot survive the reset on that path. NOT filtered by
-    // role: the credential rewritten above is per-identity, so a second Profile
-    // for the same person would otherwise keep the old password alive for its
-    // portal. Matches the per-identity session revocation below.
-    prisma.profile.updateMany({
-      where: { email: record.email },
-      data: { hashedPassword: null },
-    }),
     prisma.passwordResetToken.update({
       where: { token },
       data: { used: true },
     }),
     // Force re-login on all devices for the reset account (kills any live session).
     // Scope is per-identity (User), not per-role (Profile), because better-auth's
-    // Session FK is userId only — it has no role dimension. This is a deliberate
-    // widening from the old per-role UserSession.deleteMany: resetting one portal's
-    // password now also logs out any other role that same identity holds. Fails
-    // safe (revokes more, never fewer) and matches standard "reset kills all
-    // sessions" practice. No live effect today (no identity holds 2+ roles yet)
-    // but the admin plugin can grant a second role at any time.
+    // Session FK is userId only — it has no role dimension. One email holds
+    // exactly one role, so identity and role scope now coincide anyway.
     prisma.session.deleteMany({ where: { userId: resetProfile.user_id } }),
   ]);
 

@@ -227,7 +227,7 @@ export async function attachStudioCredential({
 
   const profile = await prisma.profile.findUnique({
     where: { id: profileId },
-    select: { id: true, email: true, role: true, full_name: true, user_id: true, hashedPassword: true },
+    select: { id: true, email: true, role: true, full_name: true, user_id: true },
   });
   if (!profile) throw new Error("[auth] attachStudioCredential: profile not found");
 
@@ -243,10 +243,7 @@ export async function attachStudioCredential({
   }
 
   // The SAME predicate the activation guard uses, so the two cannot disagree.
-  // A narrower "does an Account row exist" test would overwrite — and legacy-
-  // clear — an identity whose only password is still in the legacy column,
-  // which is exactly what these provisioning callers must not do.
-  if (!overwrite && (await hasStudioCredential({ user_id: userId, hashedPassword: profile.hashedPassword }))) {
+  if (!overwrite && (await hasStudioCredential({ user_id: userId }))) {
     return { userId, written: false };
   }
 
@@ -256,17 +253,13 @@ export async function attachStudioCredential({
   });
 
   const hashedPassword = await studioPassword.hash(password);
-  await prisma.$transaction([
-    credential
-      ? prisma.account.update({ where: { id: credential.id }, data: { password: hashedPassword } })
-      : prisma.account.create({
-          data: { userId, accountId: userId, providerId: "credential", password: hashedPassword },
-        }),
-    // NOT filtered by role: the credential above is per-identity, so a second
-    // Profile for the same person would otherwise keep the old password alive
-    // for its portal on the NextAuth path. Mirrors reset-password.ts.
-    prisma.profile.updateMany({ where: { email: profile.email }, data: { hashedPassword: null } }),
-  ]);
+  if (credential) {
+    await prisma.account.update({ where: { id: credential.id }, data: { password: hashedPassword } });
+  } else {
+    await prisma.account.create({
+      data: { userId, accountId: userId, providerId: "credential", password: hashedPassword },
+    });
+  }
 
   return { userId, written: true };
 }
@@ -274,11 +267,7 @@ export async function attachStudioCredential({
 /** True once the identity behind this Profile has a password it can sign in with. */
 export async function hasStudioCredential(profile: {
   user_id: string | null;
-  hashedPassword: string | null;
 }): Promise<boolean> {
-  // The legacy column still authenticates until Task 13 deletes nextAuthOptions.ts,
-  // so it counts as activated. Drop that clause when the column goes.
-  if (profile.hashedPassword) return true;
   if (!profile.user_id) return false;
   const count = await prisma.account.count({
     where: { userId: profile.user_id, providerId: "credential", password: { not: null } },

@@ -52,7 +52,6 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Profile: 'Profile',
-  UserSession: 'UserSession',
   User: 'User',
   Session: 'Session',
   Account: 'Account',
@@ -130,7 +129,6 @@ export const ProfileScalarFieldEnum = {
   avatar_file_id: 'avatar_file_id',
   movement_streak: 'movement_streak',
   pass_type: 'pass_type',
-  hashedPassword: 'hashedPassword',
   role: 'role',
   is_system: 'is_system',
   dob: 'dob',
@@ -145,24 +143,6 @@ export const ProfileScalarFieldEnum = {
 } as const
 
 export type ProfileScalarFieldEnum = (typeof ProfileScalarFieldEnum)[keyof typeof ProfileScalarFieldEnum]
-
-
-export const UserSessionScalarFieldEnum = {
-  id: 'id',
-  profile_id: 'profile_id',
-  session_id: 'session_id',
-  fingerprint: 'fingerprint',
-  ip: 'ip',
-  user_agent: 'user_agent',
-  latitude: 'latitude',
-  longitude: 'longitude',
-  accuracy: 'accuracy',
-  geo_captured_at: 'geo_captured_at',
-  created_at: 'created_at',
-  last_seen_at: 'last_seen_at'
-} as const
-
-export type UserSessionScalarFieldEnum = (typeof UserSessionScalarFieldEnum)[keyof typeof UserSessionScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -333,7 +313,6 @@ export const InstructorScalarFieldEnum = {
   social_twitter: 'social_twitter',
   social_linkedin: 'social_linkedin',
   social_whatsapp: 'social_whatsapp',
-  hashed_password: 'hashed_password',
   is_active: 'is_active',
   profile_id: 'profile_id',
   created_at: 'created_at',

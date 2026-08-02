@@ -4,9 +4,9 @@
  */
 import { config } from "dotenv";
 import { resolve } from "node:path";
-import bcrypt from "bcryptjs";
 import type { PrismaClient } from "../src/generated/prisma/client";
 import { normalizeLoginEmail } from "../src/lib/loginEmail";
+import { attachStudioCredential } from "../src/lib/auth/studioIdentity";
 
 config({ path: resolve(process.cwd(), ".env") });
 config({ path: resolve(process.cwd(), ".env.local"), override: true });
@@ -194,7 +194,6 @@ async function upsertMember(
   prisma: PrismaClient,
   member: MemberRow,
   packageIds: Map<string, string>,
-  passwordHash: string,
 ) {
   const email = normalizeLoginEmail(member.email);
   const phone = normalizePhone(member.phone);
@@ -216,7 +215,6 @@ async function upsertMember(
       data: {
         full_name: member.full_name,
         phone,
-        hashedPassword: passwordHash,
         role: "user",
         pass_type,
       },
@@ -228,13 +226,15 @@ async function upsertMember(
         email,
         full_name: member.full_name,
         phone,
-        hashedPassword: passwordHash,
         role: "user",
         pass_type,
       },
     });
     console.log(`Created profile: ${email}`);
   }
+
+  // overwrite: true — re-running this seed is how the shared seed password is reset.
+  await attachStudioCredential({ profileId: profile.id, password: DEFAULT_PASSWORD, overwrite: true });
 
   await prisma.userPackage.updateMany({
     where: { user_id: profile.id, is_active: true },
@@ -276,11 +276,10 @@ async function upsertMember(
 
 async function main() {
   const prisma = (await import("../src/lib/prisma")).default;
-  const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 12);
   const packageIds = await ensurePackageTypes(prisma);
 
   for (const member of MEMBERS) {
-    await upsertMember(prisma, member, packageIds, passwordHash);
+    await upsertMember(prisma, member, packageIds);
   }
 
   await prisma.$disconnect();

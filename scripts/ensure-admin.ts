@@ -1,7 +1,6 @@
 /**
  * Ensures an admin login exists — the documented recovery path if admin access
- * is lost. Writes the better-auth credential (User + `credential` Account), not
- * the legacy Profile.hashedPassword column that Task 13 drops.
+ * is lost. Writes the better-auth credential (User + `credential` Account).
  * Loads .env then .env.local before importing Prisma (imports are hoisted otherwise).
  */
 import { config } from "dotenv";
@@ -25,15 +24,15 @@ async function main() {
   // creates) the identity behind it and writes the password. Splitting it that
   // way means re-running against an existing admin resets the password instead
   // of failing on User.email's unique index — which createStudioLogin would.
-  const profile = await prisma.profile.upsert({
-    where: { email_role: { email, role: "admin" } },
-    create: { email, full_name: "Studio Administrator", role: "admin" },
-    // Nothing to update: the password is not on this row any more, and the
-    // name/role are already what they should be. The upsert exists purely to
-    // guarantee the Profile is there before the credential is written.
-    update: {},
-    select: { id: true },
-  });
+  // findFirst-then-create rather than upsert: @@unique([email, role]) is gone
+  // (one email holds one role now), so there is no composite key to upsert on.
+  // Nothing to update either — the password is not on this row any more.
+  const profile =
+    (await prisma.profile.findFirst({ where: { email, role: "admin" }, select: { id: true } })) ??
+    (await prisma.profile.create({
+      data: { email, full_name: "Studio Administrator", role: "admin" },
+      select: { id: true },
+    }));
   // overwrite: true — this IS the "I have lost admin access" reset.
   await attachStudioCredential({ profileId: profile.id, password, overwrite: true });
 

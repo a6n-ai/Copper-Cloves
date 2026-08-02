@@ -3,7 +3,7 @@ import { useSession } from "@/lib/auth/client";
 import { toast } from "sonner";
 
 // Fire-and-forget geolocation collector. Runs once per authenticated tab session
-// and attaches coordinates to THIS login's UserSession row. Because the row is
+// and attaches coordinates to THIS login's better-auth Session row. Because the row is
 // per-login, a fresh login (new tab/session) re-attempts capture — so as long as
 // the user hasn't granted location, they are re-prompted every login.
 //

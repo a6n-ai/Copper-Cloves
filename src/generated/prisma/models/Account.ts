@@ -15,7 +15,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 /**
  * Model Account
  * Credential and OAuth accounts. `password` holds the bcrypt hash migrated
- * verbatim from `profiles.hashedPassword` (providerId = "credential").
+ * verbatim from the retired `profiles.hashedPassword` (providerId = "credential").
  */
 export type AccountModel = runtime.Types.Result.DefaultSelection<Prisma.$AccountPayload>
 
@@ -269,6 +269,7 @@ export type AccountOrderByWithRelationInput = {
 
 export type AccountWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  userId_providerId?: Prisma.AccountUserIdProviderIdCompoundUniqueInput
   AND?: Prisma.AccountWhereInput | Prisma.AccountWhereInput[]
   OR?: Prisma.AccountWhereInput[]
   NOT?: Prisma.AccountWhereInput | Prisma.AccountWhereInput[]
@@ -285,7 +286,7 @@ export type AccountWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id">
+}, "id" | "userId_providerId">
 
 export type AccountOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -444,6 +445,11 @@ export type AccountListRelationFilter = {
 
 export type AccountOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type AccountUserIdProviderIdCompoundUniqueInput = {
+  userId: string
+  providerId: string
 }
 
 export type AccountCountOrderByAggregateInput = {

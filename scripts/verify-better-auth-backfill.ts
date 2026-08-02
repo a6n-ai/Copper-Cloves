@@ -2,12 +2,14 @@ import assert from "node:assert/strict";
 import prisma from "@/lib/prisma";
 import { parseRoles } from "@/lib/auth/roles";
 import { describeHash, unpack } from "@/lib/auth/password";
+import { legacyHashedPasswords } from "./legacyProfilePasswords";
 
 /** Structural assertions only — never touches plaintext. Run before cutover. */
 async function main() {
   const profiles = await prisma.profile.findMany({
-    select: { id: true, email: true, role: true, hashedPassword: true, user_id: true },
+    select: { id: true, email: true, role: true, user_id: true },
   });
+  const legacy = await legacyHashedPasswords();
   const users = await prisma.user.findMany({ select: { id: true, email: true, role: true, emailVerified: true } });
   const accounts = await prisma.account.findMany({
     where: { providerId: "credential" },
@@ -39,7 +41,7 @@ async function main() {
     assert.ok(linkedUserIds.has(u.id), `user ${u.id} (${u.email}) has no profile pointing at it — orphan`);
   }
 
-  const withPassword = profiles.filter((p) => p.hashedPassword);
+  const withPassword = profiles.filter((p) => legacy.has(p.id));
   const accountsByUser = new Map(accounts.map((a) => [a.userId, a]));
   for (const p of withPassword) {
     assert.ok(accountsByUser.has(p.user_id!), `profile ${p.id} (${p.email}) has a password but no credential account`);
@@ -53,7 +55,7 @@ async function main() {
     profilesByUser.set(p.user_id!, [...(profilesByUser.get(p.user_id!) ?? []), p]);
   }
   for (const [userId, group] of profilesByUser) {
-    const expected = new Set(group.map((p) => p.hashedPassword).filter((h): h is string => !!h));
+    const expected = new Set(group.map((p) => legacy.get(p.id)).filter((h): h is string => !!h));
     const account = accountsByUser.get(userId);
     assert.ok(account, `user ${userId} has ${expected.size} password-holding profile(s) but no credential account`);
     const stored = new Set(unpack(account!.password ?? ""));
