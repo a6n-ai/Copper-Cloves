@@ -50,12 +50,6 @@ export function computeFingerprint(userAgent: string): string {
  */
 const options = {
   baseURL: process.env.BETTER_AUTH_URL,
-  // TEMPORARY: parked off /api/auth because NextAuth's [...nextauth].ts still
-  // owns that catch-all until Task 13 deletes it — two sibling dynamic routes
-  // with different slug names crash Next.js at boot otherwise. Move back to
-  // /api/auth in Task 13, together with client.ts's basePath and the route
-  // file at src/pages/api/betterauth/[...all].ts.
-  basePath: "/api/betterauth",
   secret: process.env.BETTER_AUTH_SECRET,
 
   database: prismaAdapter(prisma, { provider: "postgresql" }),
