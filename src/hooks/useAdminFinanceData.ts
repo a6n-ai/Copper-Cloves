@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { toast } from "sonner";
 import { hasRole } from "@/lib/auth/roles";
 import { financeDemoTransactionsForUi } from "@/lib/adminFinanceDemoTransactions";
@@ -121,7 +121,7 @@ export interface AdminFinanceData {
  * isolated version for the dedicated page.
  */
 export function useAdminFinanceData(): AdminFinanceData {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const rawRole = (session?.user as { role?: string })?.role;
 
   const [transactions, setTransactions] = useState<DashboardTxn[]>([]);
@@ -132,7 +132,7 @@ export function useAdminFinanceData(): AdminFinanceData {
   const [loaded, setLoaded] = useState(false);
 
   const load = useCallback(async () => {
-    if (status !== "authenticated" || !hasRole(rawRole, "admin")) return;
+    if (!session?.user || !hasRole(rawRole, "admin")) return;
 
     // Revenue (month) drives totalRevenue / memberPayments.
     const overviewP = (async () => {
@@ -204,7 +204,7 @@ export function useAdminFinanceData(): AdminFinanceData {
       profit: monthRevenue - totalExpenses,
     });
     setLoaded(true);
-  }, [status, rawRole]);
+  }, [session, rawRole]);
 
   useEffect(() => {
     void load();

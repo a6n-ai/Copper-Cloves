@@ -79,7 +79,7 @@ const VitalityAreaChart = dynamic(
     ),
   },
 );
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { useStudioSWR } from "@/lib/swr";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
@@ -284,7 +284,7 @@ export default function Dashboard() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const reduceMotion = useReducedMotion();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
   const [dailyIntention, setDailyIntention] = useState("Deep breathing and presence");
   const [isEditingIntention, setIsEditingIntention] = useState(false);
@@ -373,11 +373,11 @@ export default function Dashboard() {
   // the session id from the JWT.
   const sessionUserId = (session?.user as { id?: string } | undefined)?.id;
   useEffect(() => {
-    if (status === "authenticated" && sessionUserId) {
+    if (sessionUserId) {
       setCurrentUserId(sessionUserId);
       fetchUserData(sessionUserId).then(() => setLoading(false));
     }
-  }, [status, sessionUserId]);
+  }, [sessionUserId]);
 
   async function fetchUserData(_userId: string) {
     // Badge templates + user badges now load via SWR hooks at component top.

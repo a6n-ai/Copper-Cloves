@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { useStudioSWR } from "@/lib/swr";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
@@ -45,7 +45,8 @@ function MenuGridSkeleton({ count = 6 }: Readonly<{ count?: number }>) {
 
 export default function MenuPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session } = useSession();
+  const authed = !!session?.user;
   // Cafe menu — SWR-shared with portal/book + admin/cafe (same URL key,
   // deduped within 15s). Eliminates a duplicate fetch when navigating
   // between /portal/menu and /portal/book.
@@ -55,7 +56,7 @@ export default function MenuPage() {
     error: menuError,
     mutate: mutateMenu,
   } = useStudioSWR<unknown[]>(
-    status === "authenticated" ? "/api/cafe/items?available=true" : null,
+    authed ? "/api/cafe/items?available=true" : null,
   );
   const menuItems = useMemo<CafeMenuItem[]>(() => {
     const list = Array.isArray(rawMenu) ? rawMenu : [];
@@ -76,14 +77,14 @@ export default function MenuPage() {
   // URL key into a memo lets SWR dedupe with any other consumer that asks for
   // the same window.
   const upcomingClassesUrl = useMemo(() => {
-    if (status !== "authenticated") return null;
+    if (!authed) return null;
     const today = new Date();
     const params = new URLSearchParams({
       month: String(today.getMonth() + 1),
       year: String(today.getFullYear()),
     });
     return `/api/class-schedules?${params}`;
-  }, [status]);
+  }, [authed]);
   const { data: availableClassesRaw } = useStudioSWR<CafeClassSchedule[]>(upcomingClassesUrl);
   const availableClasses = availableClassesRaw ?? [];
   const [quickViewItem, setQuickViewItem] = useState<CafeMenuItem | null>(null);

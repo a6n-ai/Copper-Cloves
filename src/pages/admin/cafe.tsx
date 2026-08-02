@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Pill } from "@/components/ui/pill";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { SEO } from "@/components/SEO";
 import {
   Plus,
@@ -586,16 +586,15 @@ export default function AdminCafe() {
     );
   }, [menuItems, menuSearch, categoryLabelById]);
 
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
 
   const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
-    if (status === "unauthenticated") { router.push("/login"); return; }
-    if (status === "authenticated" && !hasRole(userRole, "admin") && !hasRole(userRole, "chef")) { router.push("/login"); return; }
-    if (status === "authenticated") {
-      fetchMenuItems();
-      fetchAllOrders();
-    }
+    if (isPending) return;
+    if (!session?.user) { router.push("/login"); return; }
+    if (!hasRole(userRole, "admin") && !hasRole(userRole, "chef")) { router.push("/login"); return; }
+    fetchMenuItems();
+    fetchAllOrders();
 
     const pollingInterval = setInterval(() => {
       if (activeTab !== "orders") return;
@@ -606,7 +605,7 @@ export default function AdminCafe() {
       clearInterval(pollingInterval);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole, activeTab]);
+  }, [isPending, session, userRole, activeTab]);
 
   const fetchMenuItems = async () => {
     try {

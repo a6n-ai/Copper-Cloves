@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { LogIn, Ticket, LayoutDashboard, LogOut } from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut } from "@/lib/auth/client";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -94,8 +94,8 @@ function navShellClass(isOverlay: boolean, scrolled: boolean) {
 export function Navigation({ variant = "default" }: Readonly<NavigationProps>) {
   const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const authed = status === "authenticated";
+  const { data: session } = useSession();
+  const authed = !!session?.user;
   const role = (session?.user as { role?: string } | undefined)?.role;
   const dashHref = dashHrefForRole(role);
   const accountName = session?.user?.name || session?.user?.email || "Account";

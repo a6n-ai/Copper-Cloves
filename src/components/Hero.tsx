@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { Ticket, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cdnUrl } from "@/lib/cdnUrl";
@@ -12,8 +12,8 @@ const moveMedia = [cdnUrl("/Move-1.mp4"), cdnUrl("/Move-2.mp4")];
 const refuelMedia = [cdnUrl("/Refuel-1.mp4"), cdnUrl("/refuel-2.jpeg"), cdnUrl("/refuel-3.mp4")];
 
 export function Hero() {
-  const { status } = useSession();
-  const bookHref = status === "authenticated" ? "/portal/book" : "/login";
+  const { data: session } = useSession();
+  const bookHref = session?.user ? "/portal/book" : "/login";
   const [moveIndex, setMoveIndex] = useState(0);
   const [refuelIndex, setRefuelIndex] = useState(0);
   // Which hero layout is actually on screen. `null` until mount → both heroes

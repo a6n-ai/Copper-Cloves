@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { motion } from "framer-motion";
 import {
   Home,
@@ -59,8 +59,8 @@ const PILL = (
  */
 export function PublicMobileNav() {
   const router = useRouter();
-  const { status } = useSession();
-  const bookHref = status === "authenticated" ? "/portal/book" : "/portal/signup";
+  const { data: session } = useSession();
+  const bookHref = session?.user ? "/portal/book" : "/portal/signup";
   const [show, setShow] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 

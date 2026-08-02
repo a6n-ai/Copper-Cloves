@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
@@ -143,7 +143,7 @@ const ORDER_STATUS_OPTIONS: { value: Order["status"]; label: string }[] = [
 
 export default function AdminProducts() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
   const [activeTab, setActiveTab] = useState<"products" | "orders" | "categories">("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -468,20 +468,18 @@ export default function AdminProducts() {
   };
 
   useEffect(() => {
-    if (status === "loading") return;
-    if (status === "unauthenticated") {
+    if (isPending) return;
+    if (!session?.user) {
       router.push("/admin/login");
       return;
     }
     const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && !hasRole(role, "admin")) {
+    if (!hasRole(role, "admin")) {
       router.push("/admin/login");
       return;
     }
-    if (status === "authenticated" && hasRole(role, "admin")) {
-      void loadRetail();
-    }
-  }, [status, session, router, loadRetail]);
+    void loadRetail();
+  }, [isPending, session, router, loadRetail]);
 
   return (
     <>

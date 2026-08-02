@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import {
   Mail,
   Phone,
@@ -376,7 +376,7 @@ function passLabelFor(cat: PassCategory): string {
 export default function MemberDetailPage() {
   const router = useRouter();
   const id = typeof router.query.id === "string" ? router.query.id : "";
-  const { status } = useSession();
+  const { data: session } = useSession();
 
   const [member, setMember] = useState<MemberDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -432,8 +432,8 @@ export default function MemberDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    if (status === "authenticated") void load();
-  }, [status, load]);
+    if (session?.user) void load();
+  }, [session, load]);
 
   const noShowCount = useMemo(
     () => (member?.bookings ?? []).filter((b) => b.status === "no_show").length,

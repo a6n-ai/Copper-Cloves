@@ -22,7 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Pill } from "@/components/ui/pill";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { CrmTriggerType } from "@/lib/crmTriggerTypes";
 import { crmTriggerPill } from "@/lib/pillMaps";
 import { CrmInsights, CrmAnalytics } from "@/components/crm/CrmInsights";
@@ -329,18 +329,17 @@ export default function CRMPage() {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
 
   const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
-    if (status === "unauthenticated") { router.push("/login"); return; }
-    if (status === "authenticated" && !hasRole(userRole, "admin")) { router.push("/login"); return; }
-    if (status === "authenticated") {
-      // Messages + insights self-fetch; the page needs templates (trigger picker) + triggers.
-      void Promise.all([fetchTemplates(), fetchTriggers()]);
-    }
+    if (isPending) return;
+    if (!session?.user) { router.push("/login"); return; }
+    if (!hasRole(userRole, "admin")) { router.push("/login"); return; }
+    // Messages + insights self-fetch; the page needs templates (trigger picker) + triggers.
+    void Promise.all([fetchTemplates(), fetchTriggers()]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole]);
+  }, [isPending, session, userRole]);
 
   const fetchTemplates = async () => {
     try {

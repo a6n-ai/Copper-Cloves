@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import {
   Mail,
   Phone,
@@ -77,7 +77,7 @@ type FormState = {
 export default function InstructorProfilePage() {
   const router = useRouter();
   const id = typeof router.query.id === "string" ? router.query.id : "";
-  const { status } = useSession();
+  const { data: session } = useSession();
   const [instructor, setInstructor] = useState<Instructor | null>(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
@@ -104,8 +104,8 @@ export default function InstructorProfilePage() {
   }, [id]);
 
   useEffect(() => {
-    if (status === "authenticated") load();
-  }, [status, load]);
+    if (session?.user) load();
+  }, [session, load]);
 
   function openEdit() {
     if (!instructor) return;

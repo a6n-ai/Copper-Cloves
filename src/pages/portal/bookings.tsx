@@ -6,7 +6,7 @@ import { requireSessionSSP } from "@/lib/requireSessionSSP";
 export const getServerSideProps = requireSessionSSP();
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Clock, AlertCircle, X, ArrowDownUp, ChevronRight, ReceiptText } from "lucide-react";
@@ -293,7 +293,7 @@ function BookingsListSkeleton({ rows = 5 }: Readonly<{ rows?: number }>) {
 export default function MyBookingsPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { status } = useSession();
+  const { data: session, isPending } = useSession();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -314,13 +314,12 @@ export default function MyBookingsPage() {
   }, [filter, sortAsc]);
 
   useEffect(() => {
-    if (status === "unauthenticated") { router.push("/login"); return; }
-    if (status === "authenticated") {
-      setIsAuthenticated(true);
-      fetchBookings().finally(() => setIsLoading(false));
-    }
+    if (isPending) return;
+    if (!session?.user) { router.push("/login"); return; }
+    setIsAuthenticated(true);
+    fetchBookings().finally(() => setIsLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [isPending, session]);
 
   async function fetchBookings() {
     try {

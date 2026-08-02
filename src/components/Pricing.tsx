@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ArrowRight, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { useSWRConfig } from "swr";
 import { NavPrevButton, NavNextButton } from "@/components/ui/quick-actions";
 import { PricingCard } from "@/components/pricing/PricingCard";

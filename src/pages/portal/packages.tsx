@@ -9,7 +9,7 @@ import { CalendarClock, Check, CreditCard, Download, Flame, Infinity as Infinity
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FormAlert } from "@/components/ui/form-alert";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -264,7 +264,7 @@ function PackageTierCard({
 
 export default function PackagesPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, isPending } = useSession();
   const { selected } = router.query;
   const [selectedCategory, setSelectedCategory] = useState<"studio" | "class">("studio");
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
@@ -311,11 +311,10 @@ export default function PackagesPage() {
   >(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") { router.push("/login"); return; }
-    if (status === "authenticated") {
-      loadProfileAndHistory();
-    }
-  }, [router, status]);
+    if (isPending) return;
+    if (!session?.user) { router.push("/login"); return; }
+    loadProfileAndHistory();
+  }, [router, isPending, session]);
 
   // Packages come from the DB (GET /api/packages → published only). The code
   // catalog is seed data only; the portal never renders it directly.

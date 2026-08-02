@@ -23,7 +23,7 @@ import {
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/Pagination";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -213,21 +213,21 @@ export default function AdminMembers() {
   const [assignPass, setAssignPass] = useState(false);
   const pass = usePassPaymentState();
 
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
 
   const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
-    if (status === "loading") return;
-    if (status === "unauthenticated") {
+    if (isPending) return;
+    if (!session?.user) {
       router.push("/login");
       return;
     }
-    if (status === "authenticated" && !hasRole(userRole, "admin")) {
+    if (!hasRole(userRole, "admin")) {
       router.push("/login");
       return;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole]);
+  }, [isPending, session, userRole]);
 
   // Reset to the first page whenever the filter/sort criteria change.
   useEffect(() => {
@@ -238,13 +238,13 @@ export default function AdminMembers() {
   // debounce coalesces rapid search keystrokes and the page-reset above into one
   // request. Owns the loading flag for the initial paint.
   useEffect(() => {
-    if (status !== "authenticated" || !hasRole(userRole, "admin")) return;
+    if (!session?.user || !hasRole(userRole, "admin")) return;
     const t = setTimeout(() => {
       void loadMembers().finally(() => setLoading(false));
     }, 250);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole, page, f.values.search, f.values.pkg, f.values.account, sortKey, sortDir]);
+  }, [isPending, session, userRole, page, f.values.search, f.values.pkg, f.values.account, sortKey, sortDir]);
 
   const loadMembers = async () => {
     setLoadError(null);

@@ -45,7 +45,7 @@ import {
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
 import { CloseButton } from "@/components/ui/quick-actions";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
 // Server-side gate kills the flash-of-unauth on first paint. `useSession()`
@@ -368,14 +368,14 @@ export default function AdminDashboard() {
   // `useSession()` is kept so existing effects that key on `status`/`session`
   // for runtime decisions still work; the redirect dance + ~200ms flash that
   // used to live here is gone.
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
-    if (status === "authenticated") setLoading(false);
-  }, [status]);
+    if (session?.user) setLoading(false);
+  }, [session]);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!session?.user) return;
     if (!hasRole(userRole, "admin")) return;
     let cancelled = false;
     (async () => {
@@ -391,7 +391,7 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [status, userRole]);
+  }, [session, userRole]);
 
   /**
    * Per-section lazy loader. Tracks which slices have been fetched so a tab
@@ -421,7 +421,7 @@ export default function AdminDashboard() {
 
   /** Overview tab: today's classes, expiring members, member stats (for top-class card), instructor payouts. */
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!session?.user) return;
     if (!hasRole(userRole, "admin") || activeTab !== "overview") return;
     let cancelled = false;
 
@@ -460,7 +460,7 @@ export default function AdminDashboard() {
       return true;
     });
     return () => { cancelled = true; };
-  }, [status, userRole, activeTab, scheduleDate]);
+  }, [session, userRole, activeTab, scheduleDate]);
 
   /** Fetch check-in QR when the class-details dialog opens for a class. */
   useEffect(() => {
@@ -486,7 +486,7 @@ export default function AdminDashboard() {
 
   /** Members tab. */
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!session?.user) return;
     if (!hasRole(userRole, "admin") || activeTab !== "members") return;
 
     void loadSection("member-stats", async () => {
@@ -510,11 +510,11 @@ export default function AdminDashboard() {
       if (Array.isArray(d.expiringMembers)) setExpiringMembers(d.expiringMembers);
       return true;
     });
-  }, [status, userRole, activeTab]);
+  }, [session, userRole, activeTab]);
 
   /** Instructors tab. */
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!session?.user) return;
     if (!hasRole(userRole, "admin") || activeTab !== "instructors") return;
     let cancelled = false;
 
@@ -531,11 +531,11 @@ export default function AdminDashboard() {
       if (!cancelled && Array.isArray(d.instructors)) setDashboardInstructors(d.instructors);
     });
     return () => { cancelled = true; };
-  }, [status, userRole, activeTab]);
+  }, [session, userRole, activeTab]);
 
   /** Classes tab. */
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!session?.user) return;
     if (!hasRole(userRole, "admin") || activeTab !== "classes") return;
     let cancelled = false;
 
@@ -560,13 +560,13 @@ export default function AdminDashboard() {
     });
 
     return () => { cancelled = true; };
-  }, [status, userRole, activeTab]);
+  }, [session, userRole, activeTab]);
 
   // Finance tab data now lives in `FinanceTabConnected` via `useAdminFinanceData`
   // (shared with /admin/finances). The dashboard no longer fetches it here.
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!session?.user) return;
     const role = (session?.user as { role?: string })?.role;
     if (!hasRole(role, "admin") || activeTab !== "meal-waitlist") return;
     let cancelled = false;
@@ -589,10 +589,10 @@ export default function AdminDashboard() {
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole, activeTab]);
+  }, [session, userRole, activeTab]);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!session?.user) return;
     const role = (session?.user as { role?: string })?.role;
     if (!hasRole(role, "admin") || activeTab !== "rental-inquiries") return;
     let cancelled = false;
@@ -615,7 +615,7 @@ export default function AdminDashboard() {
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole, activeTab]);
+  }, [session, userRole, activeTab]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSelectOverviewClass = useCallback((cls: any) => {

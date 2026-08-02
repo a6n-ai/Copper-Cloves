@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
@@ -30,7 +30,7 @@ interface ClassOption { id: string; name: string }
 
 export default function AdminPartners() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [allClasses, setAllClasses] = useState<ClassOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,9 +70,10 @@ export default function AdminPartners() {
   }, [router]);
 
   useEffect(() => {
-    if (status === "unauthenticated") { router.replace("/login"); return; }
-    if (status === "authenticated") void load();
-  }, [status, load, router]);
+    if (isPending) return;
+    if (!session?.user) { router.replace("/login"); return; }
+    void load();
+  }, [isPending, session, load, router]);
 
   async function createPartner(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -114,7 +115,7 @@ export default function AdminPartners() {
     }
   }
 
-  if (status === "loading" || (loading && status === "authenticated")) {
+  if (isPending || (loading && !!session?.user)) {
     return (
       <div className="min-h-screen bg-cream">
         <PageLoader />

@@ -2,7 +2,7 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn } from "@/lib/auth/client";
 import { Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,13 +71,11 @@ export default function SetPasswordPage() {
         return;
       }
       // Auto sign-in after setting password
-      const result = await signIn("credentials", {
+      const { data: signInData } = await signIn.email({
         email: data.email,
         password,
-        role: "user",
-        redirect: false,
       });
-      if (result?.ok) {
+      if (signInData?.user) {
         router.replace("/portal/dashboard");
       } else {
         toast({ title: "Password set. Please sign in.", variant: "default" });

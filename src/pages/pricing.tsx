@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { useSWRConfig } from "swr";
 import { Droplets, CalendarCheck, Coffee, Users, RefreshCw } from "lucide-react";
 import { SEO } from "@/components/SEO";

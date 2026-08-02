@@ -57,7 +57,7 @@ import {
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { useInstructors } from "@/hooks/useInstructors";
 import type React from "react";
 // ~700 lines, only rendered when Analytics tab opens — defer.
@@ -352,19 +352,18 @@ export default function ControlPanel() {
   const [classImagePreview, setClassImagePreview] = useState<string>("");
 
 
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
   const userRole = (session?.user as { role?: string })?.role;
 
   useEffect(() => {
-    if (status === "unauthenticated") { router.push("/admin/login"); return; }
-    if (status === "authenticated" && !hasRole(userRole, "admin")) { router.push("/admin/login"); return; }
-    if (status === "authenticated") {
-      fetchClasses();
-      void fetchPauseTickets();
-      setLoading(false);
-    }
+    if (isPending) return;
+    if (!session?.user) { router.push("/admin/login"); return; }
+    if (!hasRole(userRole, "admin")) { router.push("/admin/login"); return; }
+    fetchClasses();
+    void fetchPauseTickets();
+    setLoading(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole]);
+  }, [isPending, session, userRole]);
 
   async function fetchPauseTickets() {
     setLoadingPauseTickets(true);

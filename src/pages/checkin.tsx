@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 
 export default function CheckinDeepLink() {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, isPending } = useSession();
   const [msg, setMsg] = useState("Checking you in…");
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (isPending) return;
     const t = typeof router.query.t === "string" ? router.query.t : "";
     if (!t) {
       setMsg("Missing check-in code.");
       return;
     }
-    if (status === "unauthenticated") {
+    if (!session?.user) {
       // /login has no redirect-back; sign in then use the in-app Scan button.
       setMsg("Please sign in, then tap “Scan check-in” in your dashboard.");
       const id = setTimeout(() => void router.replace("/login"), 1800);
@@ -33,7 +33,7 @@ export default function CheckinDeepLink() {
     return () => {
       cancelled = true;
     };
-  }, [status, router]);
+  }, [isPending, session, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-cream p-6">

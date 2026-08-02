@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut } from "@/lib/auth/client";
 import { LogIn, Ticket, LayoutDashboard, LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,8 +46,8 @@ const dashHrefForRole = (rawRole?: string) => {
 export function GlassNavigation({ variant = "default" }: Readonly<{ variant?: "default" | "overlay" }>) {
   const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const authed = status === "authenticated";
+  const { data: session } = useSession();
+  const authed = !!session?.user;
   const role = (session?.user as { role?: string } | undefined)?.role;
   const dashHref = dashHrefForRole(role);
   const accountName = session?.user?.name || session?.user?.email || "Account";

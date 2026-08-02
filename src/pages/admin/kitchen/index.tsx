@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { SEO as Seo } from "@/components/SEO";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,7 @@ function isToday(iso: string) {
 
 export default function KitchenDashboard() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
   const [orders, setOrders] = useState<CafeOrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -81,32 +81,30 @@ export default function KitchenDashboard() {
   }, []);
 
   useEffect(() => {
-    if (status === "loading") return;
-    if (status === "unauthenticated") {
+    if (isPending) return;
+    if (!session?.user) {
       router.push("/login");
       return;
     }
     const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && !hasRole(role, "admin") && !hasRole(role, "chef")) {
+    if (!hasRole(role, "admin") && !hasRole(role, "chef")) {
       router.push("/login");
       return;
     }
-    if (status === "authenticated") {
+    void load();
+    // Pause polling when tab hidden — avoids hammering the API on idle screens.
+    const id = setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return;
       void load();
-      // Pause polling when tab hidden — avoids hammering the API on idle screens.
-      const id = setInterval(() => {
-        if (typeof document !== "undefined" && document.hidden) return;
-        void load();
-      }, 20000);
-      const onVis = () => { if (!document.hidden) void load(); };
-      document.addEventListener("visibilitychange", onVis);
-      return () => {
-        clearInterval(id);
-        document.removeEventListener("visibilitychange", onVis);
-      };
-    }
+    }, 20000);
+    const onVis = () => { if (!document.hidden) void load(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [isPending, session]);
 
   async function updateStatus(id: string, next: string) {
     setUpdating(id);

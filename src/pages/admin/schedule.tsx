@@ -59,7 +59,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Pill } from "@/components/ui/pill";
 import { AnimatedIcon } from "@/components/dashboard/AnimatedIcon";
 import { ManageButton, DeleteButton } from "@/components/ui/quick-actions";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   ResponsiveDialog,
@@ -465,23 +465,23 @@ export default function AdminSchedule() {
     return { total, avgOccupancy, busiestLabel, busiestCount, todayCount };
   }, [schedule, dbClasses]);
 
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
+  const authed = !!session?.user;
   // Scalar role — avoids session-object identity churn refiring the loader.
   const userRole = (session?.user as { role?: string })?.role;
 
   // Catalog + instructor roster don't vary by month — fetch them once per auth
   // state, not on every calendar page turn.
   useEffect(() => {
-    if (status === "loading") return;
-    if (status === "unauthenticated") {
+    if (isPending) return;
+    if (!authed) {
       router.push("/admin/login");
       return;
     }
-    if (status === "authenticated" && !hasRole(userRole, "admin")) {
+    if (!hasRole(userRole, "admin")) {
       router.push("/admin/login");
       return;
     }
-    if (status !== "authenticated") return;
 
     let cancelled = false;
     (async () => {
@@ -497,11 +497,11 @@ export default function AdminSchedule() {
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole]);
+  }, [isPending, authed, userRole]);
 
   // Schedule is month-scoped — refetch it (and only it) when the viewed month changes.
   useEffect(() => {
-    if (status !== "authenticated" || !hasRole(userRole, "admin")) return;
+    if (!authed || !hasRole(userRole, "admin")) return;
 
     let cancelled = false;
     (async () => {
@@ -520,7 +520,7 @@ export default function AdminSchedule() {
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userRole, selectedMonth, scheduleViewYear]);
+  }, [authed, userRole, selectedMonth, scheduleViewYear]);
 
   const loadDbData = async (): Promise<string | null> => {
     try {

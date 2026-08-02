@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import Image from "next/image";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -131,7 +131,7 @@ const GENDER_LABELS: Record<"male" | "female" | "other", string> = {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { data: session, update: updateSession } = useSession();
+  const { data: session, refetch: refetchSession } = useSession();
   const [step, setStep] = useState(0);
   const [apiError, setApiError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -189,7 +189,7 @@ export default function OnboardingPage() {
         setApiError(body.error ?? "Could not save. Please try again.");
         return;
       }
-      await updateSession({ onboarding_completed: true });
+      await refetchSession();
       setDone(true);
       setTimeout(() => router.replace("/portal/dashboard"), 1500);
     } catch {

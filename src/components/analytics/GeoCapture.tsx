@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { toast } from "sonner";
 
 // Fire-and-forget geolocation collector. Runs once per authenticated tab session
@@ -12,10 +12,10 @@ import { toast } from "sonner";
 // and a site CANNOT reopen the native prompt. Only the user can re-enable it via
 // the address-bar site settings. We detect that state and show instructions.
 export function GeoCapture() {
-  const { status } = useSession();
+  const { data: session } = useSession();
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!session?.user) return;
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
     // Only avoid re-firing on every route change within the SAME tab. sessionStorage
     // is per-tab, so a new login/tab clears this and re-attempts. ponytail: per-tab
@@ -79,7 +79,7 @@ export function GeoCapture() {
       toast.info("Location is needed to make sure check-in is done at the studio");
       capture();
     }
-  }, [status]);
+  }, [session]);
 
   return null;
 }

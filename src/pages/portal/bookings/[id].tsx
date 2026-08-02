@@ -1,12 +1,11 @@
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
-import type { Session } from "next-auth";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { format } from "date-fns";
 import { ArrowLeft, Calendar, Clock, Loader2, ReceiptText } from "lucide-react";
 
-import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { getStudioServerSession, type StudioSession } from "@/lib/getStudioServerSession";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
  */
 export async function getServerSideProps(
   ctx: GetServerSidePropsContext,
-): Promise<GetServerSidePropsResult<{ session: Session }>> {
+): Promise<GetServerSidePropsResult<{ session: StudioSession }>> {
   const session = await getStudioServerSession(
     ctx.req as Parameters<typeof getStudioServerSession>[0],
     ctx.res as Parameters<typeof getStudioServerSession>[1],
@@ -31,7 +30,7 @@ export async function getServerSideProps(
     const dest = `/login?redirect=${encodeURIComponent(ctx.resolvedUrl)}`;
     return { redirect: { destination: dest, permanent: false } };
   }
-  return { props: { session: JSON.parse(JSON.stringify(session)) as Session } };
+  return { props: { session: JSON.parse(JSON.stringify(session)) as StudioSession } };
 }
 
 type BookingStatus = "payment_pending" | "confirmed" | "expired" | "cancelled";

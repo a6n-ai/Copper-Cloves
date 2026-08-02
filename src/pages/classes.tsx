@@ -17,7 +17,7 @@ import { cdnUrl } from "@/lib/cdnUrl";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import {
   mondayBasedWeekBoundsInMonth,
   defaultPortalWeekSelection,
@@ -290,9 +290,9 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
     };
   }, [activeTab, fetchScheduleData]);
 
-  // Only the auth-status scalar is needed for the redirect decision; reading
-  // the full session would re-render this page on every 4-min refetch tick.
-  const { status: authStatus } = useSession();
+  // Only the auth-status scalar is needed for the redirect decision.
+  const { data: authSession, isPending: authPending } = useSession();
+  const authStatus = authSession?.user ? "authenticated" : authPending ? "loading" : "unauthenticated";
 
   // Prefetch the booking route once we know the visitor is signed in — gives
   // the same perceived-speed win as a static `<Link>` without changing the

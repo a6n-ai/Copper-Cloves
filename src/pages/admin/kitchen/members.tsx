@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { SEO as Seo } from "@/components/SEO";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Input } from "@/components/ui/input";
@@ -21,27 +21,25 @@ interface KitchenMember {
 
 export default function KitchenMembers() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
   const [members, setMembers] = useState<KitchenMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    if (status === "loading") return;
-    if (status === "unauthenticated") {
+    if (isPending) return;
+    if (!session?.user) {
       router.push("/login");
       return;
     }
     const role = (session?.user as { role?: string })?.role;
-    if (status === "authenticated" && !hasRole(role, "admin") && !hasRole(role, "chef")) {
+    if (!hasRole(role, "admin") && !hasRole(role, "chef")) {
       router.push("/login");
       return;
     }
-    if (status === "authenticated") {
-      void load();
-    }
+    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [isPending, session]);
 
   async function load() {
     setLoading(true);

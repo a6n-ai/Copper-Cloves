@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import {
   enqueueActivityEvent,
   flushActivityQueue,
@@ -20,7 +20,8 @@ const safeFlush = () => {
  */
 export function useActivityTracking() {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, isPending } = useSession();
+  const status = session?.user ? "authenticated" : isPending ? "loading" : "unauthenticated";
   const installed = useRef(false);
   const statusRef = useRef(status);
   statusRef.current = status;

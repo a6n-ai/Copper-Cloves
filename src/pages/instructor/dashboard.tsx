@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
 // Server-side gate: instructors only. Unauthenticated / wrong-role callers
@@ -34,7 +34,7 @@ const CheckInTab = dynamic(() => import("@/components/instructor/CheckInTab"), {
 
 export default function InstructorDashboard() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [instructorName, setInstructorName] = useState("");
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,11 +74,11 @@ export default function InstructorDashboard() {
   // load once the client-side session hydrates.
   const userName = session?.user?.name;
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!session?.user) return;
     setInstructorName(userName ?? "Instructor");
     void loadData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userName]);
+  }, [session?.user, userName]);
 
 
   const handleCheckIn = useCallback(async (bookingId: string) => {

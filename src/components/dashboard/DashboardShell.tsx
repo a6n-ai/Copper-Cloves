@@ -1,6 +1,6 @@
 import type React from "react";
 import { useRouter } from "next/router";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/lib/auth/client";
 import Link from "next/link";
 import { LogOut, BellRing, User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

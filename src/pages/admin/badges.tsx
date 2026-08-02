@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo, Fragment } from "react";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
@@ -180,7 +180,7 @@ function BadgesLoadingSkeleton() {
 
 export default function AdminBadgesPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
   const [tab, setTab] = useState<Tab>("ptm");
   const [ptmTemplates, setPtmTemplates] = useState<BadgeTemplate[]>([]);
   const [customTemplates, setCustomTemplates] = useState<BadgeTemplate[]>([]);
@@ -213,7 +213,7 @@ export default function AdminBadgesPage() {
   // Member of the Month — deferred until the custom tab is actually shown.
   // member-stats returns the id directly, so no chained members-search lookup.
   const { data: memberStatsData } = useStudioSWR<MemberStatsResponse>(
-    status === "authenticated" && tab === "custom"
+    session?.user && tab === "custom"
       ? "/api/admin/dashboard/member-stats"
       : null,
   );
@@ -225,13 +225,14 @@ export default function AdminBadgesPage() {
 
   // Auth guard
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (isPending) return;
+    if (!session?.user) {
       router.replace("/login");
-    } else if (status === "authenticated") {
+    } else {
       const role = (session?.user as { role?: string })?.role;
       if (!hasRole(role, "admin")) router.replace("/login");
     }
-  }, [status, session, router]);
+  }, [isPending, session, router]);
 
   const fetchTemplates = useCallback(async () => {
     setLoading(true);
@@ -247,10 +248,10 @@ export default function AdminBadgesPage() {
   }, []);
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (session?.user) {
       fetchTemplates();
     }
-  }, [status, fetchTemplates]);
+  }, [session, fetchTemplates]);
 
   const fetchAllocations = useCallback(async (templateId: string) => {
     const res = await fetch(`/api/admin/badge-allocations?template_id=${templateId}`);
@@ -585,7 +586,7 @@ export default function AdminBadgesPage() {
     </div>
   );
 
-  if (status === "loading" || loading) {
+  if (isPending || loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-cream via-cream to-sage/5">
         <main className="min-h-screen">

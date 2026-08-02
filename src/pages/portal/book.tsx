@@ -51,7 +51,7 @@ import {
 } from "lucide-react";
 import { NavPrevButton, NavNextButton, QtyMinusButton, QtyPlusButton } from "@/components/ui/quick-actions";
 import { FilterSelect, useFilterState } from "@/components/filters";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import {
   startOfMondayWeekLocal,
   endOfSundayWeekLocal,
@@ -775,7 +775,8 @@ const mondayWeekIndex = (d: Date) => (d.getDay() + 6) % 7;
 export default function BookClass() {
   const router = useRouter();
   const { toast } = useToast();
-  const { status } = useSession();
+  const { data: session } = useSession();
+  const authed = !!session?.user;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   /** True while confirming booking / running Razorpay (does not replace entire page). */
@@ -887,7 +888,7 @@ export default function BookClass() {
   // keepPreviousData (from useStudioSWR) means `isLoading` is true only for an
   // uncached week, letting us scope the skeleton to just the card grid.
   const classesKey = useMemo(() => {
-    if (status !== "authenticated") return null;
+    if (!authed) return null;
     const weekEnd = endOfSundayWeekLocal(weekMonday);
     const params = new URLSearchParams({
       fromMs: String(weekMonday.getTime()),
@@ -895,7 +896,7 @@ export default function BookClass() {
       visibleOnly: "1",
     });
     return `/api/class-schedules?${params}`;
-  }, [status, weekMonday]);
+  }, [authed, weekMonday]);
 
   const { data: rawSchedules, isLoading: loadingClasses } =
     useStudioSWR<RawSchedule[]>(classesKey);
@@ -967,32 +968,32 @@ export default function BookClass() {
   useEffect(() => {
     // SSR (requireSessionSSP) already gates this route — unauthenticated visitors
     // never reach the client. No client-side redirect to the legacy /portal/login.
-    if (status === "authenticated") {
+    if (authed) {
       setIsAuthenticated(true);
       checkAuthAndLoadData();
     }
-  }, [status]);
+  }, [authed]);
 
   // Guards the one-shot auto-advance below so it can't fight a manual day pick.
   const didAutoAdvanceDay = useRef(false);
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (authed) {
       // Current week → preselect today; other weeks → show all days.
       setSelectedDayIndex(weekOffset === 0 ? mondayWeekIndex(new Date()) : null);
       f.reset();
       didAutoAdvanceDay.current = false;
     }
-    // Intentionally keyed on status/weekOffset only. `f` is a fresh object each render, so depending
+    // Intentionally keyed on authed/weekOffset only. `f` is a fresh object each render, so depending
     // on it would re-run every render; f.reset is a stable useCallback that only needs to fire here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, weekOffset]);
+  }, [authed, weekOffset]);
 
   // Current week only: once classes load, if every class today is already done,
   // jump to the next day that still has a bookable class so the member doesn't
   // land on a list of "Completed". One-shot per week load; never overrides a manual pick.
   useEffect(() => {
-    if (status !== "authenticated" || weekOffset !== 0) return;
+    if (!authed || weekOffset !== 0) return;
     if (loadingClasses || didAutoAdvanceDay.current || allClasses.length === 0) return;
     didAutoAdvanceDay.current = true;
     const today = mondayWeekIndex(new Date());
@@ -1007,7 +1008,7 @@ export default function BookClass() {
         return;
       }
     }
-  }, [status, weekOffset, loadingClasses, allClasses, weekDays]);
+  }, [authed, weekOffset, loadingClasses, allClasses, weekDays]);
 
   async function checkAuthAndLoadData() {
     try {

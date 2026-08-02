@@ -24,7 +24,7 @@ const montserrat = Montserrat({
 });
 import * as analytics from "@/lib/analytics";
 import { CartProvider } from "@/contexts/CartContext";
-import { SessionProvider, useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth/client";
 import { useStudioSWR } from "@/lib/swr";
 import { getSessionOnboardingCompleted } from "@/lib/sessionScalars";
 import { hasRole, primaryRole } from "@/lib/auth/roles";
@@ -92,16 +92,16 @@ function resolvePortalKind(pathname: string, rawRole?: string): PortalKind | nul
 
 /** Single chrome for every authenticated dashboard (admin/partner/member/instructor). */
 function DashboardChrome({ children }: Readonly<{ children: React.ReactNode }>) {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
-  // The shell decision depends on `status`, which is "loading" on the client's
-  // first paint but resolved on the server — branching the tree on it directly
-  // causes a hydration mismatch. Defer the shell to after mount so SSR and the
-  // first client render agree; the shell then appears once hydrated.
+  // The shell decision depends on whether we have a session, which is unresolved
+  // on the client's first paint but resolved on the server — branching the tree
+  // on it directly causes a hydration mismatch. Defer the shell to after mount
+  // so SSR and the first client render agree; the shell then appears once hydrated.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  // Pull scalar fields out of `session` once. Every 4-min `refetchInterval`
-  // tick produces a fresh `session` object even when the JWT is unchanged;
+  // Pull scalar fields out of `session` once. Every session-refetch tick
+  // produces a fresh `session` object even when the JWT is unchanged;
   // downstream effects/memos key off these primitives instead so they don't
   // re-run on identity churn.
   const userName = session?.user?.name ?? undefined;
@@ -110,7 +110,7 @@ function DashboardChrome({ children }: Readonly<{ children: React.ReactNode }>) 
 
   const exempt = CHROME_EXEMPT.some((p) => router.pathname.startsWith(p));
   const kind =
-    mounted && !exempt && status === "authenticated"
+    mounted && !exempt && !!session?.user
       ? resolvePortalKind(router.pathname, rawRole)
       : null;
 
@@ -180,20 +180,20 @@ function PublicChrome({ children }: Readonly<{ children: React.ReactNode }>) {
 const PORTAL_EXEMPT = ["/portal/login", "/portal/signup", "/portal/onboarding", "/portal/payment/razorpay-return"];
 
 function OnboardingGate() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   // Scalar read so the effect only re-fires when the actual onboarding flag
   // flips — not on every session-refetch tick.
   const onboardingCompleted = getSessionOnboardingCompleted(session);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!session?.user) return;
     if (!router.pathname.startsWith("/portal/")) return;
     if (PORTAL_EXEMPT.some((p) => router.pathname.startsWith(p))) return;
     if (onboardingCompleted === false) {
       router.replace("/portal/onboarding");
     }
-  }, [status, onboardingCompleted, router]);
+  }, [session, onboardingCompleted, router]);
 
   return null;
 }
@@ -203,14 +203,8 @@ function ActivityTrackingSubscriber() {
   return null;
 }
 
-export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
-
-  // Public marketing pages have no authed session to keep warm — anonymous
-  // visitors would otherwise fire /api/auth/session on every focus + every
-  // 4-min tick for nothing. Disable both there; authed portal routes keep the
-  // fresh-against-JWT behavior below.
-  const isPublicRoute = isPublicSite(router.pathname);
 
   useEffect(() => {
     const handleRouteChange = (url: string) => {
@@ -224,21 +218,7 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
   }, [router.events]);
 
   return (
-    <SessionProvider
-      session={session}
-      // Keep the in-memory session fresh against the JWT cookie.
-      //  - `refetchInterval`: re-hit /api/auth/session every 4 min so the client
-      //    side never drifts more than that from the real JWT state. Prevents
-      //    the "UI thinks I'm logged in but API returns 401" gap that users hit
-      //    after long-idle prod tabs.
-      //  - `refetchOnWindowFocus`: snap fresh the moment the tab regains focus
-      //    (e.g. after waking the laptop), so the next admin click can't 401.
-      //  - `refetchWhenOffline: false`: don't burn cycles when the network is
-      //    down — we'll re-validate the moment it returns.
-      refetchInterval={isPublicRoute ? 0 : 4 * 60}
-      refetchOnWindowFocus={!isPublicRoute}
-      refetchWhenOffline={false}
-    >
+    <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
         <link rel="icon" href={cdnUrl("/favicon.svg")} type="image/svg+xml" />
@@ -286,6 +266,6 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
           <Toaster richColors closeButton position="top-center" />
         </CartProvider>
       </div>
-    </SessionProvider>
+    </>
   );
 }
