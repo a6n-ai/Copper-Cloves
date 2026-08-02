@@ -45,14 +45,17 @@ export function getSessionUserId(session: Session | null | undefined): string | 
   return (session?.user as { id?: string } | undefined)?.id;
 }
 
+/** SERVER-shape only — returns undefined for a client `useSession().data`. See the note at the top of this file. */
 export function getSessionPartnerId(session: Session | null | undefined): string | undefined {
   return (session?.user as { partner_id?: string } | undefined)?.partner_id;
 }
 
+/** SERVER-shape only — returns undefined for a client `useSession().data`. See the note at the top of this file. */
 export function getSessionInstructorId(session: Session | null | undefined): string | undefined {
   return (session?.user as { instructor_id?: string } | undefined)?.instructor_id;
 }
 
+/** SERVER-shape only — returns undefined for a client `useSession().data`. See the note at the top of this file. */
 export function getSessionOnboardingCompleted(
   session: Session | null | undefined,
 ): boolean | undefined {
