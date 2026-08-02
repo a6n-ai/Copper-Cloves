@@ -5,6 +5,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
+import { resolveStudioUser } from "@/lib/auth/studioIdentity";
 
 const INVITE_TOKEN_TTL_MS = 72 * 60 * 60 * 1000; // 72 hours
 
@@ -98,14 +99,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const isNew = !profile;
     if (!profile) {
-      // Create minimal account (no password — invite email sets it)
+      // Create minimal account (no password — invite email sets it). The
+      // identity is minted up front with no `credential` Account, so the guest
+      // cannot sign in until set-password runs, but `user_id` is never null —
+      // the invariant getStudioServerSession and Task 13's
+      // @@unique([user_id, role]) both rely on.
+      const userId = await resolveStudioUser({
+        email,
+        name: member.name.trim() || email,
+        role: "user",
+      });
       profile = await prisma.profile.create({
         data: {
           email,
           full_name: member.name.trim() || email,
           phone: memberPhone || null,
           role: "user",
-          hashedPassword: null,
+          user_id: userId,
         },
         select: { id: true, hashedPassword: true, phone: true },
       });

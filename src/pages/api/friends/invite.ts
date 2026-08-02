@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { upsertFriendship } from "@/lib/friendship";
+import { resolveStudioUser } from "@/lib/auth/studioIdentity";
 import logger from "@/lib/logger";
 
 const INVITE_TOKEN_TTL_MS = 72 * 60 * 60 * 1000; // 72 hours
@@ -41,13 +42,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const isNew = !profile;
 
     if (!profile) {
+      // Identity up front, credential later: the invitee gets a User with no
+      // `credential` Account, so they cannot sign in until the invite email's
+      // set-password link runs attachStudioCredential — but `user_id` is never
+      // null, which is what getStudioServerSession and Task 13's
+      // @@unique([user_id, role]) both rely on.
+      const userId = await resolveStudioUser({ email, name: fullName || email, role: "user" });
       profile = await prisma.profile.create({
         data: {
           email,
           full_name: fullName || email,
           phone: phone || null,
           role: "user",
-          hashedPassword: null,
+          user_id: userId,
         },
         select: { id: true, phone: true },
       });
