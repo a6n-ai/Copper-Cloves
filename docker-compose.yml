@@ -1,6 +1,10 @@
 # Local PostgreSQL for development. Start with: npm run docker:db:up
 # If Prisma fails with "Authentication failed" while the container is healthy, use 127.0.0.1
 # in DATABASE_URL (not localhost) on Windows—see .env.example.
+#
+# `ollama` here is the local stand-in for Bedrock (AI Coach feature, LLM_PROVIDER=ollama).
+# See AI_COACH_SETUP.md for the full run-it-yourself steps. Same AI SDK `LanguageModel`
+# interface as Bedrock — swap is one env var, not a code fork (src/lib/llmProvider.ts).
 services:
   postgres:
     image: postgres:16-alpine
@@ -14,6 +18,33 @@ services:
       POSTGRES_DB: copperandcloves
     volumes:
       - copper_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U copper -d copperandcloves"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - copper_ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # NOTE (Apple Silicon / Docker Desktop): container has no Metal GPU access, inference
+    # runs CPU-only — expect a reply to take 1-4 minutes. For faster local iteration, run
+    # Ollama natively instead (`brew install ollama`) and point OLLAMA_BASE_URL at
+    # http://localhost:11434/v1. This service is for a reproducible/CI-friendly setup,
+    # not daily-driver speed.
+    #
+    # Model is NOT pulled automatically. After `docker compose up -d`, run once:
+    #   docker compose exec ollama ollama pull llama3.1:8b
 
 volumes:
   copper_pg_data:
+  copper_ollama_data:
