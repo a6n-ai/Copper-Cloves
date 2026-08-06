@@ -17,6 +17,7 @@ import {
   GraduationCap,
   Wallet,
   PauseCircle,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -142,6 +143,12 @@ export const PORTAL_CONFIGS: Record<PortalKind, PortalConfig> = {
           { href: "/portal/packages", label: "Packages", icon: Package },
           { href: "/portal/menu", label: "Café", icon: Coffee },
           { href: "/portal/friends", label: "Friends & Family", icon: Users },
+        ],
+      },
+      {
+        label: "Coach",
+        items: [
+          { href: "/portal/coach", label: "AI Coach", icon: Sparkles },
         ],
       },
       {
