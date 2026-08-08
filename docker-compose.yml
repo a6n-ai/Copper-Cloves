@@ -7,7 +7,7 @@
 # interface as Bedrock — swap is one env var, not a code fork (src/lib/llmProvider.ts).
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     # Use 5433 on the host so this does not collide with a local PostgreSQL install on 5432.
     ports:
