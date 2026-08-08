@@ -110,6 +110,27 @@ As of 2026-08-06 this account is blocked on `INVALID_PAYMENT_INSTRUMENT` (AWS
 Marketplace subscription for the Anthropic model needs a valid payment method) — fix in
 AWS Console → Billing, then retry. Not a code issue.
 
+## Switching to OpenRouter instead of Ollama
+
+A third option, not part of the documented dev/prod plan — for quick model comparisons
+(many hosted models behind one API key) without a local GPU or AWS billing setup:
+
+```bash
+export LLM_PROVIDER="openrouter"
+export OPENROUTER_API_KEY="<your key from openrouter.ai/keys>"
+# optional — defaults to nvidia/nemotron-nano-9b-v2:free, confirmed working live
+# (tool calls + correct data back). Free-tier model availability/tool-schema support
+# rotates on OpenRouter — if you swap this, verify with a real request, not just
+# checking /api/v1/models' supported_parameters (openai/gpt-oss-20b:free lists "tools"
+# there but actually 400s on our tool schemas).
+export OPENROUTER_MODEL_ID="nvidia/nemotron-nano-9b-v2:free"
+```
+
+Browse model IDs (and pricing) at [openrouter.ai/models](https://openrouter.ai/models) —
+pass any of them as `OPENROUTER_MODEL_ID`, including paid ones like
+`anthropic/claude-3.5-sonnet`, if you want closer-to-Bedrock output quality without
+waiting on the AWS billing fix above.
+
 ## Cleaning up
 
 ```bash

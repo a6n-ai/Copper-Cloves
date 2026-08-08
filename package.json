@@ -80,6 +80,7 @@
     "@better-auth/prisma-adapter": "^1.6.25",
     "@hookform/resolvers": "^5.2.2",
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "@openrouter/ai-sdk-provider": "^3.0.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "@radix-ui/react-alert-dialog": "^1.1.15",
