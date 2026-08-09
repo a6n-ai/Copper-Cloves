@@ -49,8 +49,7 @@ RUN DATABASE_URL="postgresql://build:build@127.0.0.1:5432/build" \
 
 # The webpack cache is traced INTO .next/standalone and is pure build-time
 # scratch — on this repo it is ~870MB, an order of magnitude larger than
-# everything else in the image combined. amplify.yml strips it for the same
-# reason. Nothing at runtime reads it.
+# everything else in the image combined. Nothing at runtime reads it.
 RUN rm -rf .next/cache .next/standalone/.next/cache
 
 # --- runner: standalone output only, no node_modules install ---

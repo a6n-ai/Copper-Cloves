@@ -7,8 +7,10 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 /**
  * Load .env.production from the process cwd (normal Node) and from `.next/` when present.
- * Amplify Hosting deploys the `.next` folder only; we copy `.env.production` into `.next` during
- * build so SSR handlers can read DB/NextAuth vars at runtime (see amplify.yml).
+ * The `.next/` lookup exists for hosts that deploy the `.next` folder alone and need
+ * `.env.production` copied inside it. Prod is EC2 + Docker, where compose's `env_file:` puts
+ * the vars in the real process environment, so that path is inert there; the plain cwd load
+ * is what Vercel and local runs use.
  */
 function loadServerEnv() {
   const cwd = process.cwd();
@@ -52,7 +54,7 @@ function databaseUrl(): string {
   return normalizePostgresUrl(url);
 }
 
-/** AWS RDS and many cloud Postgres hosts require TLS from app runners (Amplify, Vercel, etc.). */
+/** AWS RDS and many cloud Postgres hosts require TLS from app runners (EC2, Vercel, etc.). */
 function normalizePostgresUrl(url: string): string {
   const trimmed = url.trim();
   const isRds =
@@ -150,7 +152,7 @@ function createPrismaClient() {
   const poolUrl = poolConnectionString(connectionString, useSsl);
 
   if (!globalForPrisma.pgPool) {
-    // Serverless (Vercel/Amplify Lambda) caches this global pool per warm
+    // Serverless (Vercel) caches this global pool per warm
     // instance. Warm-forever connections (idleTimeoutMillis: 0, max: 10) ×
     // many instances exhausts RDS max_connections — a hard outage, not a
     // slowdown. There, keep the pool tiny and let idle connections drain.

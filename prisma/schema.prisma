@@ -1,4 +1,6 @@
-// Rust-free client engine + @prisma/adapter-pg — avoids Amplify/Lambda "query engine not found" deploy errors.
+// Rust-free client engine + @prisma/adapter-pg — avoids "query engine not found" on hosts that
+// ship only the build output (Lambda-backed hosting, slim containers). Keep it: the prod Docker
+// image copies .next/standalone, which does not carry a native engine binary.
 generator client {
   provider   = "prisma-client"
   output     = "../src/generated/prisma"

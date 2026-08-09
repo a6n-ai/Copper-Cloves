@@ -11,13 +11,13 @@ import { hasRole, primaryRole, serializeRoles } from "@/lib/auth/roles";
 /**
  * One-time (or rare) admin creation on live hosts without local psql.
  *
- * 1. In Amplify (or .env.local): set ADMIN_SETUP_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
+ * 1. In SSM /copper-cloves/prod (or .env.local): set ADMIN_SETUP_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
  * 2. Deploy, then POST once:
  *    curl -X POST "https://YOUR_HOST/api/setup/bootstrap-admin" \
  *      -H "Content-Type: application/json" \
  *      -H "x-admin-setup-secret: YOUR_ADMIN_SETUP_SECRET" \
  *      -d "{}"
- * 3. Remove ADMIN_SETUP_SECRET and ADMIN_PASSWORD from Amplify afterward.
+ * 3. Delete the ADMIN_SETUP_SECRET and ADMIN_PASSWORD parameters afterward, then redeploy.
  *
  * If ADMIN_SETUP_SECRET is unset, this route returns 404 so the path is not advertised.
  */
@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!email || !password) {
     return res.status(500).json({
       error: "Server misconfiguration",
-      hint: "Set ADMIN_EMAIL and ADMIN_PASSWORD in the hosting environment (e.g. Amplify).",
+      hint: "Set ADMIN_EMAIL and ADMIN_PASSWORD in the server environment (prod: SSM /copper-cloves/prod).",
     });
   }
 

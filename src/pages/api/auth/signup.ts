@@ -56,7 +56,7 @@ function userFacingDbMessage(code: string, message: string): string {
   }
 
   if (message.includes("Missing database URL") || message.includes("STUDIO_DATABASE_URL")) {
-    return "The server cannot reach its database. If you run the studio, add STUDIO_DATABASE_URL (or DATABASE_URL) in your hosting environment (e.g. AWS Amplify → Environment variables).";
+    return "The server cannot reach its database. If you run the studio, add STUDIO_DATABASE_URL (or DATABASE_URL) to the server environment (prod: SSM /copper-cloves/prod, then redeploy).";
   }
 
   /* Common Prisma connection / init codes */
@@ -161,7 +161,7 @@ function respondWithSignupError(res: NextApiResponse, e: unknown): void {
     ...(process.env.NODE_ENV === "development"
       ? {
           detail: message,
-          hint: "Use STUDIO_DATABASE_URL in .env.local (and on Amplify) if DATABASE_URL is wrong on Windows.",
+          hint: "Use STUDIO_DATABASE_URL in .env.local (and in SSM for prod) if DATABASE_URL is wrong on Windows.",
         }
       : {}),
   });
