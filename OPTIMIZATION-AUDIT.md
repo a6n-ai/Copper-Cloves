@@ -25,7 +25,9 @@ After deduplication the 79 raw findings collapse to ~45 distinct issues. Two the
 ## Performance (Vercel / React)
 
 ### P1 — `pg` Pool never releases idle connections on serverless (outage risk)
-`Pool` is created with `max:10, idleTimeoutMillis:0, keepAlive:true` — correct for the PM2 host, dangerous on Vercel/Amplify Lambda where each warm instance caches the global pool and holds up to 10 Postgres connections forever. Many warm instances × 10 connections can exceed RDS `max_connections` — a hard failure mode, not a slowdown.
+**Update (Aug 2026): largely resolved for prod.** Amplify is retired; prod is a single long-lived container on EC2 fronted by pgbouncer, which is exactly the "warm forever" shape the current settings assume. This stays open only for Vercel deploys.
+
+`Pool` is created with `max:10, idleTimeoutMillis:0, keepAlive:true` — correct for a persistent host, dangerous on serverless (Vercel, or the old Amplify Lambda) where each warm instance caches the global pool and holds up to 10 Postgres connections forever. Many warm instances × 10 connections can exceed RDS `max_connections` — a hard failure mode, not a slowdown.
 **Fix:** detect `VERCEL`/`AWS_LAMBDA_FUNCTION_NAME`/`AWS_EXECUTION_ENV` and use `max: 1-3` + finite `idleTimeoutMillis` (10-30s) there; keep warm-forever only for PM2. Or front RDS with RDS Proxy/PgBouncer.
 **Files:** `src/lib/prisma.ts:152,161`
 

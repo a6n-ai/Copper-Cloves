@@ -4,7 +4,7 @@
  * Auth: shared secret via header `x-cron-secret` matching env `CRON_SECRET`,
  * OR a logged-in admin session (for manual trigger from the admin UI).
  *
- * Schedule via Amplify cron / external scheduler hitting:
+ * Scheduled in prod by the `cc-cron` container (deployment/prod/cron/crontabs/root):
  *   GET /api/cron/reconcile-no-shows  with header  x-cron-secret: <secret>
  */
 import type { NextApiRequest, NextApiResponse } from "next";

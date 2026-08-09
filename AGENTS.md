@@ -14,10 +14,12 @@
 - Next.js app for The Studio by Copper + Cloves (member portal, admin, instructor, partner).
 - `npm run dev`: Docker Postgres + Next; `npm run dev:next`: Next only — use when Docker is off; `npm run dev:fresh` deletes `.next` then runs `dev:next`.
 - Local Postgres via Docker: host `127.0.0.1`, port **5433** (`STUDIO_DATABASE_URL` in `.env.local`).
-- Production: AWS Amplify; set **STUDIO_DATABASE_URL** to remote RDS (prefer over `DATABASE_URL`; remove any localhost DB URLs from Console — builds/runtime fail on 127.0.0.1).
+- Production: **EC2 + Docker Compose** (`deployment/prod/`), ap-south-1, Caddy as sole ingress, pgbouncer in front of RDS, `cc-cron` for the `/api/cron/*` schedule. Runbook: `deployment/prod/RUNBOOK.md`. Amplify was deleted in Aug 2026 — there is no hosting console.
+- Prod env vars live in SSM under `/copper-cloves/prod`; `deploy.sh` renders them to `.env.production`. There is no hosting console to edit.
+- Canonical origin is **www** (`https://www.thestudiobycopperandcloves.in`); apex 301s to it. `NEXTAUTH_URL` must match the canonical host exactly or every session breaks on the CSRF/origin check.
 - Default branch `main`; GitHub remote `ranga768/Copper-Cloves`.
-- Prisma uses `db push` / `npm run ci:db-push` on Amplify, not checked-in migration SQL; client in `src/generated/prisma/`.
-- Amplify env minimum: `STUDIO_DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (custom domain thestudiobycopperandcloves.in), Razorpay keys + `RAZORPAY_WEBHOOK_SECRET`.
+- Prisma uses `db push` / `npm run ci:db-push` (run by the `migrate` service against RDS directly, bypassing the pooler), not checked-in migration SQL; client in `src/generated/prisma/`.
+- Prod env minimum: `STUDIO_DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, Razorpay keys + `RAZORPAY_WEBHOOK_SECRET`, `CRON_SECRET`.
 - Razorpay webhook endpoint: `/api/razorpay/webhook`; amounts stored in paise.
 - Production RDS: `copper-cloves` Postgres in ap-south-1.
 - Local repo context docs in `.llm/` (gitignored, not on remote) — `/llm` slash command lists topics.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Amplify / CI: sync Postgres with prisma/schema.prisma (non-interactive `prisma db push`).
+ * CI + prod `migrate` service: sync Postgres with prisma/schema.prisma (non-interactive `prisma db push`).
  * - Clears duplicate razorpay_orders.booking_id / user_package_id before @unique constraints.
  * - Uses --accept-data-loss so Prisma does not block on non-interactive constraint warnings.
  */

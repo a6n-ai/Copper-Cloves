@@ -43,7 +43,7 @@ function parseStatus(v: unknown): ClassScheduleStatus | undefined {
 function prismaUserMessage(e: unknown): string {
   if (e instanceof Prisma.PrismaClientKnownRequestError) {
     if (e.code === "P2022") {
-      return "Database is missing a column Prisma expects (run prisma db push against this database, or redeploy so Amplify preBuild can sync the schema).";
+      return "Database is missing a column Prisma expects (run prisma db push against this database, or redeploy so the migrate step can sync the schema).";
     }
     if (e.code === "P2021") {
       return "Database is missing a table. Sync the schema with prisma db push on this environment.";

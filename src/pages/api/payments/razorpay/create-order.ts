@@ -265,7 +265,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!razorpayConfigured()) {
     return res.status(503).json({
       error:
-        "Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET (Amplify Console or .env.local).",
+        "Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET (SSM /copper-cloves/prod or .env.local).",
     });
   }
 

@@ -40,9 +40,8 @@ Parameters:
 
   # --- DNS -------------------------------------------------------------------
   # Route53 hosted zones are GLOBAL, not per-region — the zone below already
-  # exists and is shared with the Amplify deployment. This stack only adds
-  # records, and by default only the staging one, so creating the stack can
-  # never move live traffic.
+  # exists. This stack only adds records, and by default only the staging one,
+  # so creating the stack can never move live traffic.
   HostedZoneId:
     Type: String
     Default: Z042772335FKJXJEWCHU9
@@ -60,9 +59,8 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: >-
-      THE CUTOVER SWITCH. Set to true only when you are ready to move production
-      off Amplify: it replaces the apex + www records (currently aliases to
-      Amplify's CloudFront) with A records pointing at this box.
+      Owns the apex + www A records pointing at this box. Already true in prod —
+      leave it true, or the next stack update deletes the live records.
 
 Conditions:
   HasStagingHostname: !Not [!Equals [!Ref StagingHostname, ""]]
@@ -187,8 +185,9 @@ Resources:
       InstanceId: !Ref Box
       Tags: [{ Key: Name, Value: copper-cloves-prod-eip }]
 
-  # Pre-cutover: a hostname that resolves to the box while production still runs
-  # on Amplify. Set APP_DOMAIN in SSM to this value so Caddy issues a cert for it.
+  # A second hostname resolving to the box, useful for verifying a change before
+  # pointing the apex at it. Set APP_DOMAIN in SSM to this value so Caddy issues
+  # a cert for it.
   StagingRecord:
     Type: AWS::Route53::RecordSet
     Condition: HasStagingHostname
@@ -199,8 +198,8 @@ Resources:
       TTL: 60
       ResourceRecords: [!Ref BoxEip]
 
-  # Cutover. TTL is deliberately short so a rollback to Amplify propagates in a
-  # minute rather than a day. Raise it once the box has proven itself.
+  # TTL is deliberately short so a correction propagates in a minute rather than
+  # a day. Raise it once the box has proven itself.
   ApexRecord:
     Type: AWS::Route53::RecordSet
     Condition: CutOverApex

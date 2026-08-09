@@ -100,26 +100,41 @@ docker compose run --rm --entrypoint sh migrate -c 'npx tsx scripts/backfill-com
 docker compose exec pgbouncer psql -h 127.0.0.1 -p 6432 -U "$PGBOUNCER_DB_USER" pgbouncer -c 'SHOW POOLS;'
 ```
 
-## Cutover from Amplify
+## DNS
 
-1. Bring the box up and verify on a staging hostname first
-   (`new.thestudiobycopperandcloves.in` → EIP; set `APP_DOMAIN` to it).
-   Razorpay webhooks are registered against the apex, so on the staging host
-   payment fulfillment only heals via the `reconcile-razorpay` cron — do not
-   read that as a broken checkout.
-2. Set `APP_DOMAIN` and `NEXTAUTH_URL` in SSM to the apex, redeploy.
-3. Flip DNS by redeploying the stack with `ManageApexDns=true`. Records are
-   created at TTL 60 so a rollback to Amplify propagates in a minute.
+The box is the only origin. Route53 zone `Z042772335FKJXJEWCHU9` holds three plain
+A records at the EIP, TTL 60 — apex, `www`, and `new` (the staging hostname, still
+pointed at the same box). `www` is canonical; the apex 301s to it via Caddy.
 
-   **Delete the existing `www` CNAME by hand first.** Route53 will not UPSERT a
-   record across a type change (`CNAME` → `A`), so the stack update fails with
-   `RRSet of type A with DNS name www... already exists` unless the old record is
-   gone. The apex is already an `A` (alias) record, so that one upserts cleanly.
-4. Leave the Amplify app in place for a few days as rollback, then delete it,
-   along with `amplify.yml` and `.github/workflows/cron.yml` (the in-box cron
-   container replaces it — running both would double every tick, which is
-   harmless but noisy).
-5. Lock down the database: set the RDS to `PubliclyAccessible=false` and drop any
+Records are managed by the CloudFormation stack (`ManageApexDns=true`). If any go
+missing, re-run the stack to restore them. TTL stays at 60 so a correction
+propagates in a minute.
+
+**Verifying DNS from a hijacked network.** Plaintext DNS is rewritten on some ISPs
+here — even a query aimed straight at the authoritative nameserver comes back wrong,
+because port 53 itself is intercepted. The tell is the TTL: the zone serves 60, the
+interceptor stamps its own (10 observed). Use DNS-over-HTTPS to get the truth:
+
+```bash
+curl -s -H 'accept: application/dns-json' \
+  'https://cloudflare-dns.com/dns-query?name=www.thestudiobycopperandcloves.in&type=A'
+```
+
+The same networks also blackhole TLS to the box: TCP connects, the handshake never
+completes, and the site looks dead from your laptop while it serves everyone else.
+To check the origin itself rather than the path to it, look at whether `cron_runs`
+is still advancing — those rows are written by requests arriving over the public
+HTTPS URL, so a fresh timestamp proves the site is reachable from the internet.
+
+## Post-cutover checklist
+
+1. **Confirm `cc-cron` is actually ticking** before relying on it for reminders,
+   no-show reconciliation or the Razorpay backstop:
+   `docker compose logs --tail=30 cron`, then check the spacing in
+   `select job, max(started_at), count(*) from cron_runs group by job`.
+   Even 5/15-minute gaps = in-box crond doing its job. Ragged 45–100 minute gaps
+   mean something external is driving them instead.
+2. Lock down the database: set the RDS to `PubliclyAccessible=false` and drop any
    public 5432 rules from `sg-0de569aec9a0fa534`. The box reaches it via the
    security-group rule this stack created.
 
@@ -131,7 +146,7 @@ docker compose exec pgbouncer psql -h 127.0.0.1 -p 6432 -U "$PGBOUNCER_DB_USER" 
   compose does not treat an env_file content change as a reason to recreate the
   container — so Caddy keeps serving the OLD vhost and HTTPS on the new name
   fails with a TLS alert rather than any useful error. This caused a ~2 minute
-  outage during the Amplify cutover. The deploy workflow now passes
+  outage during the cutover to this stack. The deploy workflow now passes
   `--force-recreate`; if you run the proxy by hand, do the same.
 - **`docker compose up -d` will not pick up a Caddyfile edit.** Nothing about the
   container changed, so compose leaves it alone. Run
@@ -139,6 +154,20 @@ docker compose exec pgbouncer psql -h 127.0.0.1 -p 6432 -U "$PGBOUNCER_DB_USER" 
   (the deploy workflow already does).
 - **`.env.production` is generated, never edited by hand.** The next deploy
   overwrites it. Change the SSM parameter instead.
+- **busybox crond silently ignores a crontab it does not own.** A crontab file
+  whose owner is not the user the jobs run as is skipped with no error, at any
+  log level — `docker ps` shows the container healthy, `crond` wakes every
+  minute, and nothing ever executes. The bind mount carries the host checkout's
+  ownership (`ec2-user`, uid 1000), so the `cron` service copies the file to
+  root-owned `/etc/crontabs` at startup rather than pointing `-c` at the mount.
+  This cost 6 days of silently dead crons in Aug 2026. Do not "simplify" it back
+  to `-c /cron/crontabs`.
+- **Use `-d N` for crond, never `-l N`.** `-l` only sets a level and leaves
+  busybox logging to syslog; this image has no syslogd, so every tick and job
+  result is discarded and `docker logs cc-cron` stays empty even when jobs run.
+- **`docker compose up -d cron` restarts `cc-web` too.** `cron` declares
+  `depends_on: web`, so compose pulls and recreates the dependency. Use
+  `docker compose up -d --no-deps cron` to touch the cron container alone.
 - **`www` and any other hostname must stay redirects.** `NEXTAUTH_URL` pins one
   canonical origin; a second live origin breaks sign-in with a CSRF/origin
   mismatch rather than an obvious error.

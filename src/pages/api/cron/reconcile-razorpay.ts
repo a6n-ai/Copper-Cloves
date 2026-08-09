@@ -9,7 +9,7 @@
  * Auth: shared secret via header `x-cron-secret` matching env `CRON_SECRET`,
  * OR a logged-in admin session (for manual trigger from the admin UI).
  *
- * Schedule via Amplify cron / external scheduler hitting:
+ * Scheduled in prod by the `cc-cron` container (deployment/prod/cron/crontabs/root):
  *   GET /api/cron/reconcile-razorpay  with header  x-cron-secret: <secret>
  *
  * Optional query params: ?hours=72 (lookback window) &limit=200 (max orders/run).

@@ -45,8 +45,23 @@ services:
     volumes:
       - ./cron:/cron:ro
     # busybox crond passes its own environment to each job, so $CRON_SECRET
-    # resolves inside run.sh. -f = foreground, -l 8 = log every run.
-    command: ["crond", "-f", "-l", "8", "-c", "/cron/crontabs"]
+    # resolves inside run.sh. Two non-obvious flags, both learned the hard way:
+    #
+    # 1. The crontab is COPIED to root-owned /etc/crontabs instead of being read
+    #    from the mount. busybox crond SILENTLY IGNORES a crontab file that is
+    #    not owned by the user it would run jobs as — no error at any log level.
+    #    The bind mount carries the host checkout's ownership (ec2-user, uid
+    #    1000), so `-c /cron/crontabs` left crond running for 6 days with an
+    #    EMPTY job table while looking perfectly healthy in `docker ps`.
+    # 2. `-d 5`, never `-l`. `-l` only sets a level and keeps busybox's syslog
+    #    default; this image has no syslogd, so every tick and every job's output
+    #    goes into the void and `docker logs cc-cron` stays empty forever. `-d`
+    #    logs to stderr, which compose and the awslogs driver both capture.
+    #    Level 5 includes the per-run "USER root pid N cmd ..." lines.
+    command:
+      - sh
+      - -c
+      - install -o root -g root -m 0644 /cron/crontabs/root /etc/crontabs/root && exec crond -f -d 5
     networks:
       - default
     depends_on:

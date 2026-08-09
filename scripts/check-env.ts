@@ -2,8 +2,8 @@
  * Environment variable audit.
  *
  * Local:  npm run check:env
- * Amplify: copy this list into AWS Console → Hosting → Environment variables
- *          (or run via custom build step that exits non-zero on missing required vars).
+ * Prod:   every var is one SSM parameter under /copper-cloves/prod; deploy.sh renders
+ *          them into deployment/prod/.env.production. There is no hosting console.
  */
 import { config } from "dotenv";
 import { resolve } from "node:path";
@@ -152,7 +152,7 @@ function check() {
   console.log("");
 
   if (trueRequiredMissing.length > 0) {
-    console.error(`${COLORS.red}${COLORS.bold}Required vars missing.${COLORS.reset} Add to .env.local (local) or Amplify Console (prod).`);
+    console.error(`${COLORS.red}${COLORS.bold}Required vars missing.${COLORS.reset} Add to .env.local (local) or SSM /copper-cloves/prod (prod).`);
     process.exit(1);
   }
 }

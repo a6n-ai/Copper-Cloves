@@ -5,7 +5,8 @@ import { ensureAdmin } from "@/lib/requireAdmin";
 
 /**
  * Admin-only env diagnostic. Returns ONLY which env keys are set (no values).
- * Use to verify Amplify Console env vars actually reach the Lambda runtime.
+ * Use to verify SSM parameters actually reached the container's environment
+ * (deploy.sh renders /copper-cloves/prod into .env.production; compose injects it).
  *
  * GET /api/admin/env-check
  */

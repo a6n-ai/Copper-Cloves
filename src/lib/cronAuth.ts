@@ -9,7 +9,7 @@ import { hasRole } from "@/lib/auth/roles";
  * logged-in admin session is present (for manual trigger from the admin UI).
  *
  * Both sides are trimmed before comparison: a trailing newline pasted into a
- * GitHub Actions / Amplify secret is the single most common cause of every cron
+ * SSM parameter (or any CI secret) is the single most common cause of every cron
  * silently 401-ing (which in turn stalls Razorpay reconciliation and lets paid
  * orders pile up). Trimming removes that footgun without weakening the secret.
  *
