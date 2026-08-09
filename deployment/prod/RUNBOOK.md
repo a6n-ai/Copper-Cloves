@@ -134,9 +134,22 @@ HTTPS URL, so a fresh timestamp proves the site is reachable from the internet.
    `select job, max(started_at), count(*) from cron_runs group by job`.
    Even 5/15-minute gaps = in-box crond doing its job. Ragged 45–100 minute gaps
    mean something external is driving them instead.
-2. Lock down the database: set the RDS to `PubliclyAccessible=false` and drop any
-   public 5432 rules from `sg-0de569aec9a0fa534`. The box reaches it via the
-   security-group rule this stack created.
+2. ~~Lock down the database.~~ **DONE Aug 9 2026.** `copper-cloves` RDS is
+   `PubliclyAccessible=false`; the `0.0.0.0/0` rules on `sg-0de569aec9a0fa534`
+   (an all-protocols rule, plus a 3306 leftover from the retired `thestudio`
+   MySQL DB) are revoked. Inbound is now only `5432` from the box SG
+   `sg-08892c06fbc00f9c9`, plus the group's self-reference. Backup retention
+   raised 1 → 7 days at the same time.
+
+   **Consequence: the DB is no longer reachable from a laptop.** `db:push`,
+   `db:studio` and any `tsx` script pointed at prod need a tunnel first:
+
+   ```bash
+   ssh -L 5432:copper-cloves.c52g80yysrkp.ap-south-1.rds.amazonaws.com:5432 ec2-user@13.235.22.94
+   ```
+
+   Or run it on the box instead, which needs no tunnel:
+   `docker compose run --rm --entrypoint sh migrate -c 'npx tsx scripts/<name>.ts'`
 
 ## Gotchas
 
