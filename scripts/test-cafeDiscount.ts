@@ -4,6 +4,7 @@
  * No DB — pure function.
  */
 import { combineCafeDiscount } from "../src/lib/couponHelpers";
+import { bestCafeDiscount, cafeDiscountPercentOf } from "../src/lib/cafeDiscount";
 
 let failures = 0;
 function eq(label: string, got: unknown, want: unknown) {
@@ -45,6 +46,27 @@ eq("clamp to subtotal", combineCafeDiscount(100, 200, null),
 // 7. Coupon cap honored (stackable): pass 10% (20), coupon 50% of base 180 = 90 but capped at 30.
 eq("coupon cap honored", combineCafeDiscount(200, 10, { discount_type: "percent", discount_value: 50, max_discount_inr: 30, stackable: true }),
   { passDiscount: 20, couponDiscount: 30, total: 50, couponApplies: true });
+
+// --- rate now comes from package config, never a hardcoded name map -----------
+// 8. NULL cafe_discount_percent means 0 — the kitchen used to quote these 5%
+//    (flat class-pass rate in the old map) while the till charged nothing.
+eq("null percent is 0", cafeDiscountPercentOf({ cafe_discount_percent: null }), 0);
+eq("no package type is 0", cafeDiscountPercentOf(null), 0);
+
+// 9. Prisma hands back a Decimal, not a number.
+eq("decimal-like percent", cafeDiscountPercentOf({ cafe_discount_percent: "15" }), 15);
+
+// 10. Best across passes, not most-recently-purchased — a member holding a 12%
+//     and a 15% pass is charged 15% at the till, so every screen must say 15.
+eq("best of several passes", bestCafeDiscount([
+  { package_type: { cafe_discount_percent: 12 } },
+  { package_type: { cafe_discount_percent: 15 } },
+  { package_type: { cafe_discount_percent: null } },
+]).percent, 15);
+
+// 11. No discount anywhere: still names a pass so the UI can label it.
+eq("all zero still returns a pass", bestCafeDiscount([{ package_type: { cafe_discount_percent: null } }]).percent, 0);
+eq("empty list", bestCafeDiscount([]), { percent: 0, pass: null });
 
 if (failures) { console.error(`\n${failures} failing`); process.exit(1); }
 console.log("\nall passing");

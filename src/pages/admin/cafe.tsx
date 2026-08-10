@@ -87,11 +87,22 @@ interface CafeOrder {
   order_date: string;
   cafe_item?: { id?: string; name?: string; price?: number | string | null; image_url?: string | null } | null;
   profile?: { full_name?: string | null } | null;
+  /** Pass + coupon discount actually charged on this line (Prisma Decimal → string). */
+  discount_inr?: number | string | null;
   booking?: {
     class_name?: string | null;
     class_time?: string | null;
     class_schedule?: { start_time?: string | null; class_model?: { name?: string | null } | null } | null;
   } | null;
+}
+
+const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
+
+/** Line money as charged: gross from the item price, discount from the stored order row. */
+function orderMoney(order: CafeOrder) {
+  const gross = Number(order.cafe_item?.price ?? 0) * order.quantity;
+  const discount = Math.min(gross, Math.max(0, Number(order.discount_inr ?? 0)));
+  return { gross, discount, net: gross - discount };
 }
 
 const CAFE_TABS = [
@@ -330,6 +341,7 @@ const OrderCard = memo(function OrderCard({
   const booking = order.booking;
   const schedule = booking?.class_schedule;
   const classTime = schedule?.start_time ?? booking?.class_time ?? null;
+  const money = orderMoney(order);
 
   const isActive = order.status === "pending" || order.status === "preparing";
   const blinking = isActive && alertLevel.level !== "normal";
@@ -408,9 +420,15 @@ const OrderCard = memo(function OrderCard({
             <p className="mt-1 font-body text-sm text-charcoal/60">
               Qty {order.quantity}
               <span className="mx-1.5 text-charcoal/30">·</span>
-              <span className="font-semibold text-charcoal">
-                ₹{(Number(cafeItem?.price ?? 0) * order.quantity).toLocaleString("en-IN")}
-              </span>
+              {money.discount > 0 ? (
+                <>
+                  <span className="line-through text-charcoal/40">{inr(money.gross)}</span>{" "}
+                  <span className="text-sage font-medium">− {inr(money.discount)}</span>{" "}
+                  <span className="font-semibold text-charcoal">{inr(money.net)}</span>
+                </>
+              ) : (
+                <span className="font-semibold text-charcoal">{inr(money.gross)}</span>
+              )}
               <span className="mx-1.5 text-charcoal/30">·</span>
               <span className="text-charcoal">{userProfile?.full_name || "Unknown"}</span>
             </p>
@@ -1308,7 +1326,8 @@ export default function AdminCafe() {
                         const userProfile = order.profile;
                         const booking = order.booking;
                         const schedule = booking?.class_schedule;
-                        
+                        const money = orderMoney(order);
+
                         return (
                           <Card
                             key={order.id}
@@ -1341,9 +1360,15 @@ export default function AdminCafe() {
                                     <p className="mt-0.5 font-body text-sm text-charcoal/60">
                                       Qty {order.quantity}
                                       <span className="mx-1.5 text-charcoal/30">·</span>
-                                      <span className="font-medium text-charcoal/80">
-                                        ₹{(Number(cafeItem?.price ?? 0) * order.quantity).toLocaleString("en-IN")}
-                                      </span>
+                                      {money.discount > 0 ? (
+                                        <>
+                                          <span className="line-through text-charcoal/40">{inr(money.gross)}</span>{" "}
+                                          <span className="text-sage font-medium">− {inr(money.discount)}</span>{" "}
+                                          <span className="font-semibold text-charcoal">{inr(money.net)}</span>
+                                        </>
+                                      ) : (
+                                        <span className="font-medium text-charcoal/80">{inr(money.gross)}</span>
+                                      )}
                                     </p>
                                   </div>
                                   <Pill

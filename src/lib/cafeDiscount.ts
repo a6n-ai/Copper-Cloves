@@ -1,48 +1,41 @@
 /**
- * Single source of truth for café food discounts derived from a member's pass.
+ * Single source of truth for café food discounts: the `cafe_discount_percent`
+ * column on the member's package type, editable in admin.
  *
- * Studio (Unlimited) passes get a tiered discount by duration; Class passes get a
- * flat 5%. Used by member checkout (`portal/book`) and the kitchen members view so
- * the two never drift.
+ * This used to be a hardcoded name→rate map, which drifted from the column the
+ * till actually charges on: pass types with a NULL column (Studio Class Pass,
+ * both Premium Studio Class Pass types, 1 Day Class Pass) were quoted a flat 5%
+ * on the kitchen screens and charged 0% at checkout. Read the column everywhere.
  */
 
 export type PassCategory = "studio_pass" | "class_pass";
 
-/** Studio (Unlimited) pass food discount, keyed by package name. */
-export const STUDIO_PASS_FOOD_DISCOUNTS: Record<string, number> = {
-  "1 Month Unlimited": 0.1,
-  "3 Month Unlimited": 0.12,
-  "6 Month Unlimited": 0.15,
-  "12 Month Unlimited": 0.2,
-};
-
-/** Flat food discount for class-pass holders. */
-export const CLASS_PASS_FOOD_DISCOUNT = 0.05;
-
-/**
- * Food discount rate (0–1) for a member's active pass.
- * - studio_pass → tiered lookup by package name (0 if name not mapped)
- * - class_pass  → flat 5%
- * - no pass     → 0
- */
-export function cafeDiscountRate(args: {
-  category: PassCategory | null | undefined;
-  packageName: string | null | undefined;
-}): number {
-  const { category, packageName } = args;
-  if (category === "studio_pass") {
-    return STUDIO_PASS_FOOD_DISCOUNTS[packageName ?? ""] ?? 0;
-  }
-  if (category === "class_pass") {
-    return CLASS_PASS_FOOD_DISCOUNT;
-  }
-  return 0;
+/** Whole-number discount percent (0–100) configured on a package type. */
+export function cafeDiscountPercentOf(
+  // `unknown` so a Prisma Decimal passes straight through — it stringifies cleanly.
+  packageType: { cafe_discount_percent?: unknown } | null | undefined,
+): number {
+  const raw = packageType?.cafe_discount_percent;
+  if (raw == null) return 0;
+  const n = Number(typeof raw === "object" ? String(raw) : raw);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return Math.min(100, n);
 }
 
-/** Convenience: discount as a whole-number percent (e.g. 0.12 → 12). */
-export function cafeDiscountPercent(args: {
-  category: PassCategory | null | undefined;
-  packageName: string | null | undefined;
-}): number {
-  return Math.round(cafeDiscountRate(args) * 100);
+/**
+ * Best discount a member is entitled to right now — the same rule the till uses
+ * (`getActivePassCafePercent`): the highest percent across every pass that is
+ * active, unpaused and unexpired, not just the most recently purchased one.
+ */
+export function bestCafeDiscount<
+  T extends { package_type?: { cafe_discount_percent?: unknown } | null },
+>(passes: T[]): { percent: number; pass: T | null } {
+  let best: { percent: number; pass: T | null } = { percent: 0, pass: null };
+  for (const p of passes) {
+    const percent = cafeDiscountPercentOf(p.package_type);
+    if (percent > best.percent) best = { percent, pass: p };
+  }
+  // No discount anywhere: still surface a pass so the UI can name it.
+  if (!best.pass && passes.length > 0) best = { percent: 0, pass: passes[0] };
+  return best;
 }

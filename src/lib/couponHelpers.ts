@@ -1,4 +1,5 @@
 import type { Coupon } from "@/generated/prisma/client";
+import { bestCafeDiscount } from "@/lib/cafeDiscount";
 
 export type CouponContext = "food" | "ecommerce" | "class_pass" | "studio_pass";
 
@@ -163,13 +164,8 @@ export async function getActivePassCafePercent(
   const rows = (await db.userPackage.findMany({
     where: { user_id: userId, is_active: true, is_paused: false, expiration_date: { gt: now } },
     select: { package_type: { select: { cafe_discount_percent: true } } },
-  })) as Array<{ package_type: { cafe_discount_percent: unknown } | null }>;
-  let max = 0;
-  for (const r of rows) {
-    const p = toFiniteNumber(r.package_type?.cafe_discount_percent);
-    if (Number.isFinite(p) && p > max) max = p;
-  }
-  return max;
+  })) as Array<{ package_type: { cafe_discount_percent: number | string | null } | null }>;
+  return bestCafeDiscount(rows).percent;
 }
 
 async function checkCouponPerUserLimit(
