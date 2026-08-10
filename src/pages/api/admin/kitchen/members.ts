@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
-import { cafeDiscountPercent } from "@/lib/cafeDiscount";
+import { bestCafeDiscount } from "@/lib/cafeDiscount";
 import { hasRole } from "@/lib/auth/roles";
 
 /**
@@ -29,13 +29,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: true,
       full_name: true,
       email: true,
+      // Every pass the member can actually use — the café discount is the best
+      // of them (same rule as the till), not the most recently purchased one.
       user_packages: {
-        where: { is_active: true, expiration_date: { gt: now } },
+        where: { is_active: true, is_paused: false, expiration_date: { gt: now } },
         orderBy: { purchase_date: "desc" },
-        take: 1,
         select: {
           expiration_date: true,
-          package_type: { select: { name: true, type: true, is_unlimited: true } },
+          package_type: {
+            select: { name: true, type: true, is_unlimited: true, cafe_discount_percent: true },
+          },
         },
       },
     },
@@ -43,11 +46,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const rows = members.map((m) => {
-    const active = m.user_packages[0];
+    const { percent: discountPercent, pass: active } = bestCafeDiscount(m.user_packages);
     const pt = active?.package_type ?? null;
     const passName = pt?.name ?? null;
     const category = pt ? passCategoryForPackageType(pt) : null;
-    const discountPercent = cafeDiscountPercent({ category, packageName: passName });
     return {
       id: m.id,
       name: m.full_name ?? "—",

@@ -69,8 +69,8 @@ import {
 } from "@/lib/pendingRazorpayCheckout";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
 import {
-  STUDIO_PASS_FOOD_DISCOUNTS as UNLIMITED_DISCOUNTS,
-  CLASS_PASS_FOOD_DISCOUNT,
+  bestCafeDiscount,
+  cafeDiscountPercentOf,
 } from "@/lib/cafeDiscount";
 
 import Image from "next/image";
@@ -157,7 +157,12 @@ type BookablePkg = {
   expiration_date: string;
   purchase_date?: string | null;
   credits_remaining?: number | null;
-  package_type?: { name?: string | null; type?: string | null; is_unlimited?: boolean | null } | null;
+  package_type?: {
+    name?: string | null;
+    type?: string | null;
+    is_unlimited?: boolean | null;
+    cafe_discount_percent?: number | string | null;
+  } | null;
 };
 
 /** Active (is_active + not expired) packages from a raw /api/user-packages list. */
@@ -812,11 +817,14 @@ export default function BookClass() {
     name: string;
     classesRemaining: number | null;
     isUnlimited: boolean;
+    /** Café food discount from package_types.cafe_discount_percent (0 if none). */
+    cafeDiscountPercent: number;
   }>({
     type: null,
     name: "",
     classesRemaining: null,
-    isUnlimited: false
+    isUnlimited: false,
+    cafeDiscountPercent: 0
   });
   // Per-pass breakdown for members holding several active class passes, sorted
   // oldest-first (the order they're spent). Empty for unlimited / no-pass members.
@@ -1056,11 +1064,13 @@ export default function BookClass() {
           // deduction still comes off the oldest pass (pickBookablePackage).
           classesRemaining: totalClasses,
           isUnlimited: packageType?.is_unlimited || false,
+          // Best rate across every active pass — matches what the till charges.
+          cafeDiscountPercent: bestCafeDiscount(activePackagesOf(packages)).percent,
         });
         setBookablePassCredits(pkg.credits_remaining ?? 0);
       } else {
         setActiveClassPasses([]);
-        setUserPackage({ type: null, name: "No Active Package", classesRemaining: 0, isUnlimited: false });
+        setUserPackage({ type: null, name: "No Active Package", classesRemaining: 0, isUnlimited: false, cafeDiscountPercent: 0 });
         setBookablePassCredits(0);
       }
 
@@ -1200,17 +1210,8 @@ export default function BookClass() {
     const foodTotal = foodItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     // Discount logic - ONLY on food items
-    let discount = 0;
-    if (foodTotal > 0) {
-      if (userPackage.type === "class_pass") {
-        // Class Pass: 5% discount on food only
-        discount = foodTotal * CLASS_PASS_FOOD_DISCOUNT;
-      } else if (userPackage.isUnlimited) {
-        // Studio Pass: Tiered discount on food
-        const discountRate = UNLIMITED_DISCOUNTS[userPackage.name] || 0;
-        discount = foodTotal * discountRate;
-      }
-    }
+    // Rate comes from the member's pass config, never a hardcoded tier table.
+    const discount = foodTotal > 0 ? (foodTotal * userPackage.cafeDiscountPercent) / 100 : 0;
     
     const subtotal = classTotal + foodTotal;
     const totalAfterDiscount = subtotal - discount;
@@ -1296,7 +1297,13 @@ export default function BookClass() {
       const active = Array.isArray(pkgs) ? pkgs.find((p: { expiration_date: string; is_active: boolean }) => p.is_active && new Date(p.expiration_date) > now) : null;
       if (active) {
         const pt = active.package_type;
-        setUserPackage({ type: "studio_pass", name: pt?.name ?? featuredPackage.name, classesRemaining: null, isUnlimited: true });
+        setUserPackage({
+          type: "studio_pass",
+          name: pt?.name ?? featuredPackage.name,
+          classesRemaining: null,
+          isUnlimited: true,
+          cafeDiscountPercent: cafeDiscountPercentOf(pt),
+        });
       }
 
       toast({ title: "Pass activated!", description: "Your Studio Pass is now active. Class is covered.", variant: "success" });
@@ -1775,10 +1782,12 @@ export default function BookClass() {
                       <p className="font-body text-charcoal">
                         {userPackage.name}
                       </p>
-                      <p className="font-body text-xs text-sage mt-2 inline-flex items-center gap-1">
-                        <Check className="w-3.5 h-3.5 shrink-0" />
-                        {((UNLIMITED_DISCOUNTS[userPackage.name] || 0) * 100).toFixed(0)}% discount on café items
-                      </p>
+                      {userPackage.cafeDiscountPercent > 0 && (
+                        <p className="font-body text-xs text-sage mt-2 inline-flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5 shrink-0" />
+                          {userPackage.cafeDiscountPercent}% discount on café items
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1986,16 +1995,10 @@ export default function BookClass() {
                   </h3>
                   <p className="font-body text-charcoal/60 mb-6">
                     Select meals for after your class. Perfect for refueling!
-                    {userPackage.type === "class_pass" && (
-                      <span className="flex items-center gap-1 text-sage mt-1">
+                    {userPackage.cafeDiscountPercent > 0 && (
+                      <span className={`flex items-center gap-1 text-sage mt-1${userPackage.isUnlimited ? " font-bold" : ""}`}>
                         <Check className="w-3.5 h-3.5 shrink-0" />
-                        Get 5% off on all café items
-                      </span>
-                    )}
-                    {userPackage.isUnlimited && UNLIMITED_DISCOUNTS[userPackage.name] && (
-                      <span className="flex items-center gap-1 text-sage mt-1 font-bold">
-                        <Check className="w-3.5 h-3.5 shrink-0" />
-                        Your {userPackage.name} includes {((UNLIMITED_DISCOUNTS[userPackage.name] || 0) * 100).toFixed(0)}% off on café items
+                        Your {userPackage.name} includes {userPackage.cafeDiscountPercent}% off on café items
                       </span>
                     )}
                   </p>
@@ -2027,9 +2030,8 @@ export default function BookClass() {
                     Food Subtotal: <span className="font-semibold text-charcoal">₹{totals.foodTotal}</span>
                     {totals.discount > 0 && (
                       <span className="text-sage block mt-1">
-                        Discount Applied: -₹{totals.discount.toFixed(0)} 
-                        {userPackage.type === "class_pass" && " (5% off)"}
-                        {userPackage.isUnlimited && ` (${((UNLIMITED_DISCOUNTS[userPackage.name] || 0) * 100).toFixed(0)}% off)`}
+                        Discount Applied: -₹{totals.discount.toFixed(0)}
+                        {userPackage.cafeDiscountPercent > 0 && ` (${userPackage.cafeDiscountPercent}% off)`}
                       </span>
                     )}
                   </p>

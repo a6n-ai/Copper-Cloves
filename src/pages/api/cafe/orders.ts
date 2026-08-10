@@ -2,8 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { apiError } from "@/lib/apiError";
-import { passCategoryForPackageType } from "@/lib/couponHelpers";
-import { cafeDiscountPercent } from "@/lib/cafeDiscount";
+import { bestCafeDiscount } from "@/lib/cafeDiscount";
 import { hasRole } from "@/lib/auth/roles";
 
 async function handleGet(res: NextApiResponse, userId: string, isStaff: boolean) {
@@ -31,13 +30,17 @@ async function handleGet(res: NextApiResponse, userId: string, isStaff: boolean)
           id: true,
           full_name: true,
           email: true,
-          // Active pass drives the member's food discount so the kitchen sees the
-          // same rate the member is charged at checkout (cafeDiscount.ts).
+          // Active passes drive the member's food discount so the kitchen sees the
+          // same rate the member is charged at checkout: best percent across all
+          // usable passes, read off package_types.cafe_discount_percent.
           user_packages: {
-            where: { is_active: true, expiration_date: { gt: now } },
+            where: { is_active: true, is_paused: false, expiration_date: { gt: now } },
             orderBy: { purchase_date: "desc" },
-            take: 1,
-            select: { package_type: { select: { name: true, type: true, is_unlimited: true } } },
+            select: {
+              package_type: {
+                select: { name: true, type: true, is_unlimited: true, cafe_discount_percent: true },
+              },
+            },
           },
         },
       },
@@ -51,12 +54,9 @@ async function handleGet(res: NextApiResponse, userId: string, isStaff: boolean)
   });
 
   const withDiscount = orders.map((o) => {
-    const pt = o.profile?.user_packages?.[0]?.package_type ?? null;
-    const passName = pt?.name ?? null;
-    const cafe_discount_percent = pt
-      ? cafeDiscountPercent({ category: passCategoryForPackageType(pt), packageName: passName })
-      : 0;
-    return { ...o, member_pass_name: passName, member_cafe_discount_percent: cafe_discount_percent };
+    const best = bestCafeDiscount(o.profile?.user_packages ?? []);
+    const passName = best.pass?.package_type?.name ?? null;
+    return { ...o, member_pass_name: passName, member_cafe_discount_percent: best.percent };
   });
   return res.json(withDiscount);
 }

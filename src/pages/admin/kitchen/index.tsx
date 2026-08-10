@@ -16,10 +16,12 @@ interface CafeOrderRow {
   status: string;
   order_date: string;
   quantity: number;
-  cafe_item: { name: string; price: number } | null;
+  cafe_item: { name: string; price: number | string } | null;
   profile: { full_name: string | null; email: string } | null;
   member_pass_name: string | null;
   member_cafe_discount_percent: number;
+  /** Pass + coupon discount actually charged on this line (Prisma Decimal → string). */
+  discount_inr: number | string;
   booking: {
     class_schedule: {
       start_time: string;
@@ -76,6 +78,8 @@ function relativeToNow(iso: string) {
   const m = ago % 60;
   return `started ${m ? `${h}h ${m}m` : `${h}h`} ago`;
 }
+
+const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 
 const URGENT_MINS = 15;
 
@@ -228,6 +232,23 @@ export default function KitchenDashboard() {
                     </Pill>
                   ) : null}
                 </div>
+                {(() => {
+                  const gross = Number(o.cafe_item?.price ?? 0) * o.quantity;
+                  const discount = Number(o.discount_inr ?? 0);
+                  return (
+                    <p className="font-body text-sm text-charcoal/70">
+                      {discount > 0 ? (
+                        <>
+                          <span className="line-through text-charcoal/40">{inr(gross)}</span>{" "}
+                          <span className="text-sage font-medium">− {inr(discount)}</span>{" "}
+                          <span className="font-semibold text-charcoal">{inr(gross - discount)}</span>
+                        </>
+                      ) : (
+                        <span className="font-semibold text-charcoal">{inr(gross)}</span>
+                      )}
+                    </p>
+                  );
+                })()}
                 <div className="flex items-center justify-between gap-2 rounded-lg bg-sand/40 px-3 py-2">
                   {startTime ? (
                     <>
