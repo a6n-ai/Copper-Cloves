@@ -50,4 +50,11 @@ docker compose pull # web + tools at IMAGE_TAG
 docker compose --profile tools run --rm migrate
 
 docker compose up -d
+
+# The cron service pins an unchanging image, so plain `up -d` leaves it running
+# and busybox crond keeps serving the crontab it copied to /etc/crontabs at its
+# last start — a schedule change in git would silently never take effect.
+# --no-deps so this doesn't drag cc-web through a second recreate.
+docker compose up -d --no-deps --force-recreate cron
+
 docker image prune -af
