@@ -45,8 +45,21 @@ services:
     volumes:
       - ./cron:/cron:ro
     # busybox crond passes its own environment to each job, so $CRON_SECRET
-    # resolves inside run.sh. -f = foreground, -l 8 = log every run.
-    command: ["crond", "-f", "-l", "8", "-c", "/cron/crontabs"]
+    # resolves inside run.sh.
+    #
+    # The crontab is COPIED to root-owned /etc/crontabs before crond starts:
+    # busybox silently ignores a crontab file it does not own, and the bind
+    # mount carries uid 1000 from the host checkout. Pointing -c at the mount
+    # leaves a healthy-looking container with an empty job table (6 days of dead
+    # crons, Aug 2026 — .llm/known-issues.md #8).
+    #
+    # -f = foreground. -d 5 logs to stderr (Docker -> CloudWatch); NEVER -l,
+    # which keeps busybox's syslog default and this image has no syslogd, so
+    # every tick vanishes.
+    command:
+      - sh
+      - -c
+      - install -o root -g root -m 0644 /cron/crontabs/root /etc/crontabs/root && exec crond -f -d 5
     networks:
       - default
     depends_on:
