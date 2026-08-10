@@ -7,3 +7,4 @@
 */15 * * * * /cron/run.sh reconcile-no-shows
 */15 * * * * /cron/run.sh lifecycle-bookings
 0    * * * * /cron/run.sh reconcile-razorpay
+20   1 * * * /cron/run.sh resume-passes
