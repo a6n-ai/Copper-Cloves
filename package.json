@@ -60,6 +60,7 @@
     "test:friend-activity": "tsx scripts/test-friendActivity.ts",
     "test:pass-adjust": "tsx scripts/test-passAdjust.ts",
     "test:booking-credits": "tsx scripts/test-bookingCredits.ts",
+    "test:resume-passes": "tsx scripts/test-resumeExpiredPauses.ts",
     "db:refresh:templates": "tsx scripts/refresh-system-templates.ts",
     "db:catalog:dry": "tsx scripts/migrate-package-catalog.ts",
     "db:catalog:apply": "tsx scripts/migrate-package-catalog.ts --apply",
