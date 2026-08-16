@@ -6,8 +6,9 @@ import { getInstructorSession } from "@/lib/instructorAuth";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { hasRole } from "@/lib/auth/roles";
 import { checkInOutcomeFromTimes } from "@/lib/bookingAttendance";
-import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
+import { OCCUPYING_STATUSES, ROSTER_STATUSES } from "@/lib/bookingStatus";
 import { reconcileScheduleSeats } from "@/lib/seatCounts";
+import { logActivity } from "@/lib/activityLog";
 import { requestLogger } from "@/lib/logger";
 
 type ScanLog = ReturnType<typeof requestLogger>;
@@ -26,9 +27,48 @@ function loadSchedule(scheduleId: string) {
       status: true,
       capacity: true,
       instructor_check_in_time: true,
-      class_model: { select: { max_capacity: true } },
+      class_model: { select: { name: true, max_capacity: true } },
     },
   });
+}
+
+/**
+ * The QR beacon rotates to whatever class is inside its ±30m window, so a member
+ * who scans a few minutes after their own window closed gets the NEXT class's
+ * token. Surface the booking they most likely meant so the UI can offer that
+ * instead of silently selling them a walk-in seat.
+ */
+const NEARBY_BOOKING_MS = 3 * 60 * 60 * 1000;
+
+async function findIntendedBooking(userId: string, now: Date) {
+  const row = await prisma.booking.findFirst({
+    where: {
+      user_id: userId,
+      checked_in: false,
+      status: { in: [...ROSTER_STATUSES] },
+      class_schedule: {
+        status: { not: "cancelled" },
+        start_time: {
+          gte: new Date(now.getTime() - NEARBY_BOOKING_MS),
+          lte: new Date(now.getTime() + NEARBY_BOOKING_MS),
+        },
+      },
+    },
+    select: {
+      id: true,
+      class_schedule: {
+        select: { id: true, start_time: true, class_model: { select: { name: true } } },
+      },
+    },
+    orderBy: { class_schedule: { start_time: "asc" } },
+  });
+  if (!row?.class_schedule) return null;
+  return {
+    bookingId: row.id,
+    scheduleId: row.class_schedule.id,
+    className: row.class_schedule.class_model?.name ?? "your class",
+    startTime: row.class_schedule.start_time.toISOString(),
+  };
 }
 
 async function handleInstructorScan(
@@ -84,7 +124,7 @@ async function commitWalkIn(args: {
   usePackageId: string | null;
 }) {
   const { userId, schedule, now, usePackageId } = args;
-  await prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx) => {
     if (usePackageId) {
       const upd = await tx.userPackage.updateMany({
         where: { id: usePackageId, user_id: userId, credits_remaining: { gte: 1 } },
@@ -92,13 +132,17 @@ async function commitWalkIn(args: {
       });
       if (upd.count !== 1) throw new Error("NO_CREDITS");
     }
-    await tx.booking.create({
+    const created = await tx.booking.create({
       data: {
         user_id: userId,
         class_schedule_id: schedule.id,
         user_package_id: usePackageId,
         status: "confirmed",
         booking_date: now,
+        // Denormalised copies every other create path writes — without them the
+        // walk-in row renders blank in the portal and admin class history.
+        class_name: schedule.class_model?.name ?? null,
+        class_time: schedule.start_time.toISOString(),
         checked_in: true,
         check_in_time: now,
         check_in_outcome: checkInOutcomeFromTimes(schedule.start_time, now),
@@ -107,6 +151,7 @@ async function commitWalkIn(args: {
     // Recompute from live rows (the just-created booking included) so counters stay
     // consistent with every other surface — never an optimistic seatsTaken+1.
     await reconcileScheduleSeats(schedule.id, tx);
+    return created.id;
   });
 }
 
@@ -116,6 +161,7 @@ async function handleMemberScan(
   schedule: ScanSchedule,
   log: ScanLog,
 ) {
+  const { confirm } = req.body as { confirm?: boolean };
   const session = await getStudioServerSession(req, res);
   const user = session?.user as { id?: string; role?: string } | undefined;
   if (!user?.id || !hasRole(user.role, "user"))
@@ -161,9 +207,35 @@ async function handleMemberScan(
     return res.status(400).json({ error: "Class is full" });
   }
 
-  await commitWalkIn({ userId, schedule, now, usePackageId: pass.usePackageId });
+  // Not booked for THIS class. Never spend a credit on the strength of a scan
+  // alone — a stale beacon token and a real walk-in look identical here, so make
+  // the member say which one it is.
+  if (!confirm) {
+    const intended = await findIntendedBooking(userId, now);
+    log.info({ userId, scheduleId: schedule.id, hasIntended: !!intended }, "walk-in confirm required");
+    return res.status(409).json({
+      needsWalkInConfirm: true,
+      className: schedule.class_model?.name ?? "this class",
+      startTime: schedule.start_time.toISOString(),
+      costsCredit: pass.usePackageId !== null,
+      intended,
+    });
+  }
+
+  const bookingId = await commitWalkIn({ userId, schedule, now, usePackageId: pass.usePackageId });
 
   log.info({ userId, scheduleId: schedule.id, usedPackageId: pass.usePackageId }, "walk-in checked in");
+  void logActivity({
+    req,
+    action: "booking.created",
+    targetProfileId: userId,
+    entity: { type: "booking", id: bookingId },
+    metadata: {
+      class_name: schedule.class_model?.name ?? null,
+      walk_in: true,
+      used_package_id: pass.usePackageId,
+    },
+  });
   return res.json({ ok: true, kind: KIND_MEMBER, status: "walk_in_checked_in" });
 }
 
