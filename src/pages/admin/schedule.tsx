@@ -1012,10 +1012,10 @@ export default function AdminSchedule() {
 
             {/* KPI strip */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <MetricCard label="Classes this month" value={stats.total} icon={CalendarIcon} tone="sage" />
-              <MetricCard label="Avg occupancy" value={stats.avgOccupancy} suffix="%" icon={Users} tone="sage" />
-              <MetricCard label="Today" value={stats.todayCount} icon={Clock} tone="terracotta" hint="classes scheduled" />
-              <MetricCard label="Busiest day" value={stats.busiestLabel} icon={Repeat} tone="clay" hint={`${stats.busiestCount} classes`} />
+              <MetricCard label="Classes this month" value={stats.total} icon={CalendarIcon} tone="sage" description="Total classes scheduled this month" />
+              <MetricCard label="Avg occupancy" value={stats.avgOccupancy} suffix="%" icon={Users} tone="sage" description="Average percentage of seats filled across scheduled classes" />
+              <MetricCard label="Today" value={stats.todayCount} icon={Clock} tone="terracotta" hint="classes scheduled" description="Number of classes scheduled for today" />
+              <MetricCard label="Busiest day" value={stats.busiestLabel} icon={Repeat} tone="clay" hint={`${stats.busiestCount} classes`} description="Day of the week with the most classes scheduled" />
             </div>
 
             {/* 2-column: calendar + day list. Inline calendar only at xl+ where the

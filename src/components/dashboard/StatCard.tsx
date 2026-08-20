@@ -12,6 +12,8 @@ export interface StatCardProps {
   tone?: StatTone;
   /** Square tile for the Apple-Fitness-style bento. */
   square?: boolean;
+  /** Explains what this metric means. Renders an info icon with a tooltip next to the label. */
+  description?: string;
 }
 
 /** Member-facing tones map onto the admin MetricCard's brand tones so both
@@ -26,8 +28,18 @@ const TONE_MAP: Record<StatTone, "sage" | "terracotta" | "clay" | "charcoal"> = 
 /** Thin wrapper over the admin MetricCard so the member dashboard stat strip is
  *  visually identical to the admin dashboard (animated number, tinted icon chip,
  *  hover lift). Keeps the StatCardProps API its existing callers rely on. */
-export function StatCard({ label, value, icon, hint, tone = "default", square }: StatCardProps) {
-  return <MetricCard label={label} value={value} icon={icon ?? Activity} hint={hint} tone={TONE_MAP[tone]} square={square} />;
+export function StatCard({ label, value, icon, hint, tone = "default", square, description }: StatCardProps) {
+  return (
+    <MetricCard
+      label={label}
+      value={value}
+      icon={icon ?? Activity}
+      hint={hint}
+      tone={TONE_MAP[tone]}
+      square={square}
+      description={description}
+    />
+  );
 }
 
 export interface StatCardRowProps {

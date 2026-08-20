@@ -321,9 +321,9 @@ export default function KitchenDashboard() {
             />
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              <MetricCard label="Active orders" value={String(active.length)} icon={ClipboardList} />
-              <MetricCard label="Pending" value={String(pendingCount)} icon={Clock} />
-              <MetricCard label="Completed today" value={String(completedToday)} icon={CheckCircle2} />
+              <MetricCard label="Active orders" value={String(active.length)} icon={ClipboardList} description="Café orders currently in progress, not yet completed or cancelled." />
+              <MetricCard label="Pending" value={String(pendingCount)} icon={Clock} description="Active orders still awaiting preparation to start." />
+              <MetricCard label="Completed today" value={String(completedToday)} icon={CheckCircle2} description="Orders marked completed since midnight today." />
             </div>
 
             {orderQueue}

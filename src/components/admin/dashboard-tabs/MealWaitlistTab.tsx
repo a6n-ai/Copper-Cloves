@@ -69,10 +69,10 @@ function MealWaitlistTabImpl({ inquiries, loading, onUpdateStatus }: Props) {
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard label="Total Inquiries" value={total} icon={ChefHat} tone="sage" loading={loading} />
-        <MetricCard label="New" value={byStatus("new")} icon={AlertTriangle} tone="clay" loading={loading} hint="Awaiting outreach" />
-        <MetricCard label="Contacted" value={byStatus("contacted")} icon={CheckCircle2} tone="terracotta" loading={loading} />
-        <MetricCard label="Closed" value={byStatus("closed")} icon={CheckCircle2} tone="charcoal" loading={loading} />
+        <MetricCard label="Total Inquiries" value={total} icon={ChefHat} tone="sage" loading={loading} description="Total meal subscription waitlist submissions received" />
+        <MetricCard label="New" value={byStatus("new")} icon={AlertTriangle} tone="clay" loading={loading} hint="Awaiting outreach" description="Waitlist inquiries not yet contacted by staff" />
+        <MetricCard label="Contacted" value={byStatus("contacted")} icon={CheckCircle2} tone="terracotta" loading={loading} description="Waitlist inquiries staff have reached out to" />
+        <MetricCard label="Closed" value={byStatus("closed")} icon={CheckCircle2} tone="charcoal" loading={loading} description="Waitlist inquiries marked resolved or closed" />
       </div>
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>

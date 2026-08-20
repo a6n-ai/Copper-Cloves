@@ -51,9 +51,9 @@ export function ActivityInsights() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Total events" value={data?.total ?? 0} icon={Activity} tone="sage" loading={loading} />
-        <MetricCard label="Last 24 hours" value={data?.last24h ?? 0} icon={Clock} tone="terracotta" loading={loading} />
-        <MetricCard label="Last 7 days" value={data?.last7d ?? 0} icon={CalendarDays} tone="sage" loading={loading} />
+        <MetricCard label="Total events" value={data?.total ?? 0} icon={Activity} tone="sage" loading={loading} description="Total activity events logged across the platform, all time." />
+        <MetricCard label="Last 24 hours" value={data?.last24h ?? 0} icon={Clock} tone="terracotta" loading={loading} description="Activity events logged in the last 24 hours." />
+        <MetricCard label="Last 7 days" value={data?.last7d ?? 0} icon={CalendarDays} tone="sage" loading={loading} description="Activity events logged in the last 7 days." />
         <MetricCard
           label="Top action"
           value={data?.topAction?.action ?? "—"}
@@ -61,6 +61,7 @@ export function ActivityInsights() {
           tone="charcoal"
           hint={data?.topAction ? `${n(data.topAction.count)} times` : undefined}
           loading={loading}
+          description="The single most frequently logged action type, with how many times it occurred."
         />
       </div>
 
@@ -96,6 +97,7 @@ export function ActivityInsights() {
           tone="terracotta"
           hint={data?.topActor ? `${n(data.topActor.count)} actions` : undefined}
           loading={loading}
+          description="The user or admin who triggered the most logged actions, with their action count."
         />
       </div>
     </div>

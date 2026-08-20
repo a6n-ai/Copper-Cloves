@@ -391,6 +391,7 @@ export function ControlAnalyticsPanel() {
           icon={DollarSign}
           tone="sage"
           hint={`${growthPctLabel(d.kpis.revenuePerMemberGrowthPct, "%")} · prev month`}
+          description="Total revenue divided by active member count, versus last month's rate."
         />
         <MetricCard
           label="Class utilization"
@@ -399,6 +400,7 @@ export function ControlAnalyticsPanel() {
           icon={BarChart3}
           tone="sage"
           hint="30-day estimate"
+          description="Average share of class capacity filled by bookings over the last 30 days."
         />
         <MetricCard
           label="Café overlap"
@@ -407,6 +409,7 @@ export function ControlAnalyticsPanel() {
           icon={Coffee}
           tone="clay"
           hint="Buyers vs active members (30d)"
+          description="Share of active members in the last 30 days who also bought from the café."
         />
         <MetricCard
           label="Member surveys"
@@ -414,6 +417,7 @@ export function ControlAnalyticsPanel() {
           icon={Sparkles}
           tone="charcoal"
           hint="Not collected in-app yet"
+          description="Average member satisfaction score; not currently collected in-app, so this is a placeholder."
         />
       </div>
 

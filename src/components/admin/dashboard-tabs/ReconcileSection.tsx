@@ -1380,8 +1380,8 @@ function ReconcileSectionImpl() {
       <CronHealthStrip />
       {/* Summary — always visible; values are 0 until a correlation runs. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <MetricCard label="Razorpay captured" value={capturedInr} prefix="₹" icon={Landmark} tone="sage" />
-        <MetricCard label="Website recorded" value={recordedInr} prefix="₹" icon={Globe} tone="sage" />
+        <MetricCard label="Razorpay captured" value={capturedInr} prefix="₹" icon={Landmark} tone="sage" description="Total amount Razorpay reports as captured for the correlated window" />
+        <MetricCard label="Website recorded" value={recordedInr} prefix="₹" icon={Globe} tone="sage" description="Total amount the website's own Payment ledger has recorded for the same window" />
         <MetricCard
           label="Gap"
           value={Math.round(Math.abs(gapPaise) / 100)}
@@ -1389,8 +1389,9 @@ function ReconcileSectionImpl() {
           icon={ArrowLeftRight}
           tone={gapPaise === 0 ? "sage" : "terracotta"}
           hint={gapPaise === 0 ? "fully reconciled" : "captured minus recorded"}
+          description="Difference between Razorpay-captured and website-recorded totals; zero means fully reconciled"
         />
-        <MetricCard label="Issues" value={issuesCount} icon={AlertTriangle} tone={issuesCount === 0 ? "sage" : "clay"} hint={`${totalCount} payments`} />
+        <MetricCard label="Issues" value={issuesCount} icon={AlertTriangle} tone={issuesCount === 0 ? "sage" : "clay"} hint={`${totalCount} payments`} description="Payments flagged with a mismatch between Razorpay and the website ledger" />
       </div>
 
       <LookupCard />

@@ -241,23 +241,24 @@ function OverviewTabImpl({
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-        <MetricCard label="Total Members" value={overviewStats.totalMembers} icon={Users} tone="sage" loading={!overviewLoaded} hint={`+${overviewMeta.newMembersThisMonth} this month`} />
-        <MetricCard label="Active Today" value={overviewStats.activeToday} icon={Flame} tone="terracotta" loading={!overviewLoaded} hint={`${overviewMeta.classesTodayCount} classes today`} />
-        <MetricCard label="Expiring This Week" value={overviewStats.expiringWeek} icon={AlertTriangle} tone="clay" loading={!overviewLoaded} />
-        <MetricCard label="Month Revenue" value={Math.round(overviewStats.monthRevenue)} prefix="₹" icon={CreditCard} tone="sage" loading={!overviewLoaded} hint="+23% vs last month" />
+        <MetricCard label="Total Members" value={overviewStats.totalMembers} icon={Users} tone="sage" loading={!overviewLoaded} hint={`+${overviewMeta.newMembersThisMonth} this month`} description="Total registered member accounts on the platform" />
+        <MetricCard label="Active Today" value={overviewStats.activeToday} icon={Flame} tone="terracotta" loading={!overviewLoaded} hint={`${overviewMeta.classesTodayCount} classes today`} description="Members with a class booking or check-in today" />
+        <MetricCard label="Expiring This Week" value={overviewStats.expiringWeek} icon={AlertTriangle} tone="clay" loading={!overviewLoaded} description="Member passes whose validity ends within the next 7 days" />
+        <MetricCard label="Month Revenue" value={Math.round(overviewStats.monthRevenue)} prefix="₹" icon={CreditCard} tone="sage" loading={!overviewLoaded} hint="+23% vs last month" description="Total revenue collected across all payment methods this calendar month" />
         <MetricCard
           label="Café Orders"
           value={overviewStats.cafeOrders}
           icon={Coffee}
           tone="sage"
           loading={!overviewLoaded}
+          description="Café orders placed today"
           footer={
             <Button variant="outline" size="sm" className="border-sage/20 text-sage hover:bg-sage/5 h-7 text-xs font-body hover:text-sage!" onClick={onOpenCafe}>
               View Queue
             </Button>
           }
         />
-        <MetricCard label="Pending Waivers" value={overviewStats.pendingWaivers} icon={AlertTriangle} tone="clay" loading={!overviewLoaded} />
+        <MetricCard label="Pending Waivers" value={overviewStats.pendingWaivers} icon={AlertTriangle} tone="clay" loading={!overviewLoaded} description="Members who have not yet signed a required liability waiver" />
       </div>
 
       <Card className="border-sage/20 bg-white-warm w-full min-w-0 max-w-full">

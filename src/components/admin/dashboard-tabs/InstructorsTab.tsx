@@ -146,12 +146,12 @@ function InstructorsTabImpl({
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <MetricCard label="Active Instructors" value={stats.total} icon={Award} tone="sage" />
-        <MetricCard label="Check-Ins (30d)" value={stats.checkInsSum} icon={UserCheck} tone="sage" />
-        <MetricCard label="Classes (30d)" value={stats.classesSum} icon={Calendar} tone="sage" />
-        <MetricCard label="Avg Rating" value={stats.avgRating} decimals={1} icon={Star} tone="clay" />
-        <MetricCard label="Total Payout" value={stats.totalPayout} prefix="₹" icon={CreditCard} tone="terracotta" hint={`Avg ₹${stats.avgPerInstructor.toLocaleString("en-IN")} / instructor`} />
-        <MetricCard label="Top Performer" value={stats.top?.name ?? "—"} icon={TrendingUp} tone="terracotta" hint={stats.top ? `${stats.top.totalCheckIns} check-ins` : ""} />
+        <MetricCard label="Active Instructors" value={stats.total} icon={Award} tone="sage" description="Number of instructors currently on the studio roster" />
+        <MetricCard label="Check-Ins (30d)" value={stats.checkInsSum} icon={UserCheck} tone="sage" description="Total member check-ins across all instructors in the last 30 days" />
+        <MetricCard label="Classes (30d)" value={stats.classesSum} icon={Calendar} tone="sage" description="Total classes taught across all instructors in the last 30 days" />
+        <MetricCard label="Avg Rating" value={stats.avgRating} decimals={1} icon={Star} tone="clay" description="Average instructor rating across the roster" />
+        <MetricCard label="Total Payout" value={stats.totalPayout} prefix="₹" icon={CreditCard} tone="terracotta" hint={`Avg ₹${stats.avgPerInstructor.toLocaleString("en-IN")} / instructor`} description="Total payout owed across all instructors, with the average per instructor" />
+        <MetricCard label="Top Performer" value={stats.top?.name ?? "—"} icon={TrendingUp} tone="terracotta" hint={stats.top ? `${stats.top.totalCheckIns} check-ins` : ""} description="Instructor with the highest check-in count in this view" />
       </div>
 
       <Card className="border-sage/20 bg-white-warm">

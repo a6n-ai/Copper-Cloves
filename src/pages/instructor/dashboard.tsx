@@ -217,9 +217,9 @@ export default function InstructorDashboard() {
 
         {/* Stats row */}
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3 mb-6">
-          <MetricCard label="This Week" value={classes.length} icon={Calendar} tone="sage" />
-          <MetricCard label="Total Enrolled" value={totalEnrolled} icon={Users} tone="sage" />
-          <MetricCard label="Checked In Today" value={totalCheckedIn} icon={UserCheck} tone="sage" />
+          <MetricCard label="This Week" value={classes.length} icon={Calendar} tone="sage" description="Number of classes you're teaching this week" />
+          <MetricCard label="Total Enrolled" value={totalEnrolled} icon={Users} tone="sage" description="Total members booked across your classes this week" />
+          <MetricCard label="Checked In Today" value={totalCheckedIn} icon={UserCheck} tone="sage" description="Number of members checked in to your classes today" />
         </div>
 
         {/* Tabs */}

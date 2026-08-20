@@ -73,10 +73,10 @@ function RentalInquiriesTabImpl({ inquiries, loading }: Props) {
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard label="Total Inquiries" value={total} icon={Building2} tone="sage" loading={loading} />
-        <MetricCard label="New" value={byStatus("new")} icon={AlertTriangle} tone="clay" loading={loading} hint="Awaiting reply" />
-        <MetricCard label="In Review" value={byStatus("in_review")} icon={Clock} tone="terracotta" loading={loading} />
-        <MetricCard label="Total Guests Asked" value={totalGuests} icon={Users} tone="charcoal" loading={loading} />
+        <MetricCard label="Total Inquiries" value={total} icon={Building2} tone="sage" loading={loading} description="Total space rental inquiries submitted through the public rental form" />
+        <MetricCard label="New" value={byStatus("new")} icon={AlertTriangle} tone="clay" loading={loading} hint="Awaiting reply" description="Rental inquiries not yet reviewed or replied to by staff" />
+        <MetricCard label="In Review" value={byStatus("in_review")} icon={Clock} tone="terracotta" loading={loading} description="Rental inquiries currently being followed up on" />
+        <MetricCard label="Total Guests Asked" value={totalGuests} icon={Users} tone="charcoal" loading={loading} description="Sum of guest counts requested across all rental inquiries" />
       </div>
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>

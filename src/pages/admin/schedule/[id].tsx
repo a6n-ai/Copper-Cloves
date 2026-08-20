@@ -522,10 +522,10 @@ export default function AdminClassPage() {
                   const fillPct = cap > 0 ? Math.min(100, Math.round((enrolled / cap) * 100)) : 0;
                   return (
                     <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-                      <MetricCard label="Capacity" value={roster.capacity ?? "—"} icon={Users} tone="charcoal" />
-                      <MetricCard label="Enrolled" value={enrolled} icon={UserPlus} tone="terracotta" />
-                      <MetricCard label="Spots left" value={cap > 0 ? spotsLeft : "—"} icon={UserMinus} tone="clay" hint={cap > 0 ? `${fillPct}% full` : undefined} />
-                      <MetricCard label="Checked in" value={checkedIn} icon={CheckCircle2} tone="sage" />
+                      <MetricCard label="Capacity" value={roster.capacity ?? "—"} icon={Users} tone="charcoal" description="Maximum number of seats available for this class" />
+                      <MetricCard label="Enrolled" value={enrolled} icon={UserPlus} tone="terracotta" description="Number of members currently booked into this class" />
+                      <MetricCard label="Spots left" value={cap > 0 ? spotsLeft : "—"} icon={UserMinus} tone="clay" hint={cap > 0 ? `${fillPct}% full` : undefined} description="Remaining open seats for this class" />
+                      <MetricCard label="Checked in" value={checkedIn} icon={CheckCircle2} tone="sage" description="Number of booked members who have checked in" />
                     </div>
                   );
                 })()}

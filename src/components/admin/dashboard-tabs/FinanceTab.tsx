@@ -390,6 +390,7 @@ function FinanceOverviewSectionImpl({
           tone="sage"
           loading={!overviewLoaded}
           hint={momHint}
+          description="Total money collected from packages and booking checkouts in the selected period"
         />
         <MetricCard
           label="Total Expenses"
@@ -399,6 +400,7 @@ function FinanceOverviewSectionImpl({
           tone="terracotta"
           loading={!overviewLoaded}
           hint={`Coach ₹${Math.round(financeStats.coachPayments).toLocaleString("en-IN")} · Studio ₹${Math.round(financeStats.studioExpenses).toLocaleString("en-IN")}`}
+          description="Instructor coach payouts plus studio operating expenses in the selected period"
         />
         <MetricCard
           label="Net Profit"
@@ -410,6 +412,7 @@ function FinanceOverviewSectionImpl({
           hint={financeStats.totalRevenue > 0
             ? `${((financeStats.profit / financeStats.totalRevenue) * 100).toFixed(0)}% margin`
             : "—"}
+          description="Total revenue minus total expenses for the selected period"
         />
       </div>
 

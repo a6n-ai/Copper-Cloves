@@ -243,11 +243,11 @@ export default function AdminInstructorsPage() {
 
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
-              <MetricCard label="Total Instructors" value={stats.total} icon={Users} tone="sage" loading={loading} />
-              <MetricCard label="Active" value={stats.active} icon={CheckCircle2} tone="sage" loading={loading} hint="Visible to schedule" />
-              <MetricCard label="Inactive" value={stats.inactive} icon={PowerOff} tone="terracotta" loading={loading} hint="Hidden from members" />
-              <MetricCard label="Avg Experience" value={stats.avgYears} icon={Star} tone="clay" loading={loading} hint="years" />
-              <MetricCard label="Certified" value={stats.certified} icon={Award} tone="sage" loading={loading} hint="Has certifications" />
+              <MetricCard label="Total Instructors" value={stats.total} icon={Users} tone="sage" loading={loading} description="Total instructor profiles on record, active and inactive." />
+              <MetricCard label="Active" value={stats.active} icon={CheckCircle2} tone="sage" loading={loading} hint="Visible to schedule" description="Instructors visible for class scheduling." />
+              <MetricCard label="Inactive" value={stats.inactive} icon={PowerOff} tone="terracotta" loading={loading} hint="Hidden from members" description="Instructors hidden from schedule and member-facing pages." />
+              <MetricCard label="Avg Experience" value={stats.avgYears} icon={Star} tone="clay" loading={loading} hint="years" description="Average years of experience across all instructors." />
+              <MetricCard label="Certified" value={stats.certified} icon={Award} tone="sage" loading={loading} hint="Has certifications" description="Instructors with at least one certification on file." />
             </div>
 
             <Card className="border-sage/20 bg-white-warm">
