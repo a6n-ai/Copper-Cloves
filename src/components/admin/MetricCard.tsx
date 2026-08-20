@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from "react";
+import { memo, useState, type ReactNode } from "react";
 import { Info, type LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -73,6 +73,7 @@ function MetricCardImpl({
   description,
 }: Readonly<MetricCardProps>) {
   const t = tones[tone];
+  const [infoOpen, setInfoOpen] = useState(false);
   let valueBody: ReactNode;
   if (loading) {
     valueBody = <Skeleton className="h-8 w-24 bg-sage/10" />;
@@ -126,12 +127,19 @@ function MetricCardImpl({
             <span className="line-clamp-2">{label}</span>
             {description && (
               <TooltipProvider delayDuration={200}>
-                <Tooltip>
+                <Tooltip open={infoOpen} onOpenChange={setInfoOpen}>
                   <TooltipTrigger asChild>
-                    <Info
-                      className="h-3 w-3 shrink-0 mt-0.5 text-muted-text/70 hover:text-charcoal cursor-help normal-case"
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setInfoOpen((o) => !o);
+                      }}
+                      className="shrink-0 -m-1 p-1 normal-case"
                       aria-label={`What is ${label}?`}
-                    />
+                    >
+                      <Info className="h-3 w-3 mt-0.5 text-muted-text/70 hover:text-charcoal cursor-help" />
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-[220px] normal-case tracking-normal">
                     {description}
