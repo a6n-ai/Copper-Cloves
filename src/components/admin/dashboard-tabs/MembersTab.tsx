@@ -220,11 +220,11 @@ function MembersTabImpl({
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-        <MetricCard label="Total Members" value={memberStats.totalMembers} icon={Users} tone="sage" />
-        <MetricCard label="Active" value={memberStats.activeMembers} icon={UserCheck} tone="sage" hint="Holding an active pass" />
-        <MetricCard label="Studio Pass" value={memberStats.studioPassActive} icon={Trophy} tone="sage" hint="Active studio passes" />
-        <MetricCard label="Class Pass" value={memberStats.classPassActive} icon={CreditCard} tone="sage" hint="Active class passes" />
-        <MetricCard label="Check-ins (mo)" value={memberStats.checkInsThisMonth} icon={Calendar} tone="clay" hint="This month" />
+        <MetricCard label="Total Members" value={memberStats.totalMembers} icon={Users} tone="sage" description="Total registered member accounts" />
+        <MetricCard label="Active" value={memberStats.activeMembers} icon={UserCheck} tone="sage" hint="Holding an active pass" description="Members currently holding an active, unexpired pass" />
+        <MetricCard label="Studio Pass" value={memberStats.studioPassActive} icon={Trophy} tone="sage" hint="Active studio passes" description="Members with an active studio pass" />
+        <MetricCard label="Class Pass" value={memberStats.classPassActive} icon={CreditCard} tone="sage" hint="Active class passes" description="Members with an active class pass" />
+        <MetricCard label="Check-ins (mo)" value={memberStats.checkInsThisMonth} icon={Calendar} tone="clay" hint="This month" description="Total member class check-ins so far this calendar month" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

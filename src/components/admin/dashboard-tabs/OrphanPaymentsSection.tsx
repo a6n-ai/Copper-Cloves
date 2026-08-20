@@ -243,10 +243,10 @@ export function OrphanPaymentsSection() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard label="Matchable" value={counts.matchable} icon={Link2} tone="sage" loading={loading} />
-        <MetricCard label="Duplicate" value={counts.duplicate} icon={Copy} tone="terracotta" loading={loading} />
-        <MetricCard label="Fulfilled, unlinked" value={counts.fulfilled_unlinked} icon={ScanSearch} tone="charcoal" loading={loading} />
-        <MetricCard label="Stranded" value={counts.stranded} icon={ShieldQuestion} tone="terracotta" loading={loading} />
+        <MetricCard label="Matchable" value={counts.matchable} icon={Link2} tone="sage" loading={loading} description="Orphan payments that can likely be auto-matched to a booking or package" />
+        <MetricCard label="Duplicate" value={counts.duplicate} icon={Copy} tone="terracotta" loading={loading} description="Orphan payments that look like duplicates of an already-recorded payment" />
+        <MetricCard label="Fulfilled, unlinked" value={counts.fulfilled_unlinked} icon={ScanSearch} tone="charcoal" loading={loading} description="Payments that fulfilled a booking or package but were never linked back to it" />
+        <MetricCard label="Stranded" value={counts.stranded} icon={ShieldQuestion} tone="terracotta" loading={loading} description="Orphan payments with no clear booking or package match, needing manual review" />
       </div>
 
       <Card className="border-sage/20 bg-white-warm">

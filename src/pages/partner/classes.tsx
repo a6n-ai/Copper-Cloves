@@ -233,10 +233,10 @@ export default function PartnerClasses() {
 
       {/* Period metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard label="Classes" value={periodStats.count} icon={Calendar} tone="sage" hint="In this view" />
-        <MetricCard label="Avg utilization" value={periodStats.avgUtil} suffix="%" icon={TrendingUp} tone="sage" />
-        <MetricCard label="Signed up" value={periodStats.signups} icon={Users} tone="sage" />
-        <MetricCard label="Pending" value={periodStats.pending} icon={Hourglass} tone="clay" />
+        <MetricCard label="Classes" value={periodStats.count} icon={Calendar} tone="sage" hint="In this view" description="Number of your classes in the selected period" />
+        <MetricCard label="Avg utilization" value={periodStats.avgUtil} suffix="%" icon={TrendingUp} tone="sage" description="Average percentage of seats filled across your classes in this period" />
+        <MetricCard label="Signed up" value={periodStats.signups} icon={Users} tone="sage" description="Total members signed up for your classes in this period" />
+        <MetricCard label="Pending" value={periodStats.pending} icon={Hourglass} tone="clay" description="Bookings awaiting your confirmation" />
       </div>
 
       {/* Calendar — tokenized, Button/Card primitives */}

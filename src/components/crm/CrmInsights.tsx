@@ -108,8 +108,8 @@ export function CrmInsights({ refreshKey = 0 }: { refreshKey?: number }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Messages sent" value={data?.total ?? 0} icon={Send} tone="sage" loading={loading} />
-        <MetricCard label="Last 7 days" value={data?.last7d ?? 0} icon={CalendarDays} tone="terracotta" loading={loading} />
+        <MetricCard label="Messages sent" value={data?.total ?? 0} icon={Send} tone="sage" loading={loading} description="Total CRM messages (email + WhatsApp) sent to date" />
+        <MetricCard label="Last 7 days" value={data?.last7d ?? 0} icon={CalendarDays} tone="terracotta" loading={loading} description="CRM messages sent in the last 7 days" />
         <MetricCard
           label="Delivery rate"
           value={data?.deliveryRate ?? 0}
@@ -117,8 +117,9 @@ export function CrmInsights({ refreshKey = 0 }: { refreshKey?: number }) {
           icon={CheckCircle2}
           tone="charcoal"
           loading={loading}
+          description="Share of sent CRM messages that were successfully delivered"
         />
-        <MetricCard label="Active triggers" value={data?.activeTriggers ?? 0} icon={Zap} tone="sage" loading={loading} />
+        <MetricCard label="Active triggers" value={data?.activeTriggers ?? 0} icon={Zap} tone="sage" loading={loading} description="Number of CRM automation triggers currently enabled" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

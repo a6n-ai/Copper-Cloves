@@ -88,10 +88,10 @@ export default function PartnerDashboard() {
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <MetricCard label="Classes this week" value={stats.classes} icon={CalendarDays} tone="sage" />
-            <MetricCard label="Signed up" value={stats.signups} icon={Users} tone="sage" hint="Across this week" />
-            <MetricCard label="Pending confirmation" value={stats.pending} icon={Hourglass} tone="clay" />
-            <MetricCard label="Checked in" value={stats.checkedIn} icon={CheckCircle2} tone="sage" />
+            <MetricCard label="Classes this week" value={stats.classes} icon={CalendarDays} tone="sage" description="Number of your classes scheduled this week" />
+            <MetricCard label="Signed up" value={stats.signups} icon={Users} tone="sage" hint="Across this week" description="Total members signed up across your classes this week" />
+            <MetricCard label="Pending confirmation" value={stats.pending} icon={Hourglass} tone="clay" description="Bookings awaiting your confirmation" />
+            <MetricCard label="Checked in" value={stats.checkedIn} icon={CheckCircle2} tone="sage" description="Number of members checked in to your classes this week" />
           </div>
 
           <Card className="border-sage/20 bg-white-warm">

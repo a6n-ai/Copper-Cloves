@@ -249,9 +249,9 @@ function FinanceLedgerSectionImpl() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-        <MetricCard label="Money In" value={Math.round(totals.creditPaise / 100)} prefix="₹" icon={ArrowUpRight} tone="sage" />
-        <MetricCard label="Money Out" value={Math.round(totals.debitPaise / 100)} prefix="₹" icon={ArrowDownLeft} tone="terracotta" />
-        <MetricCard label="Net" value={Math.round(totals.netPaise / 100)} prefix="₹" icon={Scale} tone="charcoal" />
+        <MetricCard label="Money In" value={Math.round(totals.creditPaise / 100)} prefix="₹" icon={ArrowUpRight} tone="sage" description="Total credits (payments received) in the current ledger view." />
+        <MetricCard label="Money Out" value={Math.round(totals.debitPaise / 100)} prefix="₹" icon={ArrowDownLeft} tone="terracotta" description="Total debits (refunds and expenses) in the current ledger view." />
+        <MetricCard label="Net" value={Math.round(totals.netPaise / 100)} prefix="₹" icon={Scale} tone="charcoal" description="Money in minus money out for the current ledger view." />
       </div>
 
       <Card className="border-sage/20 bg-white-warm">

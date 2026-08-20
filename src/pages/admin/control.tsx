@@ -857,10 +857,10 @@ export default function ControlPanel() {
               {/* PAUSE REQUESTS TAB */}
               <TabsContent value="pauses" className="space-y-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <MetricCard label="Total" value={pauseTickets.length} icon={Clock} tone="sage" />
-                  <MetricCard label="Open" value={pauseTickets.filter((t) => t.status === "open").length} icon={Clock} tone="terracotta" />
-                  <MetricCard label="In Review" value={pauseTickets.filter((t) => t.status === "in_review").length} icon={Edit} tone="charcoal" />
-                  <MetricCard label="Resolved" value={pauseTickets.filter((t) => t.status === "resolved").length} icon={CheckCircle2} tone="sage" />
+                  <MetricCard label="Total" value={pauseTickets.length} icon={Clock} tone="sage" description="Total pause-subscription support tickets raised by members." />
+                  <MetricCard label="Open" value={pauseTickets.filter((t) => t.status === "open").length} icon={Clock} tone="terracotta" description="Pause-subscription tickets not yet reviewed by staff." />
+                  <MetricCard label="In Review" value={pauseTickets.filter((t) => t.status === "in_review").length} icon={Edit} tone="charcoal" description="Pause-subscription tickets currently being reviewed by staff." />
+                  <MetricCard label="Resolved" value={pauseTickets.filter((t) => t.status === "resolved").length} icon={CheckCircle2} tone="sage" description="Pause-subscription tickets that have been resolved." />
                 </div>
 
                 <Card className="border-sage/20 bg-white-warm">
@@ -1019,10 +1019,10 @@ export default function ControlPanel() {
               <TabsContent value="classes" className="space-y-6">
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <MetricCard label="Classes" value={classStats.total} icon={Calendar} tone="sage" />
-                  <MetricCard label="Categories" value={classStats.categories} icon={Layers} tone="terracotta" />
-                  <MetricCard label="Avg Duration" value={classStats.avgDur} icon={Clock} tone="charcoal" suffix=" min" />
-                  <MetricCard label="Total Capacity" value={classStats.capacity} icon={Users} tone="sage" />
+                  <MetricCard label="Classes" value={classStats.total} icon={Calendar} tone="sage" description="Total number of class types defined in the catalog." />
+                  <MetricCard label="Categories" value={classStats.categories} icon={Layers} tone="terracotta" description="Distinct class categories/disciplines across the catalog." />
+                  <MetricCard label="Avg Duration" value={classStats.avgDur} icon={Clock} tone="charcoal" suffix=" min" description="Average class duration across all class types, in minutes." />
+                  <MetricCard label="Total Capacity" value={classStats.capacity} icon={Users} tone="sage" description="Sum of maximum booking capacity across all class types." />
                 </div>
 
                 <Card className="border-sage/20 bg-white-warm">

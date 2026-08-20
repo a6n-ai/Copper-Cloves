@@ -614,10 +614,10 @@ export default function AdminBadgesPage() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <MetricCard label="Milestones" value={ptmTemplates.length} icon={Award} tone="sage" hint="Path-to-mastery tiers" />
-            <MetricCard label="Custom Badges" value={customTemplates.length} icon={Star} tone="terracotta" hint="Recognition badges" />
-            <MetricCard label="Active" value={activeCount} icon={CheckCircle2} tone="sage" hint="Currently enabled" />
-            <MetricCard label="Total Badges" value={totalBadges} icon={Layers} tone="charcoal" hint="All templates" />
+            <MetricCard label="Milestones" value={ptmTemplates.length} icon={Award} tone="sage" hint="Path-to-mastery tiers" description="Number of path-to-mastery badge tiers defined." />
+            <MetricCard label="Custom Badges" value={customTemplates.length} icon={Star} tone="terracotta" hint="Recognition badges" description="Number of custom, manually-allocated recognition badges defined." />
+            <MetricCard label="Active" value={activeCount} icon={CheckCircle2} tone="sage" hint="Currently enabled" description="Badge templates currently enabled and awardable to members." />
+            <MetricCard label="Total Badges" value={totalBadges} icon={Layers} tone="charcoal" hint="All templates" description="All badge templates combined, milestones and custom." />
           </div>
 
           {/* Tabs */}

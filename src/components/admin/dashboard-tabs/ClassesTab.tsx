@@ -129,11 +129,11 @@ function ClassesTabImpl({ classPerformance, disciplineSplit, peakHours, classesL
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <MetricCard label="Total Classes" value={stats.total} icon={Calendar} tone="sage" loading={!classesLoaded} />
-        <MetricCard label="Avg Utilization" value={stats.avgUtil} suffix="%" icon={TrendingUp} tone="sage" loading={!classesLoaded} />
-        <MetricCard label="Bookings 30d" value={stats.totalBookings} icon={Users} tone="sage" loading={!classesLoaded} />
-        <MetricCard label="Low Util" value={stats.underperforming.length} icon={AlertTriangle} tone="terracotta" loading={!classesLoaded} hint="Below 60% capacity" />
-        <MetricCard label="Top Class" value={stats.topClass?.name ?? "—"} icon={Star} tone="clay" loading={!classesLoaded} hint={stats.topClass ? `${stats.topClass.utilization}% filled` : ""} />
+        <MetricCard label="Total Classes" value={stats.total} icon={Calendar} tone="sage" loading={!classesLoaded} description="Total class schedules in the selected range." />
+        <MetricCard label="Avg Utilization" value={stats.avgUtil} suffix="%" icon={TrendingUp} tone="sage" loading={!classesLoaded} description="Average share of seat capacity filled across all classes in the range." />
+        <MetricCard label="Bookings 30d" value={stats.totalBookings} icon={Users} tone="sage" loading={!classesLoaded} description="Total confirmed bookings made across all classes in the last 30 days." />
+        <MetricCard label="Low Util" value={stats.underperforming.length} icon={AlertTriangle} tone="terracotta" loading={!classesLoaded} hint="Below 60% capacity" description="Number of classes filling less than 60% of their capacity." />
+        <MetricCard label="Top Class" value={stats.topClass?.name ?? "—"} icon={Star} tone="clay" loading={!classesLoaded} hint={stats.topClass ? `${stats.topClass.utilization}% filled` : ""} description="The class with the highest utilization rate in the selected range." />
       </div>
 
       <Card className="border-sage/20 bg-white-warm">

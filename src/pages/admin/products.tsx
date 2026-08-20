@@ -507,6 +507,7 @@ export default function AdminProducts() {
                 icon={Package}
                 tone="sage"
                 loading={loading}
+                description="Number of boutique products currently in the catalog"
               />
               <MetricCard
                 label="Total Revenue"
@@ -515,6 +516,7 @@ export default function AdminProducts() {
                 icon={DollarSign}
                 tone="sage"
                 loading={loading}
+                description="Total revenue earned from all boutique orders"
               />
               <MetricCard
                 label="Pending Orders"
@@ -522,6 +524,7 @@ export default function AdminProducts() {
                 icon={ShoppingCart}
                 tone="terracotta"
                 loading={loading}
+                description="Boutique orders awaiting fulfillment"
               />
               <MetricCard
                 label="Avg Order Value"
@@ -531,6 +534,7 @@ export default function AdminProducts() {
                 icon={TrendingUp}
                 tone="sage"
                 loading={loading}
+                description="Average amount spent per boutique order"
               />
             </div>
 

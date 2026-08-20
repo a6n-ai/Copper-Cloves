@@ -325,14 +325,14 @@ function InstructorPayoutsPanelImpl() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <MetricCard label="Total Payouts" value={Math.round(summary.totalPayouts)} prefix="₹" icon={DollarSign} tone="sage" loading={loading} hint={`${summary.instructorsCount || rows.length} instructors`} />
+        <MetricCard label="Total Payouts" value={Math.round(summary.totalPayouts)} prefix="₹" icon={DollarSign} tone="sage" loading={loading} hint={`${summary.instructorsCount || rows.length} instructors`} description="Total payout amount owed across all instructors for the selected period" />
         {/* "Pending" = total minus paid, which is only meaningful where a payment can be recorded.
             Off-month it would read as "nobody has been paid", when the truth is "this window has no
             payment record at all". "Completed" sums rows that genuinely exist, so it stays honest
             in every window. */}
-        <MetricCard label="Pending" value={canRecord ? Math.round(summary.pendingPayments) : 0} prefix={canRecord ? "₹" : ""} icon={Clock} tone="clay" loading={loading} hint={canRecord ? `${summary.pendingCount} pending` : "Recorded monthly"} />
-        <MetricCard label="Completed" value={canRecord ? Math.round(summary.completedPayments) : 0} prefix={canRecord ? "₹" : ""} icon={CheckCircle2} tone="sage" loading={loading} hint={canRecord ? undefined : "Recorded monthly"} />
-        <MetricCard label="Total Check-ins" value={summary.totalCheckIns} icon={TrendingUp} tone="charcoal" loading={loading} />
+        <MetricCard label="Pending" value={canRecord ? Math.round(summary.pendingPayments) : 0} prefix={canRecord ? "₹" : ""} icon={Clock} tone="clay" loading={loading} hint={canRecord ? `${summary.pendingCount} pending` : "Recorded monthly"} description="Payout amount not yet marked paid for the selected period" />
+        <MetricCard label="Completed" value={canRecord ? Math.round(summary.completedPayments) : 0} prefix={canRecord ? "₹" : ""} icon={CheckCircle2} tone="sage" loading={loading} hint={canRecord ? undefined : "Recorded monthly"} description="Payout amount already marked paid for the selected period" />
+        <MetricCard label="Total Check-ins" value={summary.totalCheckIns} icon={TrendingUp} tone="charcoal" loading={loading} description="Total member check-ins across all instructors in the selected period" />
       </div>
 
       <Card className="border-sage/20 bg-white-warm">

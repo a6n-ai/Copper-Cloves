@@ -1,8 +1,9 @@
 import { memo, type ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
+import { Info, type LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NumberTicker } from "@/components/admin/NumberTicker";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface MetricCardProps {
@@ -24,6 +25,8 @@ interface MetricCardProps {
   footer?: ReactNode;
   /** Square tile (Apple-Fitness bento): forces a 1:1 aspect and drops the number to the bottom. */
   square?: boolean;
+  /** Explains what this metric means. Renders an info icon with a tooltip next to the label. */
+  description?: string;
 }
 
 const tones = {
@@ -67,6 +70,7 @@ function MetricCardImpl({
   loading = false,
   footer,
   square = false,
+  description,
 }: Readonly<MetricCardProps>) {
   const t = tones[tone];
   let valueBody: ReactNode;
@@ -118,8 +122,23 @@ function MetricCardImpl({
       />
       <CardContent className="relative p-4 sm:p-5 flex flex-col h-full">
         <div className="flex items-start justify-between gap-3">
-          <span className="font-body text-xs uppercase tracking-wide text-muted-text leading-snug min-w-0 line-clamp-2 min-h-[2.25rem] transition-colors duration-300 group-hover:text-charcoal/80">
-            {label}
+          <span className="flex items-start gap-1 font-body text-xs uppercase tracking-wide text-muted-text leading-snug min-w-0 min-h-[2.25rem] transition-colors duration-300 group-hover:text-charcoal/80">
+            <span className="line-clamp-2">{label}</span>
+            {description && (
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info
+                      className="h-3 w-3 shrink-0 mt-0.5 text-muted-text/70 hover:text-charcoal cursor-help normal-case"
+                      aria-label={`What is ${label}?`}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[220px] normal-case tracking-normal">
+                    {description}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </span>
           <div
             className={cn(

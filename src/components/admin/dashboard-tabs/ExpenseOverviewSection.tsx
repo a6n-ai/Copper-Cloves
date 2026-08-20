@@ -84,9 +84,9 @@ function ExpenseOverviewSectionImpl() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-        <MetricCard label="Total Expenses" value={Math.round(stats.totalAll / 100)} prefix="₹" icon={TrendingDown} tone="terracotta" loading={loading} hint={`${expenses.length} recorded`} />
-        <MetricCard label="This Month" value={Math.round(stats.monthTotal / 100)} prefix="₹" icon={Wallet} tone="terracotta" loading={loading} />
-        <MetricCard label="Payouts This Month" value={Math.round(stats.payoutMonth / 100)} prefix="₹" icon={BadgeIndianRupee} tone="sage" loading={loading} hint="of expenses" />
+        <MetricCard label="Total Expenses" value={Math.round(stats.totalAll / 100)} prefix="₹" icon={TrendingDown} tone="terracotta" loading={loading} hint={`${expenses.length} recorded`} description="Sum of all recorded expenses across all time." />
+        <MetricCard label="This Month" value={Math.round(stats.monthTotal / 100)} prefix="₹" icon={Wallet} tone="terracotta" loading={loading} description="Total expenses recorded in the current calendar month." />
+        <MetricCard label="Payouts This Month" value={Math.round(stats.payoutMonth / 100)} prefix="₹" icon={BadgeIndianRupee} tone="sage" loading={loading} hint="of expenses" description="Instructor payouts recorded this month, as a portion of total expenses." />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

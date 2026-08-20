@@ -102,10 +102,10 @@ function PricingTabImpl({
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard label="Total Coupons" value={totalCoupons} icon={Tag} tone="sage" loading={loading} />
-        <MetricCard label="Active" value={activeCoupons} icon={CheckCircle2} tone="sage" loading={loading} hint="Live for checkout" />
-        <MetricCard label="Redemptions" value={totalRedemptions} icon={TrendingUp} tone="terracotta" loading={loading} />
-        <MetricCard label="Top scope" value={topLabel} icon={BarChart3} tone="charcoal" loading={loading} hint={topScope ? `${topScope[1]} coupons` : ""} />
+        <MetricCard label="Total Coupons" value={totalCoupons} icon={Tag} tone="sage" loading={loading} description="Total number of coupon codes created, active or not" />
+        <MetricCard label="Active" value={activeCoupons} icon={CheckCircle2} tone="sage" loading={loading} hint="Live for checkout" description="Coupons currently valid and redeemable at checkout" />
+        <MetricCard label="Redemptions" value={totalRedemptions} icon={TrendingUp} tone="terracotta" loading={loading} description="Total number of times any coupon has been redeemed" />
+        <MetricCard label="Top scope" value={topLabel} icon={BarChart3} tone="charcoal" loading={loading} hint={topScope ? `${topScope[1]} coupons` : ""} description="The applies-to category (food, class pass, etc.) with the most coupons" />
       </div>
       <Card className="border-sage/20 bg-white-warm">
         <CardHeader>
