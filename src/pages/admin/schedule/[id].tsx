@@ -991,11 +991,24 @@ export default function AdminClassPage() {
                 );
               })}
             </div>
+            {statusDraft === "cancelled" && (
+              <p className="font-body text-xs text-terracotta bg-terracotta/10 border border-terracotta/20 rounded-lg px-3 py-2">
+                This cannot be undone. Every booked member is cancelled, refunded (1 Class Pass or credit back to their pass), and emailed. The class then locks for edits.
+              </p>
+            )}
           </div>
           <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setStatusEditOpen(false)} disabled={statusSaving} className="font-body">Cancel</Button>
-            <Button onClick={saveStatus} disabled={statusSaving} variant="sage">
-              {statusSaving ? "Saving…" : "Save status"}
+            <Button
+              onClick={saveStatus}
+              disabled={statusSaving}
+              variant={statusDraft === "cancelled" ? "destructive" : "sage"}
+            >
+              {statusSaving
+                ? "Saving…"
+                : statusDraft === "cancelled"
+                ? "Cancel class"
+                : "Save status"}
             </Button>
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>

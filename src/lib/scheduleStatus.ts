@@ -15,8 +15,10 @@ export const HIDDEN_SCHEDULE_STATUSES = ["cancelled", "inactive"] as const;
 /** Surfaced to members/public (everything not hidden). Past/abandoned still show, greyed + unbookable. */
 export const VISIBLE_SCHEDULE_STATUSES = ["available", "started", "completed", "abandoned"] as const;
 
-/** Terminal — edit/delete locked. Callers ALSO lock when `end_time < now` (cron may lag). */
-export const LOCKED_SCHEDULE_STATUSES = ["completed", "abandoned"] as const;
+/** Terminal — edit/delete locked. Callers ALSO lock when `end_time < now` (cron may lag).
+ *  `cancelled` is terminal too: cancellation cascades refunds + notifications
+ *  (see classCancellation.ts) which cannot be safely un-done by flipping status back. */
+export const LOCKED_SCHEDULE_STATUSES = ["completed", "abandoned", "cancelled"] as const;
 
 /** Booking is blocked outright when the schedule is in one of these states. */
 export const NON_BOOKABLE_SCHEDULE_STATUSES = ["cancelled", "inactive"] as const;

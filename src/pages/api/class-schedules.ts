@@ -11,6 +11,7 @@ import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { HIDDEN_SCHEDULE_STATUSES, LOCKED_SCHEDULE_STATUSES } from "@/lib/scheduleStatus";
 import { reconcileScheduleSeats } from "@/lib/seatCounts";
 import { hasRole } from "@/lib/auth/roles";
+import { cancelBookingWithRefund } from "@/lib/classCancellation";
 
 const VALID_STATUS = new Set<string>(Object.values(ClassScheduleStatus));
 const LOCKED_STATUSES = new Set<string>(LOCKED_SCHEDULE_STATUSES);
@@ -287,7 +288,7 @@ function fmtIstDateTime(d: Date): string {
   return d.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" });
 }
 
-async function handlePut(req: NextApiRequest, res: NextApiResponse) {
+async function handlePut(req: NextApiRequest, res: NextApiResponse, adminId?: string) {
   const { id, ...rest } = req.body ?? {};
   if (!id) return res.status(400).json({ error: "id required" });
   const { data, error } = buildScheduleUpdateData(rest);
@@ -324,6 +325,24 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     await reconcileScheduleSeats(schedule.id).catch((e) =>
       console.error("[class-schedules PUT] seat recount failed", e),
     );
+  }
+
+  // Cancelling the class must cancel every booked seat (blocking further booking
+  // is not enough) — each seat goes through the same cancel/refund/notify path as a
+  // member self-cancel, so members get their credit back and an email, not just a
+  // silently-orphaned booking against a cancelled class.
+  if (data.status === "cancelled" && existing.status !== "cancelled") {
+    const occupyingBookings = await prisma.booking.findMany({
+      where: { class_schedule_id: schedule.id, status: { in: [...OCCUPYING_STATUSES] } },
+      select: { id: true },
+    });
+    for (const b of occupyingBookings) {
+      await cancelBookingWithRefund(b.id, {
+        cancelledBy: adminId,
+        byAdmin: true,
+        reason: "Class cancelled by studio",
+      }).catch((e) => console.error("[class-schedules PUT] booking cancel failed", b.id, e));
+    }
   }
 
   // Did the time actually move? Compare against the pre-update values.
@@ -415,7 +434,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === "POST") return await handlePost(req, res);
-    if (req.method === "PUT") return await handlePut(req, res);
+    if (req.method === "PUT") return await handlePut(req, res, session.user.id);
     if (req.method === "DELETE") return await handleDelete(req, res);
   } catch (e) {
     return apiError(res, e, "[class-schedules mutate]", 503, prismaUserMessage(e));
