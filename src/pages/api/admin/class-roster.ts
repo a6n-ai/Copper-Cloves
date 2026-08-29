@@ -30,8 +30,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       instructor: { select: { id: true, name: true } },
       actual_instructor: { select: { id: true, name: true } },
       bookings: {
-        // Admin sees confirmed AND payment_pending (so they can remind / reconcile unpaid holds).
-        where: { status: { in: ["confirmed", "payment_pending"] } },
+        // Admin sees confirmed, payment_pending (remind / reconcile unpaid holds) AND
+        // cancelled (so a cancelled class still shows who was on it + their refund outcome
+        // instead of the roster going blank).
+        where: { status: { in: ["confirmed", "payment_pending", "cancelled"] } },
         select: {
           id: true,
           user_id: true,
@@ -43,6 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           confirmation_status: true,
           hold_expires_at: true,
           invited_by_user_id: true,
+          refund_status: true,
           profile: { select: { full_name: true, email: true, avatar_url: true } },
         },
         orderBy: { created_at: "asc" },
@@ -81,6 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       extraGuests: b.extra_guest_count ?? 0,
       confirmationStatus: b.confirmation_status ?? null,
       holdExpiresAt: b.hold_expires_at?.toISOString() ?? null,
+      refundStatus: b.refund_status ?? null,
       // Group linkage by id only — every attendee is a row in this same list, so
       // the client derives "guest of X" / "brought Y" without duplicated names.
       invitedByUserId: b.invited_by_user_id ?? null,

@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Pill } from "@/components/ui/pill";
+import { bookingRefundPill } from "@/lib/pillMaps";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -43,6 +44,7 @@ interface RosterBooking {
   status: string;
   holdExpiresAt?: string | null;
   invitedByUserId?: string | null;
+  refundStatus?: string | null;
 }
 interface Roster {
   scheduleId: string;
@@ -474,6 +476,7 @@ export default function AdminClassPage() {
     let e = 0;
     let c = 0;
     for (const b of roster.bookings) {
+      if (b.status === "cancelled") continue;
       e += 1 + (b.extraGuests ?? 0);
       if (b.checkedIn) c += 1;
     }
@@ -557,7 +560,7 @@ export default function AdminClassPage() {
                     : roster.status === "inactive" ? "Hidden from members. Existing bookings keep their seat."
                     : roster.status === "started" ? "Check-in window is open."
                     : roster.status === "completed" ? "Class ended. Roster archived."
-                    : roster.status === "cancelled" ? "Bookings blocked. Reactivate before class ends."
+                    : roster.status === "cancelled" ? "All bookings cancelled and refunded. Locked — cannot be undone."
                     : roster.status === "abandoned" ? "Cancelled class is past — locked for edits."
                     : "";
                   const isSub = !!roster.actualInstructor && roster.actualInstructor !== roster.instructor;
@@ -770,9 +773,11 @@ export default function AdminClassPage() {
                       <ul className="divide-y divide-sage/10">
                         {roster.bookings.map((b) => {
                           const isPending = b.status === "payment_pending";
+                          const isCancelled = b.status === "cancelled";
+                          const refundPill = isCancelled ? bookingRefundPill(b.refundStatus) : null;
                           const heldFuture = !!b.holdExpiresAt && new Date(b.holdExpiresAt).getTime() > Date.now();
                           return (
-                          <li key={b.id} className="flex items-center justify-between gap-3 py-2.5">
+                          <li key={b.id} className={cn("flex items-center justify-between gap-3 py-2.5", isCancelled && "opacity-60")}>
                             <div className="min-w-0">
                               <p className="font-body text-sm font-medium text-charcoal flex items-center gap-2 flex-wrap">
                                 <span className="truncate">
@@ -781,6 +786,12 @@ export default function AdminClassPage() {
                                 </span>
                                 {isPending ? (
                                   <Pill tone="warning" className="font-body shrink-0">Payment pending</Pill>
+                                ) : null}
+                                {isCancelled ? (
+                                  <Pill tone="danger" className="font-body shrink-0">Cancelled</Pill>
+                                ) : null}
+                                {refundPill ? (
+                                  <Pill tone={refundPill.tone} className="font-body shrink-0">{refundPill.label}</Pill>
                                 ) : null}
                               </p>
                               <p className="font-body text-xs text-charcoal/50">
@@ -806,7 +817,7 @@ export default function AdminClassPage() {
                               </p>
                             </div>
                             <div className="flex shrink-0 items-center gap-1.5">
-                              {isPending ? (
+                              {isCancelled ? null : isPending ? (
                                 <>
                                   <Button
                                     size="sm"
@@ -964,7 +975,7 @@ export default function AdminClassPage() {
                 { value: "inactive", label: "Inactive", desc: "Hidden from members. Existing bookings keep their seat.", tone: "bg-terracotta/10 text-terracotta border-terracotta/20", active: "bg-terracotta text-cream border-terracotta/50" },
                 { value: "started", label: "Started", desc: "Check-in window is open.", tone: "bg-terracotta/10 text-terracotta border-terracotta/20", active: "bg-terracotta text-cream border-terracotta/50" },
                 { value: "completed", label: "Completed", desc: "Class ended. Roster archived.", tone: "bg-charcoal/5 text-charcoal/70 border-charcoal/15", active: "bg-charcoal text-cream border-charcoal" },
-                { value: "cancelled", label: "Cancelled", desc: "Blocks all bookings. Members notified.", tone: "bg-terracotta/10 text-terracotta border-terracotta/30", active: "bg-terracotta text-cream border-terracotta" },
+                { value: "cancelled", label: "Cancelled", desc: "Cancels + refunds every booking. Members notified.", tone: "bg-terracotta/10 text-terracotta border-terracotta/30", active: "bg-terracotta text-cream border-terracotta" },
               ] as const).map((opt) => {
                 const selected = statusDraft === opt.value;
                 return (
