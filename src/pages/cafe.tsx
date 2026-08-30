@@ -63,21 +63,6 @@ const galleryImages = [
   cdnUrl("/food/BAG09574.jpg")
 ];
 
-// Captions for the gallery marquee — drawn from the café's advertised menu so
-// each frame reads as an item, not just a photo. Cycled by position so the same
-// frame keeps the same label across the duplicated (looping) pass.
-const galleryCaptions = [
-  { name: "Smoothie Bowl", note: "Post-workout fuel" },
-  { name: "Sourdough Toastie", note: "The daily pause" },
-  { name: "Matcha Latte", note: "Liquid energy" },
-  { name: "Nourish Bowl", note: "Plant-based" },
-  { name: "Bliss Balls", note: "Sweet, guilt-free" },
-  { name: "Seasonal Salad", note: "Garden-fresh" },
-  { name: "Specialty Coffee", note: "Small-batch" },
-  { name: "Protein Shake", note: "Recovery" },
-  { name: "Kombucha", note: "Gut-friendly" },
-  { name: "Açaí Bowl", note: "Antioxidant-rich" },
-];
 
 const sanctuaryFeatures = [
   { icon: Wifi, title: "Fast Wi-Fi", desc: "High-speed connectivity for those who need reliable internet to focus." },
@@ -546,32 +531,21 @@ export default function CafePage() {
 
         <div className="relative z-10 overflow-x-auto overflow-y-hidden scrollbar-hide">
           <div className="flex gap-6 md:gap-8 px-6 md:px-10 w-max max-w-none animate-scroll-smooth">
-            {[...galleryImages, ...galleryImages].map((image, index) => {
-              const caption = galleryCaptions[(index % galleryImages.length) % galleryCaptions.length];
-              return (
-                <div
-                  key={`${image}-${index}`}
-                  className="group relative shrink-0 w-[260px] h-[320px] sm:w-[280px] sm:h-[350px] md:w-[300px] md:h-[380px] rounded-2xl md:rounded-3xl overflow-hidden border border-border transition-[transform,box-shadow] duration-500 hover:scale-[1.02] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]"
-                >
-                  <Image
-                    src={image}
-                    alt={caption.name}
-                    fill
-                    sizes="(max-width: 768px) 280px, 300px"
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    quality={85}
-                  />
-                  {/* Legibility scrim + item caption */}
-                  <div className="absolute inset-0 bg-linear-to-t from-charcoal/85 via-charcoal/15 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-5">
-                    <p className="font-display text-xl text-white-warm leading-tight">{caption.name}</p>
-                    <p className="mt-1 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-white-warm/80">
-                      {caption.note}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+            {[...galleryImages, ...galleryImages].map((image, index) => (
+              <div
+                key={`${image}-${index}`}
+                className="group relative shrink-0 w-[260px] h-[320px] sm:w-[280px] sm:h-[350px] md:w-[300px] md:h-[380px] rounded-2xl md:rounded-3xl overflow-hidden border border-border transition-[transform,box-shadow] duration-500 hover:scale-[1.02] hover:shadow-[0_4px_24px_rgba(51,51,51,0.08)]"
+              >
+                <Image
+                  src={image}
+                  alt=""
+                  fill
+                  sizes="(max-width: 768px) 280px, 300px"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  quality={85}
+                />
+              </div>
+            ))}
           </div>
         </div>
 
