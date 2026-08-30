@@ -108,7 +108,7 @@ export default function CafePage() {
       icon: Apple,
       title: "Post-Workout Fuel",
       items: ["Smoothie Bowls", "Protein Shakes", "Bliss Balls"],
-      image: cdnUrl("/food/A7401864.jpg")
+      image: cdnUrl("/food/A7403685.jpg")
     },
     {
       icon: Coffee,
@@ -120,7 +120,7 @@ export default function CafePage() {
       icon: Droplets,
       title: "Liquid Energy",
       items: ["Specialty Coffee", "Matcha Lattes", "Kombucha bar"],
-      image: cdnUrl("/food/A7404719.jpg")
+      image: cdnUrl("/food/DSC05959.jpg")
     }
   ];
 
