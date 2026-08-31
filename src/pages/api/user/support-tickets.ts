@@ -61,10 +61,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       const pkg = await prisma.userPackage.findFirst({
         where: { id: user_package_id.trim(), user_id: userId, is_active: true },
-        select: { id: true },
+        select: { id: true, credits_remaining: true, pass_type: true },
       });
       if (!pkg) {
         return res.status(400).json({ error: "That pass is not active on your account" });
+      }
+      if (pkg.pass_type !== "studio_pass" && pkg.credits_remaining <= 0) {
+        return res.status(400).json({ error: "This pass has no remaining credits, so it can't be paused" });
       }
       pausePackageId = pkg.id;
 
