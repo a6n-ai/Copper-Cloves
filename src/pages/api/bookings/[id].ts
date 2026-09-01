@@ -262,7 +262,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { id: booking.id },
         select: { status: true },
       });
-      return res.json({ reconciled: after?.status === "confirmed", status: after?.status ?? booking.status });
+      const reconciled = after?.status === "confirmed";
+      // Money is in flight (authorized, not yet captured) — tell the member to wait
+      // rather than let the UI treat this like "no payment found" and offer a fresh checkout.
+      const settling = !reconciled && capturedStatus === "authorized";
+      return res.json({ reconciled, status: after?.status ?? booking.status, settling });
     } catch (e) {
       log.error({ err: e, bookingId: booking.id }, "self-reconcile failed");
       return res.status(502).json({ error: "Could not check payment status. Try again shortly." });

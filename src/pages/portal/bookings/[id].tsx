@@ -188,8 +188,9 @@ export default function BookingDetailPage() {
     };
   }, [router.isReady, id]);
 
-  async function handleAlreadyPaid() {
-    if (!booking) return;
+  /** `paid`: confirmed. `settling`: money's in flight, don't start another charge. `none`: safe to retry. */
+  async function reconcilePayment(): Promise<"paid" | "settling" | "none"> {
+    if (!booking) return "none";
     setReconciling(true);
     setReconcileMessage(null);
     try {
@@ -201,6 +202,7 @@ export default function BookingDetailPage() {
       const data = (await res.json().catch(() => ({}))) as {
         reconciled?: boolean;
         status?: string;
+        settling?: boolean;
         error?: string;
       };
       if (!res.ok) {
@@ -209,7 +211,7 @@ export default function BookingDetailPage() {
             ? data.error
             : "Could not check your payment right now. Please try again shortly.",
         );
-        return;
+        return "none";
       }
       if (data.reconciled) {
         setBooking((prev) =>
@@ -217,16 +219,43 @@ export default function BookingDetailPage() {
         );
         setReconcileMessage(null);
         toast({ title: "Booking confirmed", description: "We found your payment. Your seat is confirmed.", variant: "success" });
-      } else {
-        setReconcileMessage(
-          "We couldn't find a completed payment yet — if you just paid, wait a minute and try again, or complete payment below.",
-        );
+        return "paid";
       }
+      if (data.settling) {
+        setReconcileMessage(
+          "Your payment is still settling with the bank. Please wait a few minutes before trying again — don't pay a second time.",
+        );
+        return "settling";
+      }
+      setReconcileMessage(
+        "We couldn't find a completed payment yet — if you just paid, wait a minute and try again, or complete payment below.",
+      );
+      return "none";
     } catch (error) {
       console.error("Error reconciling booking:", error);
       setReconcileMessage("Could not check your payment right now. Please try again shortly.");
+      return "none";
     } finally {
       setReconciling(false);
+    }
+  }
+
+  async function handleAlreadyPaid() {
+    await reconcilePayment();
+  }
+
+  // A member who already paid but is retrying (e.g. thinks the first attempt failed)
+  // must never fire a second Razorpay checkout before we've confirmed the first one
+  // didn't already go through — that's how a class gets double-charged. Same guard
+  // applies while an authorized-but-uncaptured payment is still settling.
+  const [checkingBeforePay, setCheckingBeforePay] = useState(false);
+  async function handleCompletePayment() {
+    setCheckingBeforePay(true);
+    try {
+      const outcome = await reconcilePayment();
+      if (outcome === "none") void router.push("/portal/book");
+    } finally {
+      setCheckingBeforePay(false);
     }
   }
 
@@ -365,9 +394,21 @@ export default function BookingDetailPage() {
 
                   {/* TODO: full in-page Razorpay re-checkout for the existing pending order
                       (would need order amount in paise + verify/finish-checkout wiring).
-                      For now we send the member back to the booking flow to complete payment. */}
-                  <Button asChild variant="sage" className="h-11">
-                    <Link href="/portal/book">Complete payment</Link>
+                      Until then, always reconcile first — never send them to start a fresh
+                      checkout without confirming the earlier attempt didn't already go through. */}
+                  <Button
+                    onClick={() => void handleCompletePayment()}
+                    disabled={checkingBeforePay || reconciling}
+                    variant="sage"
+                    className="h-11"
+                  >
+                    {checkingBeforePay ? (
+                      <>
+                        <Loader2 size={16} className="mr-2 animate-spin" /> Checking…
+                      </>
+                    ) : (
+                      "Complete payment"
+                    )}
                   </Button>
                 </div>
               </div>
