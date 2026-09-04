@@ -25,7 +25,7 @@ import { MobilePagination } from "@/components/responsive/MobilePagination";
 import { Pill } from "@/components/ui/pill";
 import { bookingStatusPill, bookingPaymentPill, bookingRefundPill, moneyRefundPill, attendanceOutcomePill } from "@/lib/pillMaps";
 
-import { canCheckInNow, checkInWindowBounds } from "@/lib/bookingAttendance";
+import { checkInWindowBounds } from "@/lib/bookingAttendance";
 
 type RefundOutcome = "class_pass" | "none_unlimited" | "none_no_pass";
 interface CancelPreview {
@@ -80,9 +80,7 @@ interface BookingCardProps {
   isPast: boolean;
   beforeCheckInWindow: boolean;
   afterCheckInWindow: boolean;
-  canCheck: boolean;
   checkInOpen: number;
-  onCheckIn: (booking: Booking) => void;
   onCancel: (booking: Booking) => void;
   formatTime: (iso: string) => string;
   formatDate: (iso: string) => string;
@@ -94,9 +92,7 @@ const BookingCard = memo(function BookingCard({
   isPast,
   beforeCheckInWindow,
   afterCheckInWindow,
-  canCheck,
   checkInOpen,
-  onCheckIn,
   onCancel,
   formatTime,
   formatDate,
@@ -226,9 +222,6 @@ const BookingCard = memo(function BookingCard({
               );
             })()}
           <div className="flex gap-2">
-            {canCheck && (
-              <Button onClick={() => onCheckIn(booking)} size="sm" variant="sage" className="flex-1 sm:flex-none h-11 px-4 sm:px-6">Check in</Button>
-            )}
             {cancellable && (
               <Button onClick={() => onCancel(booking)} size="sm" variant="outline" className="flex-1 sm:flex-none border-terracotta/30 text-terracotta hover:bg-terracotta/5 h-11 px-4 sm:px-6 hover:text-terracotta!">
                 <X size={16} className="mr-1.5" />Cancel
@@ -467,24 +460,6 @@ export default function MyBookingsPage() {
     return `${days} day${days > 1 ? 's' : ''}`;
   }
 
-  async function handleCheckIn(booking: Booking) {
-    try {
-      const res = await fetch("/api/bookings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: booking.id, checked_in: true }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        toast({ title: "Check-in failed", description: typeof data?.error === "string" ? data.error : "Could not check in. Please try again.", variant: "error" });
-        return;
-      }
-      await fetchBookings();
-    } catch {
-      toast({ title: "Check-in failed", description: "Could not check in. Please try again.", variant: "error" });
-    }
-  }
-
   // Filter + sort + paginate. A booking is "upcoming" only if its class is still
   // in the future AND it's not cancelled/expired; everything else is "past".
   const counts = useMemo(() => {
@@ -603,8 +578,6 @@ export default function MyBookingsPage() {
                   !isPast && !booking.checked_in && booking.status !== "cancelled" && now < checkInOpen;
                 const afterCheckInWindow =
                   !isPast && !booking.checked_in && booking.status !== "cancelled" && now > checkInClose;
-                const canCheck =
-                  !isPast && !booking.checked_in && booking.status !== "cancelled" && canCheckInNow(startDate);
                 return (
                   <BookingCard
                     key={booking.id}
@@ -614,9 +587,7 @@ export default function MyBookingsPage() {
                     isPast={isPast}
                     beforeCheckInWindow={beforeCheckInWindow}
                     afterCheckInWindow={afterCheckInWindow}
-                    canCheck={canCheck}
                     checkInOpen={checkInOpen}
-                    onCheckIn={(b) => void handleCheckIn(b)}
                     onCancel={handleCancelClick}
                     formatTime={formatTime}
                     formatDate={formatDate}
