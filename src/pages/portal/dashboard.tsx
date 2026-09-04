@@ -541,31 +541,6 @@ export default function Dashboard() {
     }
   }
 
-  const handleCheckIn = async (bookingId: string) => {
-    try {
-      const res = await fetch("/api/bookings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: bookingId, checked_in: true }),
-      });
-      if (!res.ok) throw new Error("Check-in failed");
-      toast.success("Checked in successfully!");
-      setShowCheckIn(false);
-      if (currentUserId) fetchUserData(currentUserId);
-    } catch (err) {
-      console.error("Check-in error:", err);
-      toast.error("Failed to check in. Please try again.");
-    }
-  };
-
-  const canCheckIn = (startTime: string) => {
-    const now = new Date();
-    const classStart = new Date(startTime);
-    const tenMinBefore = new Date(classStart.getTime() - 10 * 60 * 1000);
-    const fifteenMinAfter = new Date(classStart.getTime() + 15 * 60 * 1000);
-    
-    return now >= tenMinBefore && now <= fifteenMinAfter;
-  };
 
   // Memoized so child components (StatCardRow, UpcomingScheduleCard,
   // OrderHistoryTable) get stable array refs and can skip rerenders when
@@ -1169,28 +1144,13 @@ export default function Dashboard() {
               <div className="flex justify-center mb-4">
                 <Pill tone="success">You're already checked in!</Pill>
               </div>
-            ) : (() => {
-              const isScheduled = !!selectedBookingForCheckIn.class_schedule;
-              const startTime = isScheduled
-                ? selectedBookingForCheckIn.class_schedule?.start_time
-                : selectedBookingForCheckIn.class_time;
-              
-              return startTime && canCheckIn(startTime) ? (
-                <Button
-                  onClick={() => handleCheckIn(selectedBookingForCheckIn.id)}
-                  variant="sage"
-                  className="w-full"
-                >
-                  Check In Now
-                </Button>
-              ) : (
-                <div className="flex justify-center">
-                  <Pill tone="warning" className="text-center">
-                    Check-in opens 10 minutes before class and closes 15 minutes after start time.
-                  </Pill>
-                </div>
-              );
-            })()}
+            ) : (
+              <div className="flex justify-center">
+                <Pill tone="warning" className="text-center">
+                  Check in at the studio by scanning the QR code at the front desk.
+                </Pill>
+              </div>
+            )}
           </div>
         </div>
       )}
