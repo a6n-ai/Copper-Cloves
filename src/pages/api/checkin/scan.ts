@@ -10,6 +10,7 @@ import { OCCUPYING_STATUSES, ROSTER_STATUSES } from "@/lib/bookingStatus";
 import { reconcileScheduleSeats } from "@/lib/seatCounts";
 import { logActivity } from "@/lib/activityLog";
 import { requestLogger } from "@/lib/logger";
+import { awardPtmBadges } from "@/lib/awardPtmBadges";
 
 type ScanLog = ReturnType<typeof requestLogger>;
 type ScanSchedule = NonNullable<Awaited<ReturnType<typeof loadSchedule>>>;
@@ -185,6 +186,7 @@ async function handleMemberScan(
       },
     });
     log.info({ userId, bookingId: existing.id, scheduleId: schedule.id }, "member checked in");
+    void awardPtmBadges(userId, log);
     return res.json({ ok: true, kind: KIND_MEMBER, status: "checked_in" });
   }
 
@@ -225,6 +227,7 @@ async function handleMemberScan(
   const bookingId = await commitWalkIn({ userId, schedule, now, usePackageId: pass.usePackageId });
 
   log.info({ userId, scheduleId: schedule.id, usedPackageId: pass.usePackageId }, "walk-in checked in");
+  void awardPtmBadges(userId, log);
   void logActivity({
     req,
     action: "booking.created",

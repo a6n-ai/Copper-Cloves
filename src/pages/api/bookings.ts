@@ -6,10 +6,6 @@ import { moneyRefundStatusByBooking } from "@/lib/reconcileStatus";
 import { dropInPassCredits, provisionDropInPass } from "@/lib/provisionDropInPass";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
-import {
-  canCheckInNow,
-  checkInOutcomeFromTimes,
-} from "@/lib/bookingAttendance";
 import { linkRazorpayOrderToBookingTx, flagPaidCancelledOrphans } from "@/lib/razorpayPersistence";
 import {
   expectedBookingCheckoutPaise,
@@ -36,7 +32,6 @@ type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 const STATUS_CONFIRMED = "confirmed" as const;
 const STATUS_PENDING = "pending" as const;
 const STATUS_CANCELLED = "cancelled" as const;
-const BADGE_TYPE_PTM = "path_to_mastery" as const;
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse, userId: string) {
   const { status, limit, days } = req.query;
@@ -626,56 +621,6 @@ async function refundCancelledSeatsAsPass(
   return grants;
 }
 
-async function awardPtmBadges(userId: string, log: BookingsLog) {
-  try {
-    const [totalClasses, ptmTemplates] = await Promise.all([
-      prisma.booking.count({ where: { user_id: userId, checked_in: true } }),
-      prisma.badgeTemplate.findMany({ where: { badge_type: BADGE_TYPE_PTM, is_active: true } }),
-    ]);
-
-    const eligible = ptmTemplates.filter(
-      (t) => t.threshold_classes !== null && totalClasses >= t.threshold_classes,
-    );
-    if (eligible.length === 0) return;
-
-    // Check which badges are already earned in a single batch query.
-    const earned = await prisma.userBadge.findMany({
-      where: {
-        user_id: userId,
-        OR: eligible.flatMap((t) => [
-          { badge_template_id: t.id },
-          { badge_name: t.name, badge_type: BADGE_TYPE_PTM },
-        ]),
-      },
-      select: { badge_template_id: true, badge_name: true },
-    });
-    const earnedTemplateIds = new Set(earned.map((e) => e.badge_template_id));
-    const earnedNames = new Set(earned.map((e) => e.badge_name));
-
-    const toCreate = eligible.filter(
-      (t) => !earnedTemplateIds.has(t.id) && !earnedNames.has(t.name),
-    );
-    if (toCreate.length === 0) return;
-
-    await prisma.userBadge.createMany({
-      data: toCreate.map((template) => ({
-        user_id: userId,
-        badge_template_id: template.id,
-        badge_name: template.name,
-        badge_description: template.description ?? null,
-        badge_type: BADGE_TYPE_PTM,
-        icon: template.icon,
-        color: template.color,
-        milestone_value: template.threshold_classes,
-        total_classes: totalClasses,
-      })),
-      skipDuplicates: true,
-    });
-  } catch (e) {
-    log.error({ err: e }, "check-in badge auto-award failed");
-  }
-}
-
 async function handlePatch(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -736,22 +681,11 @@ async function handlePatch(
   }
 
   if (checked_in === true) {
-    if (existing.checked_in) {
-      return res.status(400).json({ error: "Already checked in" });
-    }
-    const classStart = existing.class_schedule?.start_time;
-    if (!classStart) {
-      return res.status(400).json({ error: "This booking is not linked to a scheduled class" });
-    }
-    const now = new Date();
-    if (!canCheckInNow(classStart, now)) {
-      return res.status(400).json({
-        error: "Check-in is only available from 15 minutes before until 10 minutes after class start.",
-      });
-    }
-    data.checked_in = true;
-    data.check_in_time = now;
-    data.check_in_outcome = checkInOutcomeFromTimes(classStart, now);
+    // Self check-in via this endpoint is disabled — members must check in at
+    // the studio via QR scan (/api/checkin/scan.ts), which verifies presence.
+    return res.status(403).json({
+      error: "Self check-in isn't available. Please check in at the studio by scanning the QR code.",
+    });
   }
 
   // Lifted out of the tx so the post-commit cancellation email can address each
@@ -855,18 +789,6 @@ async function handlePatch(
     await flagPaidCancelledOrphans({ bookingId: booking.id }).catch((e) =>
       log.error({ err: e, bookingId: booking.id }, "cancel-time orphan flag failed"),
     );
-  }
-
-  if (checked_in === true && booking.checked_in) {
-    await logActivity({
-      req,
-      action: "booking.checked_in",
-      targetProfileId: userId,
-      entity: { type: "booking", id: booking.id },
-      metadata: { class_name: booking.class_name ?? undefined, outcome: booking.check_in_outcome ?? undefined },
-    });
-    // Auto-award PTM badges
-    void awardPtmBadges(userId, log);
   }
 
   return res.json(booking);
