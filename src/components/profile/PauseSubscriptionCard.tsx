@@ -14,6 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addHours, differenceInCalendarDays, format } from "date-fns";
 import type { DateRange } from "react-day-picker";
+import { pickedDayToIstMidnightUtc, pickedDayToIstEndOfDayUtc } from "@/lib/istTime";
 
 interface SupportTicket {
   type: string;
@@ -48,7 +49,17 @@ export function PauseSubscriptionCard() {
   const [selectedPackageId, setSelectedPackageId] = useState("");
   const [pauseReason, setPauseReason] = useState("");
   const [pauseRange, setPauseRange] = useState<DateRange | undefined>(undefined);
-  const minPauseStart = (() => { const d = addHours(new Date(), 72); d.setHours(0, 0, 0, 0); return d; })();
+  // `minPauseStart` stays a browser-local-midnight Date — that's the day-identity
+  // space react-day-picker's `disabled`/`defaultMonth` compare against. Its actual
+  // 72h-from-now correctness is checked via the day's true IST-midnight instant
+  // (pickedDayToIstMidnightUtc), not this Date's own (browser-timezone) instant.
+  const minPauseStart = (() => {
+    const cutoff = addHours(new Date(), 72);
+    const probe = new Date(cutoff);
+    probe.setHours(0, 0, 0, 0);
+    while (pickedDayToIstMidnightUtc(probe) < cutoff) probe.setDate(probe.getDate() + 1);
+    return probe;
+  })();
   const [attachmentUrl, setAttachmentUrl] = useState("");
   const [attachmentUploading, setAttachmentUploading] = useState(false);
   const [attachmentName, setAttachmentName] = useState("");
@@ -122,6 +133,8 @@ export function PauseSubscriptionCard() {
       toast({ title: "Start date must be at least 72 hours from now", variant: "destructive" });
       return;
     }
+    const pauseFromUtc = pickedDayToIstMidnightUtc(pauseRange.from);
+    const pauseToUtc = pickedDayToIstEndOfDayUtc(pauseRange.to);
     setSubmittingTicket(true);
     try {
       const res = await fetch("/api/user/support-tickets", {
@@ -132,8 +145,8 @@ export function PauseSubscriptionCard() {
           reason: pauseReason,
           user_package_id: selectedPackageId,
           attachment_url: attachmentUrl || undefined,
-          pause_from: pauseRange.from.toISOString(),
-          pause_to: pauseRange.to.toISOString(),
+          pause_from: pauseFromUtc.toISOString(),
+          pause_to: pauseToUtc.toISOString(),
         }),
       });
       const data = await res.json().catch(() => ({}));
