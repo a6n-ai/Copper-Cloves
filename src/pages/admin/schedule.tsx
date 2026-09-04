@@ -21,6 +21,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { istDateTimeToUtc } from "@/lib/istTime";
 import { DayScheduleList, type ScheduleRow } from "@/components/admin/DayScheduleList";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Button } from "@/components/ui/button";
@@ -707,7 +708,7 @@ export default function AdminSchedule() {
 
     const buildPair = (dateIso: string): { start: Date; end: Date } => {
       const [y, mo, d] = dateIso.split("-").map(Number);
-      const start = new Date(y, mo - 1, d, startHour, startMin, 0, 0);
+      const start = istDateTimeToUtc(y, mo - 1, d, startHour, startMin);
       const end = new Date(start.getTime() + durationMin * 60_000);
       return { start, end };
     };

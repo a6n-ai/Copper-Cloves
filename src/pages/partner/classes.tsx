@@ -151,7 +151,7 @@ export default function PartnerClasses() {
 
   // Same URL shape the dashboard fetches — for the current week both hooks share
   // one SWR cache entry (dedupe / keepPreviousData).
-  const swrKey = `/api/partner/classes?from=${encodeURIComponent(rangeStart.toISOString())}&to=${encodeURIComponent(rangeEnd.toISOString())}`;
+  const swrKey = `/api/schedule-roster?from=${encodeURIComponent(rangeStart.toISOString())}&to=${encodeURIComponent(rangeEnd.toISOString())}`;
   const { data: classesData, error: swrError, isLoading, mutate } = useStudioSWR<ClassRow[]>(swrKey);
   const classes = useMemo(() => classesData ?? [], [classesData]);
   const loading = isLoading;

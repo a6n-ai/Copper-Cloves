@@ -1,43 +1,26 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
-import { getStudioServerSession } from "@/lib/getStudioServerSession";
-import { startOfMondayWeekLocal, endOfSundayWeekLocal } from "@/lib/calendarWeek";
 import { ROSTER_STATUSES } from "@/lib/bookingStatus";
-import { hasRole } from "@/lib/auth/roles";
 
-function parseDate(v: unknown): Date | null {
-  if (typeof v !== "string" || !v.trim()) return null;
-  const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? null : d;
+/**
+ * Canonical "classes + roster for a date range" query. Partner dashboard/classes
+ * pages and any future admin range view should both call this — previously each
+ * surface (admin class-roster, admin today-classes, partner classes) built its own
+ * booking projection and they drifted (partner was missing refund_status /
+ * hold_expires_at that admin's single-schedule roster already had).
+ */
+export interface ClassScheduleListParams {
+  rangeStart: Date;
+  rangeEnd: Date;
+  /** Scope to one partner's classes. Omit for the all-classes (admin) view. */
+  partnerId?: string;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET") return res.status(405).end();
-
-  const sess = await getStudioServerSession(req, res);
-  const user = sess?.user as { role?: string; partner_id?: string | null } | undefined;
-  if (!user || !hasRole(user.role, "partner") || !user.partner_id) {
-    return res.status(401).json({ error: "Not authenticated" });
-  }
-  const partnerId = user.partner_id;
-
-  const now = new Date();
-  let rangeStart = parseDate(req.query.from);
-  let rangeEnd = parseDate(req.query.to);
-  if (!rangeStart || !rangeEnd) {
-    rangeStart = startOfMondayWeekLocal(now);
-    rangeEnd = endOfSundayWeekLocal(rangeStart);
-  }
-  if (rangeEnd.getTime() - rangeStart.getTime() > 1000 * 60 * 60 * 24 * 100) {
-    rangeEnd = new Date(rangeStart.getTime() + 1000 * 60 * 60 * 24 * 100);
-  }
-
-  // Only this partner's classes (instructor role would further scope to own classes later).
+export async function getClassScheduleList({ rangeStart, rangeEnd, partnerId }: ClassScheduleListParams) {
   const schedules = await prisma.classSchedule.findMany({
     where: {
       start_time: { gte: rangeStart, lte: rangeEnd },
       status: { not: "cancelled" },
-      class_model: { is: { partner_id: partnerId } },
+      ...(partnerId ? { class_model: { is: { partner_id: partnerId } } } : {}),
     },
     include: {
       class_model: true,
@@ -69,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     : [];
   const waiverSignedIds = new Set(signedWaivers.map((w) => w.user_id));
 
-  const result = schedules.map((s) => {
+  return schedules.map((s) => {
     const capacity = s.capacity ?? s.available_spots + s.current_bookings;
     const signups = s.bookings.reduce((n, b) => n + 1 + (b.extra_guest_count ?? 0), 0);
     return {
@@ -97,11 +80,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         confirmationStatus: b.confirmation_status ?? null,
         hasWaiver: waiverSignedIds.has(b.profile.id),
         userId: b.user_id,
+        refundStatus: b.refund_status ?? null,
+        holdExpiresAt: b.hold_expires_at?.toISOString() ?? null,
         // Group linkage by id only — client derives grouping from co-present rows.
         invitedByUserId: b.invited_by_user_id ?? null,
       })),
     };
   });
-
-  return res.json(result);
 }

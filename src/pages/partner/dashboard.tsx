@@ -39,7 +39,7 @@ export default function PartnerDashboard() {
         const now = new Date();
         const from = startOfMondayWeekLocal(now);
         const to = endOfSundayWeekLocal(from);
-        const res = await fetch(`/api/partner/classes?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`);
+        const res = await fetch(`/api/schedule-roster?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`);
         if (res.status === 401) { router.replace("/partner/login"); return; }
         if (res.ok) setWeekClasses(await res.json());
       } finally {
