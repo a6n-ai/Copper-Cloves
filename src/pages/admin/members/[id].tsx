@@ -242,8 +242,12 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
   });
   const activePkg = packages.find((p) => p.isActive) ?? packages[0] ?? null;
 
+  // `activePkg` falls back to the most recent pass even when it's expired (for
+  // display purposes below) — but passCategory/activePackageId gate assign-pass
+  // logic (e.g. blocking a class pass while a studio pass is live), so they must
+  // only reflect a pass that is ACTUALLY active, not a stale fallback.
   let passCategory: PassCategory = "none";
-  if (activePkg) {
+  if (activePkg?.isActive) {
     const raw = pkgsRaw.find((r) => String(r.id) === activePkg.id);
     const pt = (raw?.package_type ?? null) as Parameters<typeof passCategoryForPackageType>[0];
     passCategory = pt ? passCategoryForPackageType(pt) : "none";
@@ -345,10 +349,10 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
     startDate: data.start_date ? String(data.start_date) : null,
     createdAt: data.created_at ? String(data.created_at) : null,
     passCategory,
-    unlimited: !!activePkg?.isUnlimited || passCategory === "studio_pass",
+    unlimited: (!!activePkg?.isActive && !!activePkg?.isUnlimited) || passCategory === "studio_pass",
     credits: activePkg?.creditsRemaining ?? 0,
     expiry: activePkg?.expiresAt ?? null,
-    activePackageId: activePkg?.id ?? null,
+    activePackageId: activePkg?.isActive ? activePkg.id : null,
     activePaused: !!activePkg?.isPaused,
     stats: {
       totalClasses: stats?.total_classes_attended ?? 0,

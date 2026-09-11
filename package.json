@@ -40,6 +40,7 @@
     "backfill:completed-schedules": "tsx scripts/backfill-completed-schedules.ts",
     "backfill:guest-bookings": "tsx scripts/backfill-guest-bookings.ts",
     "backfill:friendships": "tsx scripts/backfill-friendships.ts",
+    "backfill:expire-passes": "tsx scripts/backfill-expire-passes.ts",
     "check:env": "tsx scripts/check-env.ts",
     "crm:dump-templates": "tsx scripts/dump-email-templates.ts",
     "instructor:set-password": "tsx scripts/set-instructor-password.ts",
@@ -66,7 +67,9 @@
     "db:members:dry": "tsx scripts/migrate-member-packages.ts",
     "db:members:apply": "tsx scripts/migrate-member-packages.ts --apply",
     "backfill:better-auth": "tsx scripts/backfill-better-auth.ts",
-    "verify:better-auth": "tsx scripts/verify-better-auth-backfill.ts"
+    "verify:better-auth": "tsx scripts/verify-better-auth-backfill.ts",
+    "test:exercise-tools": "tsx scripts/test-exerciseTools.ts",
+    "test:resume-passes": "tsx scripts/test-resumeExpiredPauses.ts"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^5.0.47",

@@ -15,6 +15,7 @@ import {
   ResponsiveDialogTitle,
 } from "@/components/responsive/ResponsiveDialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Pill } from "@/components/ui/pill";
 import { Pagination, usePagination } from "@/components/Pagination";
 
@@ -37,6 +38,7 @@ type CancellationRequestRow = {
 };
 
 const REQUEST_STATUS_FILTERS = ["open", "approved", "denied", "all"] as const;
+const REQUEST_KIND_FILTERS = ["all", "refund", "late_cancel"] as const;
 
 function fmtDateTime(v: string | null | undefined): string {
   if (!v) return "—";
@@ -49,10 +51,24 @@ export default function CancellationsTab() {
   const [rows, setRows] = useState<CancellationRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<(typeof REQUEST_STATUS_FILTERS)[number]>("open");
+  const [kindFilter, setKindFilter] = useState<(typeof REQUEST_KIND_FILTERS)[number]>("all");
+  const [search, setSearch] = useState("");
   const [actingId, setActingId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const { page, setPage, pageItems, total, pageSize } = usePagination(rows, 10, statusFilter);
+  const q = search.trim().toLowerCase();
+  const filteredRows = rows.filter((r) => {
+    if (kindFilter !== "all" && r.kind !== kindFilter) return false;
+    if (!q) return true;
+    const className = r.class_schedule?.class_model?.name ?? r.booking?.class_name ?? "";
+    const haystack = [r.profile?.full_name, r.profile?.email, className, r.reason]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(q);
+  });
+
+  const { page, setPage, pageItems, total, pageSize } = usePagination(filteredRows, 10, `${statusFilter}|${kindFilter}|${q}`);
   const selected = rows.find((r) => r.id === selectedId) ?? null;
 
   const load = useCallback(async (filter: (typeof REQUEST_STATUS_FILTERS)[number]) => {
@@ -176,25 +192,46 @@ export default function CancellationsTab() {
             already-cancelled classes (choose a class pass or a ₹ refund).
           </CardDescription>
         </div>
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as (typeof REQUEST_STATUS_FILTERS)[number])}>
-          <SelectTrigger className="w-[150px] shrink-0 border-sage/20 font-body">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {REQUEST_STATUS_FILTERS.map((s) => (
-              <SelectItem key={s} value={s} className="font-body capitalize">
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search member, class, reason…"
+            className="h-10 w-[220px] border-sage/20 font-body"
+          />
+          <Select value={kindFilter} onValueChange={(v) => setKindFilter(v as (typeof REQUEST_KIND_FILTERS)[number])}>
+            <SelectTrigger className="w-[140px] border-sage/20 font-body">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="font-body">All types</SelectItem>
+              <SelectItem value="refund" className="font-body">Refund</SelectItem>
+              <SelectItem value="late_cancel" className="font-body">Late cancel</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as (typeof REQUEST_STATUS_FILTERS)[number])}>
+            <SelectTrigger className="w-[150px] border-sage/20 font-body">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {REQUEST_STATUS_FILTERS.map((s) => (
+                <SelectItem key={s} value={s} className="font-body capitalize">
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
           <div className="py-12 text-center font-body text-sm text-charcoal/40">Loading requests…</div>
-        ) : rows.length === 0 ? (
+        ) : filteredRows.length === 0 ? (
           <div className="py-12 text-center font-body text-sm text-charcoal/40">
-            <CalendarX className="mx-auto mb-3 h-10 w-10 text-charcoal/20" /> No {statusFilter === "all" ? "" : statusFilter} requests.
+            <CalendarX className="mx-auto mb-3 h-10 w-10 text-charcoal/20" />
+            {rows.length === 0
+              ? `No ${statusFilter === "all" ? "" : statusFilter} requests.`
+              : "No requests match your filters."}
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-sage/15 bg-white-warm">
