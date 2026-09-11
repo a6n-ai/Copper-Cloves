@@ -54,55 +54,8 @@ export function CartDrawer({
   const [orderError, setOrderError] = useState<string | null>(null);
   const paymentMethod = "online" as const;
 
-  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
-    },
-    [],
-  );
-
-  // Reset coupon state each time the drawer opens (matches prior handleCheckout).
-  useEffect(() => {
-    if (open) {
-      setCouponError(null);
-      setCouponDiscount(null);
-      setCouponCode("");
-      setOrderError(null);
-      void fetchQuote("");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  // Signature of cart contents (id:quantity pairs) — used to re-quote on any
-  // in-drawer quantity change without depending on the discount state that
-  // fetchQuote itself sets (which would loop).
-  const cartSignature = useMemo(
-    () => cart.map((item) => `${item.id}:${item.quantity}`).join(","),
-    [cart],
-  );
-
-  // Re-quote (debounced) whenever cart contents change while the drawer is
-  // open, so displayed pass/coupon discounts never drift from what the
-  // server will actually charge.
-  useEffect(() => {
-    if (!open) return;
-    const timer = setTimeout(() => {
-      void fetchQuote(couponCode);
-    }, 300);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, cartSignature]);
-
   const getSubtotal = () =>
     cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  const getFinalTotal = () => {
-    const sub = getSubtotal();
-    const off =
-      passDiscount + (couponDiscount && couponDiscount > 0 ? couponDiscount : 0);
-    return Math.max(0, Math.round((sub - off) * 100) / 100);
-  };
 
   const fetchQuote = async (code: string) => {
     const subtotal = getSubtotal();
@@ -137,6 +90,54 @@ export function CartDrawer({
       setCouponError(null);
       setCouponDiscount(Number(d.couponDiscount) || 0);
     }
+  };
+
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+    },
+    [],
+  );
+
+  // Reset coupon state each time the drawer opens (matches prior handleCheckout).
+  useEffect(() => {
+    if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCouponError(null);
+      setCouponDiscount(null);
+      setCouponCode("");
+      setOrderError(null);
+      void fetchQuote("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Signature of cart contents (id:quantity pairs) — used to re-quote on any
+  // in-drawer quantity change without depending on the discount state that
+  // fetchQuote itself sets (which would loop).
+  const cartSignature = useMemo(
+    () => cart.map((item) => `${item.id}:${item.quantity}`).join(","),
+    [cart],
+  );
+
+  // Re-quote (debounced) whenever cart contents change while the drawer is
+  // open, so displayed pass/coupon discounts never drift from what the
+  // server will actually charge.
+  useEffect(() => {
+    if (!open) return;
+    const timer = setTimeout(() => {
+      void fetchQuote(couponCode);
+    }, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, cartSignature]);
+
+  const getFinalTotal = () => {
+    const sub = getSubtotal();
+    const off =
+      passDiscount + (couponDiscount && couponDiscount > 0 ? couponDiscount : 0);
+    return Math.max(0, Math.round((sub - off) * 100) / 100);
   };
 
   const handleGuestCountChange = (count: number) => {

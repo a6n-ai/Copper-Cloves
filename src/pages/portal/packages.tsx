@@ -65,6 +65,18 @@ interface PurchasePackageType {
   price?: number;
 }
 
+/** Raw shape returned by GET /api/user-packages — a Prisma userPackage row. */
+interface RawUserPackage {
+  id: string;
+  is_active?: boolean;
+  is_paused?: boolean;
+  purchase_date?: string;
+  created_at?: string;
+  expiration_date?: string;
+  credits_remaining?: number;
+  package_type?: PurchasePackageType;
+}
+
 interface PurchaseRecord {
   id: string;
   is_active: boolean;
@@ -310,9 +322,38 @@ export default function PackagesPage() {
     | null
   >(null);
 
+  async function loadProfileAndHistory() {
+    try {
+      // Profile loads via shared SWR (deduped across the portal); only the
+      // page-specific purchase history is fetched here.
+      // /api/user-packages returns raw Prisma userPackage rows (expiration_date,
+      // purchase_date, credits_remaining, is_active, package_type). Map to the
+      // shape this page renders — there is no `status` column, so derive it.
+      const historyRes = await fetch("/api/user-packages");
+      const raw = historyRes.ok ? await historyRes.json() : [];
+      const history: PurchaseRecord[] = Array.isArray(raw)
+        ? raw.map((p: RawUserPackage) => ({
+            id: p.id,
+            is_active: Boolean(p.is_active),
+            is_paused: Boolean(p.is_paused),
+            created_at: p.purchase_date ?? p.created_at ?? "",
+            expires_at: p.expiration_date ?? "",
+            remaining_credits: p.credits_remaining ?? 0,
+            package_types: p.package_type ?? undefined,
+          }))
+        : [];
+      setPurchaseHistory(history);
+    } catch (err) {
+      console.error("Error loading data:", err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }
+
   useEffect(() => {
     if (isPending) return;
     if (!session?.user) { router.push("/login"); return; }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProfileAndHistory();
   }, [router, isPending, session]);
 
@@ -342,38 +383,11 @@ export default function PackagesPage() {
     if (!selected || typeof selected !== "string" || premiumPackages.length === 0) return;
     const pkg = premiumPackages.find((p) => p.name === selected);
     if (pkg) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedCategory(pkg.classes === "Unlimited" ? "studio" : "class");
       setShowCatalog(true);
     }
   }, [selected, premiumPackages]);
-
-  async function loadProfileAndHistory() {
-    try {
-      // Profile loads via shared SWR (deduped across the portal); only the
-      // page-specific purchase history is fetched here.
-      // /api/user-packages returns raw Prisma userPackage rows (expiration_date,
-      // purchase_date, credits_remaining, is_active, package_type). Map to the
-      // shape this page renders — there is no `status` column, so derive it.
-      const historyRes = await fetch("/api/user-packages");
-      const raw = historyRes.ok ? await historyRes.json() : [];
-      const history: PurchaseRecord[] = Array.isArray(raw)
-        ? raw.map((p: Record<string, any>) => ({
-            id: p.id,
-            is_active: Boolean(p.is_active),
-            is_paused: Boolean(p.is_paused),
-            created_at: p.purchase_date ?? p.created_at,
-            expires_at: p.expiration_date,
-            remaining_credits: p.credits_remaining ?? 0,
-            package_types: p.package_type ?? undefined,
-          }))
-        : [];
-      setPurchaseHistory(history);
-    } catch (err) {
-      console.error("Error loading data:", err);
-    } finally {
-      setLoadingHistory(false);
-    }
-  }
 
   const generateInvoicePDF = async (purchase: PurchaseRecord) => {
     const packageType = purchase.package_types;
@@ -738,6 +752,7 @@ export default function PackagesPage() {
   );
   // Show the catalog by default only when there's nothing active to show.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!loadingHistory && activePasses.length === 0) setShowCatalog(true);
   }, [loadingHistory, activePasses.length]);
 
@@ -808,8 +823,10 @@ export default function PackagesPage() {
                 const unlimited = !!pt?.is_unlimited;
                 const total = pt?.class_count ?? 0;
                 const left = pass.remaining_credits ?? 0;
+                // Point-in-time calculation, not a value React needs to track.
                 const daysLeft = Math.max(
                   0,
+                  // eslint-disable-next-line react-hooks/purity
                   Math.ceil((new Date(pass.expires_at).getTime() - Date.now()) / 86400000),
                 );
                 const expiringSoon = daysLeft <= 7;

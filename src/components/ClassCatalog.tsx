@@ -54,15 +54,6 @@ export function ClassCatalog() {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchClasses();
-  }, []);
-
-  // Re-sync control state once cards render (track size is child-driven).
-  useEffect(() => {
-    measure();
-  }, [classes, measure]);
-
   async function fetchClasses() {
     try {
       setLoading(true);
@@ -87,6 +78,17 @@ export function ClassCatalog() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    // Fetch-on-mount: syncing with the network, not deriving render state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchClasses();
+  }, []);
+
+  // Re-sync control state once cards render (track size is child-driven).
+  useEffect(() => {
+    measure();
+  }, [classes, measure]);
 
   let carouselBody: ReactNode;
   if (loading) {

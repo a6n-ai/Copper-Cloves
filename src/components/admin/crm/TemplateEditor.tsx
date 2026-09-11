@@ -71,6 +71,7 @@ export function TemplateEditor({ template, saving, onSave, onDelete, onDuplicate
 
   // Reset the form whenever a different template is selected.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setForm(toForm(template));
     setTestResult(null);
   }, [template]);

@@ -41,13 +41,19 @@ export function useFilterState<T extends Record<string, unknown>>(
 ): FilterState<T> {
   const { urlSync = false, codecs: provided, debounceUrlMs = 300 } = options;
   const router = useRouter();
-  const defaultsRef = useRef(defaults);
-  const providedRef = useRef(provided);
-  const codecs = useMemo(() => resolveCodecs(defaultsRef.current, providedRef.current), []);
+  // Freeze the caller's defaults/codecs on first render — callers pass a fresh
+  // object literal every render, and re-resolving on every change would defeat
+  // the point of memoizing `codecs`.
+  const frozenDefaults = useMemo(() => defaults, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const frozenProvided = useMemo(() => provided, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const codecs = useMemo(
+    () => resolveCodecs(frozenDefaults, frozenProvided),
+    [frozenDefaults, frozenProvided],
+  );
 
   const [values, setValues] = useState<T>(() => {
     if (urlSync && router.isReady) {
-      return deserializeFilters(router.query, codecs, defaultsRef.current) as T;
+      return deserializeFilters(router.query, codecs, frozenDefaults) as T;
     }
     return defaults;
   });
@@ -57,8 +63,8 @@ export function useFilterState<T extends Record<string, unknown>>(
   useEffect(() => {
     if (!urlSync || !router.isReady || hydrated.current) return;
     hydrated.current = true;
-    setValues(deserializeFilters(router.query, codecs, defaultsRef.current) as T);
-  }, [urlSync, router.isReady, codecs]); // eslint-disable-line react-hooks/exhaustive-deps
+    setValues(deserializeFilters(router.query, codecs, frozenDefaults) as T);
+  }, [urlSync, router.isReady, codecs, frozenDefaults]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // push values → URL (debounced, shallow, only when the serialized query changes)
   const lastQuery = useRef<string>("");
@@ -86,17 +92,17 @@ export function useFilterState<T extends Record<string, unknown>>(
   const setMany = useCallback((partial: Partial<T>) => {
     setValues((prev) => ({ ...prev, ...partial }));
   }, []);
-  const reset = useCallback(() => setValues(defaultsRef.current), []);
+  const reset = useCallback(() => setValues(frozenDefaults), [frozenDefaults]);
 
   const activeCount = useMemo(() => {
     let n = 0;
-    for (const key of Object.keys(defaultsRef.current)) {
+    for (const key of Object.keys(frozenDefaults)) {
       const codec = codecs[key];
-      const isDefault = codec ? codec.isDefault(values[key]) : values[key] === defaultsRef.current[key];
+      const isDefault = codec ? codec.isDefault(values[key]) : values[key] === frozenDefaults[key];
       if (!isDefault) n++;
     }
     return n;
-  }, [values, codecs]);
+  }, [values, codecs, frozenDefaults]);
 
   return { values, set, setMany, reset, activeCount, isActive: activeCount > 0 };
 }

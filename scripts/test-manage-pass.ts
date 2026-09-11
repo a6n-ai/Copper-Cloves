@@ -17,6 +17,12 @@ import {
   type PassPaymentState,
 } from "../src/components/admin/managePass";
 
+/** Asserts `v` is present and returns it — used in place of `!`. */
+function must<T>(v: T | undefined | null): T {
+  if (v == null) throw new Error("expected value, got null/undefined");
+  return v;
+}
+
 const PKG_CLASS: PackageRow = { id: "p1", name: "12 Class Pass", type: "class_pass", price: 12000, class_count: 12, duration_months: null, is_unlimited: false };
 const PKG_STUDIO: PackageRow = { id: "p2", name: "3 Month Unlimited", type: "studio_pass", price: 30000, class_count: null, duration_months: 3, is_unlimited: true };
 
@@ -77,13 +83,13 @@ assert.equal(b.finalPaise, 0);
 assert.equal(b.isFree, true);
 
 // validateConfig
-assert.match(validateConfig(stub({ selectedPackageId: null }))!, /package/i);
-assert.match(validateConfig(stub({ selectedPackageId: "p1", expiry: "" }))!, /expiry/i);
+assert.match(must(validateConfig(stub({ selectedPackageId: null }))), /package/i);
+assert.match(must(validateConfig(stub({ selectedPackageId: "p1", expiry: "" }))), /expiry/i);
 assert.equal(validateConfig(stub({ selectedPackageId: "p1" })), null);
 
 // validatePayment — paid needs method + proof
-assert.match(validatePayment(stub({ selectedPackageId: "p1", method: "" }))!, /method/i);
-assert.match(validatePayment(stub({ selectedPackageId: "p1", method: "cash", proofUrl: "" }))!, /proof/i);
+assert.match(must(validatePayment(stub({ selectedPackageId: "p1", method: "" }))), /method/i);
+assert.match(must(validatePayment(stub({ selectedPackageId: "p1", method: "cash", proofUrl: "" }))), /proof/i);
 assert.equal(validatePayment(stub({ selectedPackageId: "p1", method: "cash", proofUrl: "https://x/y.png" })), null);
 
 // validatePayment — free (100% off) needs neither

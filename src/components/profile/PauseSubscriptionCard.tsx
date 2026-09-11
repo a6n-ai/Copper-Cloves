@@ -87,6 +87,7 @@ export function PauseSubscriptionCard() {
   // becomes pending after a successful submit.
   useEffect(() => {
     if (selectedPackageId && pendingPackageIds.has(selectedPackageId)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedPackageId("");
       return;
     }

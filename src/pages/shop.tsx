@@ -142,6 +142,7 @@ export default function Shop({ initialProducts }: Readonly<ShopProps>) {
   const sessionEmail = (session?.user as { email?: string } | undefined)?.email?.trim();
   useEffect(() => {
     if (sessionEmail) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCustomerEmail((prev) => (prev.trim() ? prev : sessionEmail));
     }
   }, [sessionEmail]);

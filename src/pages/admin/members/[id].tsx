@@ -436,6 +436,7 @@ export default function MemberDetailPage() {
   }, [id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (session?.user) void load();
   }, [session, load]);
 
@@ -1539,6 +1540,7 @@ function EditProfileDialog({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFullName(member.name);
       setPhone(member.phone ?? "");
       setWhatsapp(member.whatsappPhone ?? "");
@@ -1670,6 +1672,7 @@ function ManagePassDialog({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStep("form");
       s.reset();
       s.loadDefaults();

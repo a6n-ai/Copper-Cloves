@@ -14,6 +14,7 @@ export function useGlobalSearchData(query: string): State {
     const q = query.trim();
     abortRef.current?.abort();
     if (q.length < SEARCH_MIN_CHARS) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState({ groups: [], loading: false, error: false });
       return;
     }

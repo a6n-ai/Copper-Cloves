@@ -371,6 +371,7 @@ export default function AdminDashboard() {
   const { data: session } = useSession();
   const userRole = (session?.user as { role?: string })?.role;
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (session?.user) setLoading(false);
   }, [session]);
 
@@ -433,6 +434,7 @@ export default function AdminDashboard() {
     // Don't clear existing items — keeps the carousel mounted so only the
     // inner cards swap when the response arrives. A subtle opacity dim on the
     // wrapper signals the refetch without resizing the outer card.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTodayClassesLoading(true);
     void (async () => {
       try {
@@ -465,6 +467,7 @@ export default function AdminDashboard() {
   /** Fetch check-in QR when the class-details dialog opens for a class. */
   useEffect(() => {
     if (!showClassDetailsDialog || !selectedClass?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedClassQr(null);
       return;
     }
@@ -570,6 +573,7 @@ export default function AdminDashboard() {
     const role = (session?.user as { role?: string })?.role;
     if (!hasRole(role, "admin") || activeTab !== "meal-waitlist") return;
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMealInquiriesLoading(true);
     void (async () => {
       try {
@@ -588,7 +592,6 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, userRole, activeTab]);
 
   useEffect(() => {
@@ -596,6 +599,7 @@ export default function AdminDashboard() {
     const role = (session?.user as { role?: string })?.role;
     if (!hasRole(role, "admin") || activeTab !== "rental-inquiries") return;
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRentalInquiriesLoading(true);
     void (async () => {
       try {
@@ -614,7 +618,6 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, userRole, activeTab]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

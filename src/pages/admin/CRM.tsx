@@ -332,14 +332,6 @@ export default function CRMPage() {
   const { data: session, isPending } = useSession();
 
   const userRole = (session?.user as { role?: string })?.role;
-  useEffect(() => {
-    if (isPending) return;
-    if (!session?.user) { router.push("/login"); return; }
-    if (!hasRole(userRole, "admin")) { router.push("/login"); return; }
-    // Messages + insights self-fetch; the page needs templates (trigger picker) + triggers.
-    void Promise.all([fetchTemplates(), fetchTriggers()]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPending, session, userRole]);
 
   const fetchTemplates = async () => {
     try {
@@ -360,6 +352,16 @@ export default function CRMPage() {
       console.error("Error fetching triggers:", err);
     }
   };
+
+  useEffect(() => {
+    if (isPending) return;
+    if (!session?.user) { router.push("/login"); return; }
+    if (!hasRole(userRole, "admin")) { router.push("/login"); return; }
+    // Messages + insights self-fetch; the page needs templates (trigger picker) + triggers.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void Promise.all([fetchTemplates(), fetchTriggers()]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPending, session, userRole]);
 
   const handleSaveTrigger = async () => {
     setIsSaving(true);

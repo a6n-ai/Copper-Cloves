@@ -27,10 +27,10 @@ async function main() {
   const usersById = new Map(users.map((u) => [u.id, u]));
   for (const p of profiles) {
     assert.ok(p.user_id, `profile ${p.id} (${p.email}) has no user_id`);
-    const u = usersById.get(p.user_id!);
+    const u = usersById.get(p.user_id);
     assert.ok(u, `profile ${p.id} points at a missing user`);
-    assert.equal(u!.email, p.email.trim().toLowerCase(), `profile ${p.id} email mismatch`);
-    assert.ok(parseRoles(u!.role).includes(p.role as never), `profile ${p.id} role "${p.role}" absent from user role "${u!.role}"`);
+    assert.equal(u.email, p.email.trim().toLowerCase(), `profile ${p.id} email mismatch`);
+    assert.ok(parseRoles(u.role).includes(p.role as never), `profile ${p.id} role "${p.role}" absent from user role "${u.role}"`);
   }
 
   // Orphan check: every User must be pointed at by at least one Profile.
@@ -44,7 +44,8 @@ async function main() {
   const withPassword = profiles.filter((p) => legacy.has(p.id));
   const accountsByUser = new Map(accounts.map((a) => [a.userId, a]));
   for (const p of withPassword) {
-    assert.ok(accountsByUser.has(p.user_id!), `profile ${p.id} (${p.email}) has a password but no credential account`);
+    assert.ok(p.user_id, `profile ${p.id} (${p.email}) has no user_id`);
+    assert.ok(accountsByUser.has(p.user_id), `profile ${p.id} (${p.email}) has a password but no credential account`);
   }
 
   // Exact hash-SET equality per identity — shape checks alone (bcrypt/scrypt/
@@ -52,13 +53,14 @@ async function main() {
   // copied from the wrong profile. Compare in memory; never log a hash.
   const profilesByUser = new Map<string, typeof profiles>();
   for (const p of withPassword) {
-    profilesByUser.set(p.user_id!, [...(profilesByUser.get(p.user_id!) ?? []), p]);
+    assert.ok(p.user_id, `profile ${p.id} (${p.email}) has no user_id`);
+    profilesByUser.set(p.user_id, [...(profilesByUser.get(p.user_id) ?? []), p]);
   }
   for (const [userId, group] of profilesByUser) {
     const expected = new Set(group.map((p) => legacy.get(p.id)).filter((h): h is string => !!h));
     const account = accountsByUser.get(userId);
     assert.ok(account, `user ${userId} has ${expected.size} password-holding profile(s) but no credential account`);
-    const stored = new Set(unpack(account!.password ?? ""));
+    const stored = new Set(unpack(account.password ?? ""));
     assert.equal(
       stored.size,
       expected.size,

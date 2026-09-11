@@ -38,7 +38,11 @@ type CancellationRequestRow = {
 };
 
 const REQUEST_STATUS_FILTERS = ["open", "approved", "denied", "all"] as const;
-const REQUEST_KIND_FILTERS = ["all", "refund", "late_cancel"] as const;
+const REQUEST_KIND_FILTERS = [
+  { value: "all", label: "All types" },
+  { value: "refund", label: "Refund" },
+  { value: "late_cancel", label: "Late cancel" },
+] as const;
 
 function fmtDateTime(v: string | null | undefined): string {
   if (!v) return "—";
@@ -51,7 +55,7 @@ export default function CancellationsTab() {
   const [rows, setRows] = useState<CancellationRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<(typeof REQUEST_STATUS_FILTERS)[number]>("open");
-  const [kindFilter, setKindFilter] = useState<(typeof REQUEST_KIND_FILTERS)[number]>("all");
+  const [kindFilter, setKindFilter] = useState<(typeof REQUEST_KIND_FILTERS)[number]["value"]>("all");
   const [search, setSearch] = useState("");
   const [actingId, setActingId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -199,14 +203,19 @@ export default function CancellationsTab() {
             placeholder="Search member, class, reason…"
             className="h-10 w-[220px] border-sage/20 font-body"
           />
-          <Select value={kindFilter} onValueChange={(v) => setKindFilter(v as (typeof REQUEST_KIND_FILTERS)[number])}>
+          <Select
+            value={kindFilter}
+            onValueChange={(v) => setKindFilter(v as (typeof REQUEST_KIND_FILTERS)[number]["value"])}
+          >
             <SelectTrigger className="w-[140px] border-sage/20 font-body">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all" className="font-body">All types</SelectItem>
-              <SelectItem value="refund" className="font-body">Refund</SelectItem>
-              <SelectItem value="late_cancel" className="font-body">Late cancel</SelectItem>
+              {REQUEST_KIND_FILTERS.map((k) => (
+                <SelectItem key={k.value} value={k.value} className="font-body">
+                  {k.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as (typeof REQUEST_STATUS_FILTERS)[number])}>

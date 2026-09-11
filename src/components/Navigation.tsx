@@ -110,6 +110,8 @@ export function Navigation({ variant = "default" }: Readonly<NavigationProps>) {
   useEffect(() => {
     let ticking = false;
     let last = window.scrollY > 24;
+    // Reading live window.scrollY to seed state — an external system, not derived render state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setScrolled(last);
     const onScroll = () => {
       if (ticking) return;

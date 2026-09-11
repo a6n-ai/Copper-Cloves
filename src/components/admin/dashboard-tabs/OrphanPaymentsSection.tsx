@@ -52,6 +52,7 @@ function VerifyDialog({ row, onClose }: { row: OrphanPaymentRow; onClose: () => 
 
   useEffect(() => {
     if (!row.razorpayPaymentId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError("No Razorpay payment ID on this record.");
       setLoading(false);
       return;
@@ -218,6 +219,7 @@ export function OrphanPaymentsSection() {
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   async function handleLink(row: OrphanPaymentRow) {

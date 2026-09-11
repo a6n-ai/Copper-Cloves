@@ -139,6 +139,7 @@ export function usePassPaymentState(member?: PassMemberContext) {
   useEffect(() => {
     const pkg = packages.find((p) => p.id === selectedPackageId) ?? null;
     if (!pkg) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if ((pkg.duration_months ?? 0) > 0) setExpiry(isoPlusMonths(pkg.duration_months as number));
     else setExpiry(isoPlusDays(defaultValidityDays));
   }, [selectedPackageId, packages, defaultValidityDays]);

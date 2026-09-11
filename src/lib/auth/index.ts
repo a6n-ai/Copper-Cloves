@@ -1,4 +1,3 @@
-import { createHash } from "crypto";
 import { betterAuth } from "better-auth";
 import type { BetterAuthOptions } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
@@ -9,39 +8,13 @@ import logger from "@/lib/logger";
 import { studioPassword } from "./password";
 import { parseRoles, hasRole } from "./roles";
 
-/** Absolute session lifetime. Matches the old SESSION_MAX_AGE_SECONDS. */
-const SESSION_MAX_AGE_S = 2 * 24 * 60 * 60;
-
 /**
- * The salt for computeFingerprint. Resolved lazily and loudly.
- *
- * better-auth itself boots on `options.secret || BETTER_AUTH_SECRET || AUTH_SECRET`,
- * or on the `secrets[]` / BETTER_AUTH_SECRETS rotation array — so a deployment can
- * have a perfectly strong auth secret while BETTER_AUTH_SECRET is unset. Falling
- * back to "" there would leave the fingerprint unsalted and offline-precomputable
- * with no warning, which is exactly the defence the session-bleed incident bought.
- * Throw instead. Called only on the request path, never at module load, so this
- * cannot fire during `next build` when env is not loaded.
+ * Absolute session lifetime. 7 days — the QR check-in flow (camera scan opens
+ * a different browser/webview than the one the member normally signs in on,
+ * on some Android OEM camera apps) means a short session forces an extra
+ * login mid check-in more often than it buys anything.
  */
-function fingerprintSalt(): string {
-  const secret = process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET;
-  if (!secret) {
-    throw new Error(
-      "[auth] BETTER_AUTH_SECRET (or AUTH_SECRET) is not set — refusing to issue an unsalted session fingerprint.",
-    );
-  }
-  return secret;
-}
-
-/**
- * Stable per-device hash. User-Agent ONLY — including the client IP would sign
- * mobile users out on every WiFi<->cellular switch. Salted with the auth secret
- * so it cannot be forged offline from a known UA string.
- * Algorithm preserved verbatim from the retired session guard.
- */
-export function computeFingerprint(userAgent: string): string {
-  return createHash("sha256").update(`${userAgent.toLowerCase()}|${fingerprintSalt()}`).digest("hex");
-}
+const SESSION_MAX_AGE_S = 7 * 24 * 60 * 60;
 
 /**
  * Split out from the betterAuth() call so it can be handed to customSession as
@@ -69,18 +42,14 @@ const options = {
 
   session: {
     expiresIn: SESSION_MAX_AGE_S,
-    // Refresh throttle: an in-use session's expiry only slides once this old.
-    // Equal to expiresIn, so sessions hard-expire 2 days after creation — the
-    // behaviour the absolute SESSION_MAX_AGE_SECONDS cap already had.
-    updateAge: 2 * 24 * 60 * 60,
+    // Refresh throttle: an active session's expiry slides forward once it's
+    // this old, so a member who opens the app regularly never hits the 7-day
+    // cap. Shorter than expiresIn on purpose (unlike the old flat 2-day cap).
+    updateAge: 24 * 60 * 60,
     // Sensitive endpoints (change-email, delete-user) require a recently
     // authenticated session. Default 24h is most of a working day.
     freshAge: 60 * 60,
     additionalFields: {
-      // UA hash binding the session to its issuing device — the 2026-06-30
-      // session-bleed defence. better-auth has no native equivalent; it is
-      // written here and ENFORCED in getStudioServerSession (Task 8).
-      fingerprint: { type: "string", required: false, input: false },
       // Migrated off the deleted user_sessions table.
       latitude: { type: "number", required: false, input: false },
       longitude: { type: "number", required: false, input: false },
@@ -125,8 +94,7 @@ const options = {
         // Every sign-in method funnels through session creation, including
         // plugin routes that bypass emailAndPassword's own checks — so the
         // account-status gate lives here rather than on /sign-in/email.
-        before: async (session, ctx) => {
-          const ua = ctx?.headers?.get("user-agent") ?? "";
+        before: async (session) => {
           const user = await prisma.user.findUnique({
             where: { id: session.userId },
             select: { banned: true, role: true, profile: { select: { id: true } } },
@@ -145,7 +113,7 @@ const options = {
             logger.error({ userId: session.userId }, "[auth] refusing session: user has no Profile row");
             throw new APIError("FORBIDDEN", { message: "This account is not configured. Contact support." });
           }
-          return { data: { ...session, fingerprint: computeFingerprint(ua) } };
+          return { data: session };
         },
       },
     },

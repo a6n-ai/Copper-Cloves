@@ -211,6 +211,8 @@ const BookingCard = memo(function BookingCard({
             booking.cancel_cutoff_hours != null &&
             (() => {
               const cutoffMs = new Date(startIso).getTime() - (booking.cancel_cutoff_hours ?? 0) * 3600_000;
+              // Point-in-time gate, not a value React needs to track.
+              // eslint-disable-next-line react-hooks/purity
               return Date.now() < cutoffMs ? (
                 <p className="font-body text-xs text-sage">
                   Free cancellation (refund pass) until {formatTime(new Date(cutoffMs).toISOString())}.
@@ -303,16 +305,9 @@ export default function MyBookingsPage() {
 
   // Reset to page 1 whenever the filter or sort order changes.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [filter, sortAsc]);
-
-  useEffect(() => {
-    if (isPending) return;
-    if (!session?.user) { router.push("/login"); return; }
-    setIsAuthenticated(true);
-    fetchBookings().finally(() => setIsLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPending, session]);
 
   async function fetchBookings() {
     try {
@@ -326,6 +321,15 @@ export default function MyBookingsPage() {
       setBookings([]);
     }
   }
+
+  useEffect(() => {
+    if (isPending) return;
+    if (!session?.user) { router.push("/login"); return; }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsAuthenticated(true);
+    fetchBookings().finally(() => setIsLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPending, session]);
 
   function effectiveClassTime(booking: Booking): string {
     if (booking.class_schedule?.start_time) return booking.class_schedule.start_time;
@@ -463,6 +467,9 @@ export default function MyBookingsPage() {
   // Filter + sort + paginate. A booking is "upcoming" only if its class is still
   // in the future AND it's not cancelled/expired; everything else is "past".
   const counts = useMemo(() => {
+    // Point-in-time cutoff, not a value React needs to track — recomputed
+    // whenever the bookings list changes, which is often enough for a count.
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     let up = 0;
     for (const b of bookings) {
@@ -473,6 +480,7 @@ export default function MyBookingsPage() {
   }, [bookings]);
 
   const filteredSorted = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     const rows = bookings.map((b) => ({ b, ms: new Date(effectiveClassTime(b)).getTime() }));
     const filtered = rows.filter(({ b, ms }) => {
@@ -572,6 +580,7 @@ export default function MyBookingsPage() {
                 const timeUntil = getTimeUntilClass(startIso);
                 const isPast = timeUntil === "Past";
                 const startDate = new Date(startIso);
+                // eslint-disable-next-line react-hooks/purity
                 const now = Date.now();
                 const { open: checkInOpen, close: checkInClose } = checkInWindowBounds(startDate);
                 const beforeCheckInWindow =

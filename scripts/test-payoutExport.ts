@@ -7,6 +7,13 @@ import {
   type PayoutDetail,
 } from "../src/lib/instructorPayoutExport";
 
+/** Asserts `v` is present and returns it — used in place of `!` so a wrong
+ * test assumption throws a clear message instead of silently type-casting. */
+function must<T>(v: T | undefined | null, msg = "expected value, got null/undefined"): T {
+  if (v == null) throw new Error(msg);
+  return v;
+}
+
 // ── fixture ───────────────────────────────────────────────────────────────────
 function item(dateISO: string, over: Partial<PayoutDetail["lineItems"][0]> = {}) {
   return {
@@ -134,14 +141,14 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
   // total-count row: only the Count column is populated
   const totalRow = rows.find((r) => r[0] === null && typeof r[5] === "number");
   assert.ok(totalRow, "total count row exists");
-  assert.equal(totalRow![5], 2);
+  assert.equal(must(totalRow)[5], 2);
 
   // rate-card header, with instructorPct interpolated
   const hdr = rows.find((r) => r[0] === "Classes");
   assert.deepEqual(hdr, ["Classes", "Rate", "Per class rate", "without GST", "60% of class fee"]);
 
   // rate card in RUPEES, not paise
-  const r12 = rows[rows.indexOf(hdr!) + 1];
+  const r12 = rows[rows.indexOf(must(hdr)) + 1];
   assert.equal(r12[0], 12);
   assert.equal(r12[1], 8500);            // 850000 paise -> 8500 rupees
   assert.equal(Math.round((r12[2] as number) * 100) / 100, 708.33);
@@ -149,11 +156,11 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
 
   // Average / Weighted average / TOTAL
   const avg = rows.find((r) => r[3] === "Average");
-  assert.equal(avg![4], 441.28);
+  assert.equal(must(avg)[4], 441.28);
   const wavg = rows.find((r) => r[3] === "Weighted average");
-  assert.equal(wavg![4], 465);
-  assert.equal(wavg![5], "TOTAL");
-  assert.equal(wavg![6], 930);           // footer.totalPaise 93000 -> 930
+  assert.equal(must(wavg)[4], 465);
+  assert.equal(must(wavg)[5], "TOTAL");
+  assert.equal(must(wavg)[6], 930);           // footer.totalPaise 93000 -> 930
 }
 
 // ── buildPayoutSheet: multi-bucket recomputes, no adjustment block ────────────
@@ -170,7 +177,7 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
     useFooterTotals: false, computedUnitsAcrossMonths: 2, isLastBucket: false,
   });
   const wavg = jul.find((r) => r[3] === "Weighted average");
-  assert.equal(wavg![6], 465, "monthTotal = 1 unit x 465, NOT the period total 930");
+  assert.equal(must(wavg)[6], 465, "monthTotal = 1 unit x 465, NOT the period total 930");
   assert.ok(!jul.some((r) => r[0] === "PERIOD ADJUSTMENT"), "no block when footer is unadjusted");
 
   const aug = buildPayoutSheet(d, buckets[1], {
@@ -205,12 +212,12 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
   assert.ok(i > 0, "block present on last sheet");
   assert.equal(aug[i][1], "2026-Q3");
   const label = (s: string) => aug.slice(i).find((r) => r[0] === s);
-  assert.equal(label("Computed units")![1], 2);
-  assert.equal(label("Extra payable units")![1], 7);
-  assert.equal(label("Blended rate")![1], 465);
-  assert.equal(label("Override payout")![1], 123456);
-  assert.equal(label("PERIOD TOTAL")![1], 123456, "period total = footer.totalPaise / 100");
-  assert.match(String(label("Status")![1]), /^Paid/);
+  assert.equal(must(label("Computed units"))[1], 2);
+  assert.equal(must(label("Extra payable units"))[1], 7);
+  assert.equal(must(label("Blended rate"))[1], 465);
+  assert.equal(must(label("Override payout"))[1], 123456);
+  assert.equal(must(label("PERIOD TOTAL"))[1], 123456, "period total = footer.totalPaise / 100");
+  assert.match(String(must(label("Status"))[1]), /^Paid/);
 }
 
 // ── placeholder + null endTime ────────────────────────────────────────────────
@@ -260,15 +267,15 @@ function detail(over: Partial<PayoutDetail> = {}): PayoutDetail {
     useFooterTotals: true, computedUnitsAcrossMonths: 2, isLastBucket: true,
   });
   const countRow = rows.find((r) => r[0] === null && typeof r[5] === "number");
-  assert.equal(countRow![5], 2, "Count column shows line-item units");
+  assert.equal(must(countRow)[5], 2, "Count column shows line-item units");
   const wavg = rows.find((r) => r[3] === "Weighted average");
-  assert.equal(wavg![6], 1395, "TOTAL uses footer (3 units)");
+  assert.equal(must(wavg)[6], 1395, "TOTAL uses footer (3 units)");
   const i = rows.findIndex((r) => r[0] === "PERIOD ADJUSTMENT");
   assert.ok(i > 0, "adjustment block present on a single adjusted bucket");
   const label = (s: string) => rows.slice(i).find((r) => r[0] === s);
-  assert.equal(label("Computed units")![1], 2);
-  assert.equal(label("Extra payable units")![1], 1);
-  assert.equal(label("PERIOD TOTAL")![1], 1395);
+  assert.equal(must(label("Computed units"))[1], 2);
+  assert.equal(must(label("Extra payable units"))[1], 1);
+  assert.equal(must(label("PERIOD TOTAL"))[1], 1395);
 }
 
 // sheetNamesFor must return exactly one name per bucket (>=1 even with no items)
@@ -294,7 +301,7 @@ async function main() {
     inFlight++;
     maxInFlight = Math.max(maxInFlight, inFlight);
     // resolve in REVERSE id order so completion order != input order
-    const id = new URL(url, "http://x").searchParams.get("instructorId")!;
+    const id = must(new URL(url, "http://x").searchParams.get("instructorId"));
     await new Promise((r) => setTimeout(r, (ids.length - ids.indexOf(id)) * 5));
     inFlight--;
     return {
@@ -323,7 +330,7 @@ async function main() {
 {
   // a failing instructor must not abort the whole export
   const fakeFetch = (async (url: string) => {
-    const id = new URL(url, "http://x").searchParams.get("instructorId")!;
+    const id = must(new URL(url, "http://x").searchParams.get("instructorId"));
     if (id === "bad") return { ok: false, json: async () => ({ error: "boom" }) };
     return { ok: true, json: async () => detail({ instructor: { ...detail().instructor, id } }) };
   }) as unknown as typeof fetch;
@@ -338,7 +345,7 @@ async function main() {
   // test above would still pass — while the real dialog stalls at "3 of 10" forever the moment
   // one instructor 500s. Covers a non-ok response AND a fetch that throws (network drop).
   const fakeFetch = (async (url: string) => {
-    const id = new URL(url, "http://x").searchParams.get("instructorId")!;
+    const id = must(new URL(url, "http://x").searchParams.get("instructorId"));
     if (id === "throws") throw new Error("network down");
     if (id === "notok") return { ok: false, json: async () => ({ error: "boom" }) };
     return { ok: true, json: async () => detail({ instructor: { ...detail().instructor, id } }) };
@@ -381,7 +388,7 @@ async function main() {
   const aug = buildPayoutSheet(d, buckets[1], { useFooterTotals: false, computedUnitsAcrossMonths: 2, isLastBucket: true });
 
   const labelOf = (rows: ReturnType<typeof buildPayoutSheet>) =>
-    rows.find((r) => r[3] === "Weighted average")![5];
+    must(rows.find((r) => r[3] === "Weighted average"))[5];
   assert.equal(labelOf(jul), "Month subtotal", "non-last multi-month sheet is a subtotal");
   assert.equal(labelOf(aug), "Month subtotal", "LAST multi-month sheet is also just its month");
 
@@ -389,14 +396,14 @@ async function main() {
   assert.ok(!aug.some((r) => r[0] === "PERIOD ADJUSTMENT"), "no block when unadjusted");
   const pt = aug.find((r) => r[0] === "PERIOD TOTAL");
   assert.ok(pt, "period total must land on the last sheet even with no adjustment");
-  assert.equal(pt![1], 930, "period total = footer.totalPaise / 100");
+  assert.equal(must(pt)[1], 930, "period total = footer.totalPaise / 100");
   assert.ok(!jul.some((r) => r[0] === "PERIOD TOTAL"), "period total appears exactly once");
 }
 {
   // single bucket keeps the authoritative "TOTAL" label
   const d = detail();
   const rows = buildPayoutSheet(d, splitByMonth(d)[0], { useFooterTotals: true, computedUnitsAcrossMonths: 2, isLastBucket: true });
-  assert.equal(rows.find((r) => r[3] === "Weighted average")![5], "TOTAL", "single bucket says TOTAL");
+  assert.equal(must(rows.find((r) => r[3] === "Weighted average"))[5], "TOTAL", "single bucket says TOTAL");
 }
 
 console.log("payoutExport tests passed");

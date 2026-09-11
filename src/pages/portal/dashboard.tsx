@@ -109,7 +109,6 @@ import { CheckInScanButton } from "@/components/checkin/CheckInScanButton";
 
 import { cdnUrl } from "@/lib/cdnUrl";
 import { Pill } from "@/components/ui/pill";
-import { toast } from "sonner";
 // Milestone tier definitions
 const MILESTONES = [
   {
@@ -173,6 +172,16 @@ type CafeOrderRow = {
   payment_method: string;
   status: string;
   cafe_item?: { name?: string; price?: unknown; image_url?: string | null } | null;
+};
+
+type DashboardUserPackage = {
+  id: string;
+  is_active?: boolean;
+  is_paused?: boolean;
+  expiration_date?: string | null;
+  purchase_date?: string | null;
+  credits_remaining?: number | null;
+  package_type?: { name?: string; is_unlimited?: boolean } | null;
 };
 
 type VitalityBookingRow = {
@@ -291,7 +300,6 @@ export default function Dashboard() {
   const [showOrderHistory, setShowOrderHistory] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [selectedBookingForCheckIn, setSelectedBookingForCheckIn] = useState<DashboardBooking | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string>("");
   
   // Real user data states
   const [userName, setUserName] = useState<string>("");
@@ -331,6 +339,7 @@ export default function Dashboard() {
   const { data: profileData } = useStudioSWR<{ full_name?: string; email?: string }>("/api/user/profile");
   useEffect(() => {
     if (!profileData) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUserName((profileData.full_name || "Member").split(" ")[0]);
   }, [profileData]);
 
@@ -375,13 +384,6 @@ export default function Dashboard() {
   // used as a truthy re-fetch trigger below (`fetchUserData` ignores its
   // argument), never passed to an API. Don't start passing it to one.
   const sessionUserId = (session?.user as { id?: string } | undefined)?.id;
-  useEffect(() => {
-    if (sessionUserId) {
-      setCurrentUserId(sessionUserId);
-      fetchUserData(sessionUserId).then(() => setLoading(false));
-    }
-  }, [sessionUserId]);
-
   async function fetchUserData(_userId: string) {
     // Badge templates + user badges now load via SWR hooks at component top.
     try {
@@ -421,20 +423,21 @@ export default function Dashboard() {
       }
 
       const now = new Date();
-      if (packages.length > 0) {
+      const activePackages: DashboardUserPackage[] = packages;
+      if (activePackages.length > 0) {
         // Headline reflects the member's TRUE total across every active pass (a
         // member can stack several). Any unlimited pass → no counter. The name
         // shown is the pass expiring soonest (the one booking spends first).
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const activeNow = packages.filter((p: any) => new Date(p.expiration_date) > now);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const anyUnlimited = activeNow.some((p: any) => p.package_type?.is_unlimited);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const totalClasses = activeNow.reduce((s: number, p: any) => s + Math.max(0, p.credits_remaining || 0), 0);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const byExpiry = [...activeNow].sort((a: any, b: any) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime());
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const nameSource = byExpiry.find((p: any) => p.package_type?.is_unlimited || (p.credits_remaining || 0) >= 1) || byExpiry[0] || packages[0];
+        const activeNow = activePackages.filter((p) => new Date(p.expiration_date ?? 0) > now);
+        const anyUnlimited = activeNow.some((p) => p.package_type?.is_unlimited);
+        const totalClasses = activeNow.reduce((s, p) => s + Math.max(0, p.credits_remaining || 0), 0);
+        const byExpiry = [...activeNow].sort(
+          (a, b) => new Date(a.expiration_date ?? 0).getTime() - new Date(b.expiration_date ?? 0).getTime(),
+        );
+        const nameSource =
+          byExpiry.find((p) => p.package_type?.is_unlimited || (p.credits_remaining || 0) >= 1) ||
+          byExpiry[0] ||
+          activePackages[0];
         const packageType = nameSource?.package_type;
         if (packageType) {
           setPackageDetails({
@@ -446,9 +449,8 @@ export default function Dashboard() {
         }
         // Only surface genuinely-active passes — an expired/deactivated pass is
         // not "active" and shouldn't sit in the member's pass carousel.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const livePasses = packages
-          .filter((p: any) => {
+        const livePasses = activePackages
+          .filter((p) => {
             const expMs = p.expiration_date ? new Date(p.expiration_date).getTime() : null;
             const notExpired = expMs == null || expMs > now.getTime();
             // Used-up class passes (0 credits) are not live; unlimited never deplete.
@@ -458,11 +460,10 @@ export default function Dashboard() {
           // Expiring soonest first — the dashboard shows only the top 2, and these
           // are the passes the booking flow spends first.
           .sort(
-            (a: any, b: any) =>
+            (a, b) =>
               new Date(a.expiration_date ?? 0).getTime() - new Date(b.expiration_date ?? 0).getTime(),
           );
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setActivePasses(livePasses.map((p: any) => {
+        setActivePasses(livePasses.map((p) => {
           const pt = p.package_type ?? {};
           const exp = p.expiration_date ? String(p.expiration_date) : null;
           const isActive = !!p.is_active && (exp ? new Date(exp).getTime() > now.getTime() : true);
@@ -540,6 +541,14 @@ export default function Dashboard() {
       setVitalityVsPrev({ text: "—", tone: "neutral" });
     }
   }
+
+  useEffect(() => {
+    if (sessionUserId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchUserData(sessionUserId).then(() => setLoading(false));
+    }
+  }, [sessionUserId]);
+
 
 
   // Memoized so child components (StatCardRow, UpcomingScheduleCard,

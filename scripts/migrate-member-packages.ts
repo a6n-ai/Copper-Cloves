@@ -68,7 +68,9 @@ async function main() {
   for (const up of ups) {
     const legacyName = up.package_type?.name ?? "";
     const targetName = REPOINT[legacyName];
-    const target = targetName ? byName.get(targetName)! : up.package_type!;
+    if (!up.package_type) throw new Error(`user_package ${up.id} has no package_type — orphaned FK`);
+    const target = targetName ? byName.get(targetName) : up.package_type;
+    if (!target) throw new Error(`REPOINT names "${targetName}" but no matching package type exists`);
     const isRepoint = Boolean(targetName);
 
     const effectivePaid = num(up.package_type?.price) - num(up.purchase_discount_inr);
@@ -94,7 +96,9 @@ async function main() {
   const byUser = new Map<string, Plan[]>();
   for (const p of view) {
     if (!p.activeAfter || !p.unlimitedAfter) continue;
-    (byUser.get(p.user_id) ?? byUser.set(p.user_id, []).get(p.user_id)!).push(p);
+    const group = byUser.get(p.user_id) ?? [];
+    group.push(p);
+    byUser.set(p.user_id, group);
   }
   for (const group of byUser.values()) {
     if (group.length < 2) continue;

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { fromNodeHeaders } from "better-auth/node";
-import { auth, computeFingerprint } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import logger from "@/lib/logger";
 
 /**
@@ -25,13 +25,14 @@ export interface StudioSession {
 }
 
 /**
- * Server-side session for API routes and SSR. A valid session cookie is not
- * enough: the session must still be bound to the device it was issued to.
- *
- * Fingerprint MISMATCH REJECTS — it does not rebind. Rebinding is what allowed
- * the 2026-06-30 incident, where a CDN-cached /api/auth/session response served
- * to another user let a leaked cookie take over the account. Cost of rejecting:
- * one re-login after a genuine User-Agent change (e.g. a browser auto-update).
+ * Server-side session for API routes and SSR. The session cookie itself is
+ * the trust boundary — no device/UA binding on top of it (dropped 2026-09-11:
+ * the CDN that made a leaked cookie exploitable, Amplify/CloudFront in front
+ * of /api/auth/session, no longer exists — prod is EC2 + Caddy, no cache in
+ * front of the app — and no-store + Vary: Cookie headers stay regardless.
+ * The binding's remaining cost was rejecting legitimate cross-browser session
+ * reuse, e.g. a QR scan opening in a different browser/webview than the one
+ * the member signed in on, which forced a re-login mid check-in).
  */
 export async function getStudioServerSession(
   req: NextApiRequest,
@@ -40,22 +41,6 @@ export async function getStudioServerSession(
   try {
     const result = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
     if (!result?.user || !result.session) return null;
-
-    // No fingerprint => this row did NOT come through databaseHooks.session.create
-    // (which sets one unconditionally, and the field is `input: false` so nothing
-    // else can). A direct DB write, a script, or a future plugin path that bypasses
-    // the hook is exactly what must not be trusted. Reject, same as the retired
-    // session guard rejected a token with no `sid`. There is no legacy population to drain — the
-    // sessions table was created empty and better-auth has never served production.
-    const stored = result.session.fingerprint;
-    const ua = (req.headers["user-agent"] as string | undefined) ?? "";
-    if (!stored || stored !== computeFingerprint(ua)) {
-      logger.warn(
-        { sessionId: result.session.id, hasFingerprint: Boolean(stored) },
-        "[auth] session fingerprint missing or mismatched — rejecting",
-      );
-      return null;
-    }
 
     // No profile => the identity exists but has no studio membership row. Treat
     // as logged out rather than handing downstream code a null Profile id it

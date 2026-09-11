@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "POST") return res.status(405).end();
 
   const body = req.body as Partial<OrphanActionBody>;
-  const admin = session!.user as { id?: string; role?: string; name?: string };
+  const admin = session.user as { id?: string; role?: string; name?: string };
 
   if (body.action === "link") {
     const { paymentId, bookingId } = body;

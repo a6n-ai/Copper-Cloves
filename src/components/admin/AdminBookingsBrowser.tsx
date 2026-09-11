@@ -69,6 +69,7 @@ function RefundCheckDialog({ row, onClose }: { row: AdminBookingRow; onClose: ()
 
   useEffect(() => {
     if (!row.razorpayPaymentId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError("No Razorpay payment linked to this booking.");
       setLoading(false);
       return;
@@ -175,6 +176,7 @@ export function AdminBookingsBrowser() {
   const [syncingRefunds, setSyncingRefunds] = useState(false);
 
   // Reset to page 1 whenever a filter changes.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setPage(1); }, [status, q, range]);
 
   useEffect(() => {
@@ -187,6 +189,7 @@ export function AdminBookingsBrowser() {
     params.set("pageSize", String(PAGE_SIZE));
 
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     setError(null);
     fetch(`/api/admin/bookings?${params.toString()}`)

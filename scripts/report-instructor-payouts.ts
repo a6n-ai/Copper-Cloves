@@ -28,8 +28,6 @@ import {
   type RateCard,
 } from "@/lib/payoutCalc";
 
-const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
-
 async function main() {
   const settings = await getPayoutSettings();
   const globalCard: RateCard = {

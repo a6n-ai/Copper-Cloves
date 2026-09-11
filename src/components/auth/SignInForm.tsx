@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
 import { authService } from "@/services/authService";
 import { primaryRole } from "@/lib/auth/roles";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ const PORTALS: Record<Role, { label: string; blurb: string; href: string; icon: 
 };
 
 export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void }) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
@@ -40,10 +42,15 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
         return;
       }
       const role = primaryRole(user.role) ?? "user";
+      // Only ever follow a same-origin relative path (e.g. back to a QR
+      // check-in link) — a raw query param is not a trusted redirect target,
+      // so reject anything that isn't a genuine relative path.
+      const raw = typeof router.query.callbackURL === "string" ? router.query.callbackURL : "";
+      const callbackURL = raw.startsWith("/") && !raw.startsWith("//") ? raw : null;
       // Hard navigation so the new session starts with a clean in-memory SWR
       // cache — a soft router.replace would reuse the previous user's cached
       // data (profile/packages/stats) and land you in "someone else's account".
-      window.location.assign(PORTALS[role].href);
+      window.location.assign(callbackURL ?? PORTALS[role].href);
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);

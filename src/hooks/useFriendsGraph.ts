@@ -20,6 +20,7 @@ export function useFriendsGraph() {
       getSuggestions().then(setSuggestions),
     ]).finally(() => setLoading(false));
   }, []);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { reload(); }, [reload]);
 
   const onAdd = useCallback(async (id: string) => {

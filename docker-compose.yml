@@ -17,7 +17,13 @@ services:
       POSTGRES_PASSWORD: copper_dev
       POSTGRES_DB: copperandcloves
     volumes:
-      - copper_pg_data:/var/lib/postgresql/data
+      # postgres:18 moved PGDATA to /var/lib/postgresql/18/docker and declares its
+      # VOLUME at /var/lib/postgresql. Mounting at the old .../data path makes the
+      # image initialise into an anonymous volume, notice the stray second mount and
+      # refuse to boot ("There appears to be PostgreSQL data in ..."). Mount the
+      # parent instead; 18 then keeps its data in a version-named subdirectory, so an
+      # existing PG16 volume can sit alongside untouched.
+      - copper_pg_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U copper -d copperandcloves"]
       interval: 5s

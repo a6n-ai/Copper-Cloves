@@ -246,6 +246,7 @@ export function ActivityLogList({
 
   // Reset to page 1 + reload whenever endpoint/query/sort change.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems([]);
     setPage(1);
     void load(1);

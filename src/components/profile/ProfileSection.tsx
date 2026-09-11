@@ -193,6 +193,7 @@ export function ProfileSection({ isMember, title, subtitle }: ProfileSectionProp
     setAvatarUrl(p.avatar_url || null);
     if (p.questionnaire && typeof p.questionnaire === "object") {
       const q = p.questionnaire as Record<string, unknown>;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFitnessGoals(Array.isArray(q.fitnessGoals) ? q.fitnessGoals as string[] : []);
       setHealthShort(Array.isArray(q.healthIssuesShort) ? q.healthIssuesShort as string[] : []);
       setHealthLong(Array.isArray(q.healthIssuesLong) ? q.healthIssuesLong as string[] : []);

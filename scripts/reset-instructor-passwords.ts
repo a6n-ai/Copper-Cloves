@@ -25,8 +25,11 @@ async function main() {
 
   const targets: { name: string; email: string; profileId: string; otherRoles: string[]; unlinked: boolean }[] = [];
   for (const inst of instructors) {
+    // Query already filters profile_id: { not: null } — Prisma's generated type
+    // just can't reflect that through a `where` clause.
+    if (!inst.profile_id) continue;
     const profile = await prisma.profile.findUnique({
-      where: { id: inst.profile_id! },
+      where: { id: inst.profile_id },
       select: { id: true, email: true, user_id: true, identity: { select: { role: true } } },
     });
     if (!profile) continue;

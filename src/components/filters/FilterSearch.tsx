@@ -34,6 +34,7 @@ export function FilterSearch({
 
   // mirror parent value into the box (e.g. external reset)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocal(value);
   }, [value]);
 

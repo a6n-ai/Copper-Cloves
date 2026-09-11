@@ -37,6 +37,7 @@ export function ResponsiveDialog({ open, onOpenChange, children }: RootProps) {
 
   useEffect(() => {
     if (open === false) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (frozen !== null) setFrozen(null);
       return;
     }

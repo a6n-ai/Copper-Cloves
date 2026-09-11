@@ -99,6 +99,7 @@ function DashboardChrome({ children }: Readonly<{ children: React.ReactNode }>) 
   // on it directly causes a hydration mismatch. Defer the shell to after mount
   // so SSR and the first client render agree; the shell then appears once hydrated.
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
   // Pull scalar fields out of `session` once. Every session-refetch tick
   // produces a fresh `session` object even when the JWT is unchanged;

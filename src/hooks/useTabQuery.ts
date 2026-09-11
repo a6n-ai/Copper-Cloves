@@ -16,6 +16,7 @@ export function useTabQuery(
   const qv = router.query[key];
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (typeof qv === "string" && valid.includes(qv)) setTab(qv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qv]);

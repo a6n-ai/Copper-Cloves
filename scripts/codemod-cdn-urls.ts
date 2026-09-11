@@ -63,7 +63,6 @@ function rewriteFile(path: string): boolean {
 
   // After the above, JSX attributes look like  src=cdnUrl("/foo.jpg")  which is invalid.
   // Wrap any  attr=cdnUrl(...)  into  attr={cdnUrl(...)}.
-  const withBraces = next.replace(/=cdnUrl\(/g, "={cdnUrl(");
   // The opening paren above unbalances; close it by replacing `cdnUrl("…")`  in an attr context
   // — we instead use a smarter pattern: find `={cdnUrl("…")}` already balanced? No, the regex above
   // only inserts an opening `{`, leaving the `)` unmatched. Fix by adding closing `}` after the

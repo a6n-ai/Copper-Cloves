@@ -69,11 +69,13 @@ async function optimize(file: string) {
   let pipeline = sharp(input, { failOn: "none" }).rotate(); // honor EXIF orientation
 
   const meta = await pipeline.metadata();
-  const longest = Math.max(meta.width ?? 0, meta.height ?? 0);
+  const width = meta.width ?? 0;
+  const height = meta.height ?? 0;
+  const longest = Math.max(width, height);
   if (longest > MAX_EDGE) {
     pipeline = pipeline.resize({
-      width: meta.width! >= meta.height! ? MAX_EDGE : undefined,
-      height: meta.height! > meta.width! ? MAX_EDGE : undefined,
+      width: width >= height ? MAX_EDGE : undefined,
+      height: height > width ? MAX_EDGE : undefined,
       withoutEnlargement: true,
     });
   }

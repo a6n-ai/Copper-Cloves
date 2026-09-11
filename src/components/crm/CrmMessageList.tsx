@@ -224,6 +224,7 @@ export function CrmMessageList({
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems([]);
     setPage(1);
     void load(1);

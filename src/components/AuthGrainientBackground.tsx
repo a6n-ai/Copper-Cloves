@@ -114,7 +114,8 @@ function stop(live: string, anchor: [number, number, number], fallback: [number,
 }
 
 function compile(gl: WebGL2RenderingContext, type: number, src: string) {
-  const sh = gl.createShader(type)!;
+  const sh = gl.createShader(type);
+  if (!sh) return null;
   gl.shaderSource(sh, src);
   gl.compileShader(sh);
   return sh;
@@ -156,9 +157,12 @@ export function AuthGrainientBackground({
     const gl = canvas.getContext("webgl2");
     if (!gl) return;
 
-    const prog = gl.createProgram()!;
-    gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, VERT));
-    gl.attachShader(prog, compile(gl, gl.FRAGMENT_SHADER, FRAG));
+    const prog = gl.createProgram();
+    const vertShader = compile(gl, gl.VERTEX_SHADER, VERT);
+    const fragShader = compile(gl, gl.FRAGMENT_SHADER, FRAG);
+    if (!prog || !vertShader || !fragShader) return;
+    gl.attachShader(prog, vertShader);
+    gl.attachShader(prog, fragShader);
     gl.linkProgram(prog);
     gl.useProgram(prog);
 

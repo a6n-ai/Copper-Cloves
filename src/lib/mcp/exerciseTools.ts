@@ -15,6 +15,50 @@ export type ExerciseToolContext = {
   profileId: string;
 };
 
+/**
+ * Date argument accepted from a model.
+ *
+ * NOT `z.string().datetime()`. That demands a trailing `Z`, and small models routinely
+ * emit local-looking ISO ("2026-08-10T05:58:00") or a bare date ("2026-08-10"). Zod
+ * rejects those, the tool call fails, the model retries — and with a step cap it can
+ * exhaust its budget on format retries and return an EMPTY reply. Observed live:
+ * three get_class_schedule attempts, no answer.
+ *
+ * So accept anything Date can parse and normalise here. A bad value still fails, but on
+ * being unparseable rather than on punctuation.
+ */
+const modelDate = z
+  .string()
+  .refine((s) => !Number.isNaN(Date.parse(s)), {
+    message: "Expected a parseable date, e.g. 2026-08-10 or 2026-08-10T00:00:00Z",
+  })
+  .optional();
+
+/** The studio is in Bengaluru. Members think in IST; the DB stores UTC. */
+const STUDIO_TIME_ZONE = "Asia/Kolkata";
+
+const LOCAL_TIME_FORMAT = new Intl.DateTimeFormat("en-GB", {
+  timeZone: STUDIO_TIME_ZONE,
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+});
+
+/**
+ * Human-readable studio-local time, alongside the raw UTC ISO string.
+ *
+ * Handing the model only UTC makes it do timezone maths and weekday derivation itself,
+ * and it gets them wrong: a 01:30Z class was reported as "1:30 AM" (it is 07:00 IST),
+ * and once converted it still mislabelled weekdays — "Mon 11 Aug" for a Tuesday. Both
+ * are cheap and exact here, so compute them and let the model just read the string out.
+ */
+function toLocalLabel(d: Date): string {
+  return LOCAL_TIME_FORMAT.format(d).replace(",", "");
+}
+
 export type ExerciseToolDef<Shape extends z.ZodRawShape> = {
   name: string;
   description: string;
@@ -40,13 +84,19 @@ const getUpcomingBookings: ExerciseToolDef<Record<string, never>> = {
       orderBy: { class_schedule: { start_time: "asc" } },
     });
     return rows
-      .filter((b) => b.class_schedule)
+      .filter(
+        (b): b is typeof b & { class_schedule: NonNullable<(typeof b)["class_schedule"]> } =>
+          b.class_schedule != null,
+      )
       .map((b) => ({
         booking_id: b.id,
-        class_name: b.class_schedule!.class_model?.name ?? b.class_name ?? "Class",
-        start_time: b.class_schedule!.start_time.toISOString(),
-        end_time: b.class_schedule!.end_time.toISOString(),
-        instructor_name: b.class_schedule!.instructor?.name ?? null,
+        class_name: b.class_schedule.class_model?.name ?? b.class_name ?? "Class",
+        start_time: b.class_schedule.start_time.toISOString(),
+        end_time: b.class_schedule.end_time.toISOString(),
+        // Pre-formatted studio-local time — quote this to the member verbatim.
+        start_local: toLocalLabel(b.class_schedule.start_time),
+        end_local: toLocalLabel(b.class_schedule.end_time),
+        instructor_name: b.class_schedule.instructor?.name ?? null,
         status: b.status,
       }));
   },
@@ -55,8 +105,10 @@ const getUpcomingBookings: ExerciseToolDef<Record<string, never>> = {
 // --- get_class_schedule -------------------------------------------------------------
 
 const getClassScheduleShape = {
-  from_date: z.string().datetime().optional().describe("ISO datetime, defaults to now"),
-  to_date: z.string().datetime().optional().describe("ISO datetime, defaults to 14 days from now"),
+  from_date: modelDate.describe("Date or ISO datetime. Optional — omit it and this defaults to now."),
+  to_date: modelDate.describe(
+    "Date or ISO datetime. Optional — omit it and this defaults to 14 days from now.",
+  ),
   category: z.string().optional().describe("Class category filter, e.g. 'Gentle', 'High'"),
   instructor_name: z.string().optional(),
 };
@@ -88,6 +140,9 @@ const getClassSchedule: ExerciseToolDef<typeof getClassScheduleShape> = {
       category: s.class_model?.category ?? null,
       start_time: s.start_time.toISOString(),
       end_time: s.end_time.toISOString(),
+      // Pre-formatted studio-local time — quote this to the member verbatim.
+      start_local: toLocalLabel(s.start_time),
+      end_local: toLocalLabel(s.end_time),
       instructor_name: s.instructor?.name ?? null,
       spots_left: s.available_spots,
     }));

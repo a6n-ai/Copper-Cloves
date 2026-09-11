@@ -6,7 +6,7 @@ import { hasRole } from "@/lib/auth/roles";
  * Enforce admin-only access for API routes under /api/admin/* (and similar).
  * Returns false after sending 401/403; caller should `return` immediately.
  */
-export function ensureAdmin(session: Session | null, res: NextApiResponse): boolean {
+export function ensureAdmin(session: Session | null, res: NextApiResponse): session is Session {
   if (!session?.user) {
     res.status(401).json({ error: "Unauthorized" });
     return false;

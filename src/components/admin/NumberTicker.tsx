@@ -34,6 +34,7 @@ export function NumberTicker({
     // Reduced motion: skip the count-up and jump straight to the final value.
     if (reduceMotion) {
       currentRef.current = end;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setValue(end);
       return;
     }

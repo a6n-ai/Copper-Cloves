@@ -361,6 +361,7 @@ export default function ControlPanel() {
     if (!hasRole(userRole, "admin")) { router.push("/admin/login"); return; }
     fetchClasses();
     void fetchPauseTickets();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending, session, userRole]);

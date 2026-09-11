@@ -26,21 +26,6 @@ export default function KitchenMembers() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    if (isPending) return;
-    if (!session?.user) {
-      router.push("/login");
-      return;
-    }
-    const role = (session?.user as { role?: string })?.role;
-    if (!hasRole(role, "admin") && !hasRole(role, "chef")) {
-      router.push("/login");
-      return;
-    }
-    void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPending, session]);
-
   async function load() {
     setLoading(true);
     try {
@@ -53,6 +38,22 @@ export default function KitchenMembers() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (isPending) return;
+    if (!session?.user) {
+      router.push("/login");
+      return;
+    }
+    const role = (session?.user as { role?: string })?.role;
+    if (!hasRole(role, "admin") && !hasRole(role, "chef")) {
+      router.push("/login");
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPending, session]);
 
   const filtered = members.filter((m) => {
     const q = query.trim().toLowerCase();

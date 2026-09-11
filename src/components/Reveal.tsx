@@ -29,6 +29,8 @@ export function Reveal({ children, className = "", delay = 0 }: Readonly<RevealP
     const el = ref.current;
     if (!el) return;
     if (typeof IntersectionObserver === "undefined") {
+      // Environment capability check, not derived render state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRevealed(true);
       return;
     }

@@ -35,6 +35,9 @@ export function WeatherWidget({ weather }: Readonly<{ weather: AuthWeather | nul
   // Time-of-day comes from the viewer's clock; computed after mount to avoid SSR mismatch.
   const [tod, setTod] = useState<TimeOfDay | null>(null);
   useEffect(() => {
+    // Reads the viewer's clock post-mount to avoid SSR/client mismatch — not
+    // derived render state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTod(timeOfDay(new Date().getHours()));
     const id = setInterval(() => setTod(timeOfDay(new Date().getHours())), 60_000);
     return () => clearInterval(id);
@@ -42,6 +45,8 @@ export function WeatherWidget({ weather }: Readonly<{ weather: AuthWeather | nul
 
   if (!weather && !tod) return null;
 
+  // weatherIcon always returns one of the stable, module-level Lucide icon
+  // components (never a freshly-created one) — false positive on this rule.
   const WIcon = weather ? weatherIcon(weather.condition, weather.isDay) : null;
   const todMeta = tod ? TOD_META[tod] : null;
   const TIcon = todMeta?.icon ?? null;
@@ -50,6 +55,9 @@ export function WeatherWidget({ weather }: Readonly<{ weather: AuthWeather | nul
     <div className="inline-flex items-center gap-2.5 [text-shadow:0_1px_6px_rgba(255,255,255,0.7)]">
       {weather && WIcon && (
         <span className="inline-flex items-center gap-1.5">
+          {/* WIcon is always one of the stable, module-level Lucide icon components
+              picked by weatherIcon() — never freshly created — false positive. */}
+          {/* eslint-disable-next-line react-hooks/static-components */}
           <WIcon className="h-4 w-4 text-sage drop-shadow-sm" />
           <span className="font-body text-sm font-semibold text-charcoal">{Math.round(weather.tempC)}°</span>
           <span className="font-body text-xs font-medium text-charcoal/70">{weather.city}</span>

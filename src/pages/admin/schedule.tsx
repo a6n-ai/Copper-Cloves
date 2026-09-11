@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
@@ -337,10 +337,10 @@ export default function AdminSchedule() {
       classNotes: "",
     },
   });
-  const watchMode = classForm.watch("mode");
-  const watchClassId = classForm.watch("classId");
-  const watchWeekdays = classForm.watch("weekdays") ?? [];
-  const watchMultiDates = classForm.watch("multiDates") ?? [];
+  const watchMode = useWatch({ control: classForm.control, name: "mode" });
+  const watchClassId = useWatch({ control: classForm.control, name: "classId" });
+  const watchWeekdays = useWatch({ control: classForm.control, name: "weekdays" }) ?? [];
+  const watchMultiDates = useWatch({ control: classForm.control, name: "multiDates" }) ?? [];
 
   // Combobox open state per field.
   const [classPickerOpen, setClassPickerOpen] = useState(false);
@@ -471,58 +471,6 @@ export default function AdminSchedule() {
   // Scalar role — avoids session-object identity churn refiring the loader.
   const userRole = (session?.user as { role?: string })?.role;
 
-  // Catalog + instructor roster don't vary by month — fetch them once per auth
-  // state, not on every calendar page turn.
-  useEffect(() => {
-    if (isPending) return;
-    if (!authed) {
-      router.push("/admin/login");
-      return;
-    }
-    if (!hasRole(userRole, "admin")) {
-      router.push("/admin/login");
-      return;
-    }
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const catErr = await loadDbData();
-        if (!cancelled) setCatalogError(catErr);
-      } catch {
-        if (!cancelled) router.push("/admin/login");
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPending, authed, userRole]);
-
-  // Schedule is month-scoped — refetch it (and only it) when the viewed month changes.
-  useEffect(() => {
-    if (!authed || !hasRole(userRole, "admin")) return;
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const schedErr = await loadSchedule();
-        if (!cancelled) {
-          setScheduleError(schedErr);
-          setLoading(false);
-        }
-      } catch {
-        if (!cancelled) router.push("/admin/login");
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authed, userRole, selectedMonth, scheduleViewYear]);
-
   const loadDbData = async (): Promise<string | null> => {
     try {
       const [classesRes, instructorsRes] = await Promise.all([
@@ -624,6 +572,58 @@ export default function AdminSchedule() {
     }
   };
 
+  // Catalog + instructor roster don't vary by month — fetch them once per auth
+  // state, not on every calendar page turn.
+  useEffect(() => {
+    if (isPending) return;
+    if (!authed) {
+      router.push("/admin/login");
+      return;
+    }
+    if (!hasRole(userRole, "admin")) {
+      router.push("/admin/login");
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const catErr = await loadDbData();
+        if (!cancelled) setCatalogError(catErr);
+      } catch {
+        if (!cancelled) router.push("/admin/login");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPending, authed, userRole]);
+
+  // Schedule is month-scoped — refetch it (and only it) when the viewed month changes.
+  useEffect(() => {
+    if (!authed || !hasRole(userRole, "admin")) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const schedErr = await loadSchedule();
+        if (!cancelled) {
+          setScheduleError(schedErr);
+          setLoading(false);
+        }
+      } catch {
+        if (!cancelled) router.push("/admin/login");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed, userRole, selectedMonth, scheduleViewYear]);
+
   const handleAddClass = () => {
     setEditingClass(null);
     classForm.reset({
@@ -678,6 +678,7 @@ export default function AdminSchedule() {
     if (locked) {
       toast.error("This class is over and can no longer be edited.");
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       handleEditClass(sc);
     }
     const rest = { ...router.query };
@@ -1184,9 +1185,12 @@ export default function AdminSchedule() {
                       const isActive = (sc.status ?? "available") === "available";
                       const isInactive = sc.status === "inactive";
                       const isCancelled = sc.status === "cancelled";
+                      // Time-based edit lock (see .llm/known-issues.md #8b) — a
+                      // point-in-time gate, not a value React needs to track.
                       const isLockedRow =
                         sc.status === "completed" ||
                         sc.status === "abandoned" ||
+                        // eslint-disable-next-line react-hooks/purity
                         (!!sc.endTimeIso && new Date(sc.endTimeIso).getTime() < Date.now());
                       const toggleable = !isLockedRow && (isActive || isInactive || isCancelled);
                       return (

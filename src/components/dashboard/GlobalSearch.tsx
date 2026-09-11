@@ -81,6 +81,7 @@ export function GlobalSearch({ config }: { config: PortalConfig }) {
     return () => document.removeEventListener("mousedown", onDown);
   }, [focused]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (focused) setRecents(loadRecents(config.kind)); }, [focused, config.kind]);
 
   const pageItems: SearchItem[] = useMemo(() => {

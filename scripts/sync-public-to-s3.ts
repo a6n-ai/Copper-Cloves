@@ -8,21 +8,23 @@ import { createHash } from "node:crypto";
 config({ path: ".env" });
 config({ path: ".env.local", override: true });
 
-const BUCKET = process.env.S3_BUCKET!;
+const BUCKET = process.env.S3_BUCKET;
 const REGION = process.env.S3_REGION || "ap-south-1";
 const KEY_PREFIX = process.env.S3_PUBLIC_PREFIX || "public";
 const PUBLIC_DIR = join(process.cwd(), "public");
+const ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
+const SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
 
-if (!BUCKET) {
-  console.error("Missing S3_BUCKET");
+if (!BUCKET || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY) {
+  console.error("Missing S3_BUCKET / S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY");
   process.exit(1);
 }
 
 const client = new S3Client({
   region: REGION,
   credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+    accessKeyId: ACCESS_KEY_ID,
+    secretAccessKey: SECRET_ACCESS_KEY,
   },
 });
 

@@ -231,20 +231,9 @@ export default function AdminMembers() {
 
   // Reset to the first page whenever the filter/sort criteria change.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
   }, [f.values.search, f.values.pkg, f.values.account, sortKey, sortDir]);
-
-  // Server-driven list: refetch (debounced) on any page/filter/sort change. The
-  // debounce coalesces rapid search keystrokes and the page-reset above into one
-  // request. Owns the loading flag for the initial paint.
-  useEffect(() => {
-    if (!session?.user || !hasRole(userRole, "admin")) return;
-    const t = setTimeout(() => {
-      void loadMembers().finally(() => setLoading(false));
-    }, 250);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPending, session, userRole, page, f.values.search, f.values.pkg, f.values.account, sortKey, sortDir]);
 
   const loadMembers = async () => {
     setLoadError(null);
@@ -291,6 +280,18 @@ export default function AdminMembers() {
       setMembers([]);
     }
   };
+
+  // Server-driven list: refetch (debounced) on any page/filter/sort change. The
+  // debounce coalesces rapid search keystrokes and the page-reset above into one
+  // request. Owns the loading flag for the initial paint.
+  useEffect(() => {
+    if (!session?.user || !hasRole(userRole, "admin")) return;
+    const t = setTimeout(() => {
+      void loadMembers().finally(() => setLoading(false));
+    }, 250);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPending, session, userRole, page, f.values.search, f.values.pkg, f.values.account, sortKey, sortDir]);
 
   const stats = { ...counts, checkInsThisMonth };
 

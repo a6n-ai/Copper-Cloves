@@ -24,7 +24,9 @@ export function useActivityTracking() {
   const status = session?.user ? "authenticated" : isPending ? "loading" : "unauthenticated";
   const installed = useRef(false);
   const statusRef = useRef(status);
-  statusRef.current = status;
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   useEffect(() => {
     if (!installed.current) {

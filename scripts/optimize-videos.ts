@@ -28,8 +28,6 @@ const MAX_HEIGHT = 1080;
 const CRF = 23;
 const PRESET = "slow";
 const POSTER_AT = 0.5; // seconds into the clip
-const POSTER_MAX_WIDTH = 1280;
-const POSTER_QUALITY = 80;
 
 const args = process.argv.slice(2);
 const DRY = args.includes("--dry");

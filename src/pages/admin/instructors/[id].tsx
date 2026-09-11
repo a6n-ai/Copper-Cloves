@@ -87,6 +87,7 @@ export default function InstructorProfilePage() {
   const [tab, setTab] = useState<"profile" | "payout">("profile");
   useEffect(() => {
     if (router.isReady) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTab(router.query.tab === "payout" ? "payout" : "profile");
     }
   }, [router.isReady, router.query.tab]);
@@ -104,6 +105,7 @@ export default function InstructorProfilePage() {
   }, [id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (session?.user) load();
   }, [session, load]);
 

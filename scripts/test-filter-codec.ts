@@ -1,5 +1,6 @@
 // scripts/test-filter-codec.ts
 import { format } from "date-fns";
+import type { DateRange } from "react-day-picker";
 import {
   stringCodec,
   dateRangeCodec,
@@ -24,7 +25,7 @@ const codecs = {
   status: stringCodec("status", "all"),
   range: dateRangeCodec("from", "to"),
 };
-const defaults = { search: "", status: "all", range: undefined as any };
+const defaults = { search: "", status: "all", range: undefined as DateRange | undefined };
 
 eq("strip defaults", serializeFilters({ search: "", status: "all", range: undefined }, codecs), {});
 
@@ -43,8 +44,9 @@ eq("serialize range", serializeFilters({ search: "", status: "all", range }, cod
 const back = deserializeFilters({ search: "amy", status: "active", from: "2026-01-05", to: "2026-01-09" }, codecs, defaults);
 eq("deserialize search", back.search, "amy");
 eq("deserialize status", back.status, "active");
-eq("deserialize range from", format((back.range as any).from, "yyyy-MM-dd"), "2026-01-05");
-eq("deserialize range to", format((back.range as any).to, "yyyy-MM-dd"), "2026-01-09");
+const backRange = back.range as DateRange;
+eq("deserialize range from", format(backRange.from as Date, "yyyy-MM-dd"), "2026-01-05");
+eq("deserialize range to", format(backRange.to as Date, "yyyy-MM-dd"), "2026-01-09");
 
 const empty = deserializeFilters({}, codecs, defaults);
 eq("empty → default status", empty.status, "all");

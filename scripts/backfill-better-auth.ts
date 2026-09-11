@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { serializeRoles, parseRoles, STUDIO_ROLES, type Role } from "@/lib/auth/roles";
+import { serializeRoles, parseRoles, STUDIO_ROLES } from "@/lib/auth/roles";
 import { packMultiHash, unpack, describeHash } from "@/lib/auth/password";
 import { legacyHashedPasswords } from "./legacyProfilePasswords";
 

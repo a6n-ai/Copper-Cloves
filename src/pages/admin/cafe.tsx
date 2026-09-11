@@ -330,6 +330,7 @@ const OrderCard = memo(function OrderCard({
   // client-side to avoid SSR hydration mismatch on the ticking clock + timestamps.
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
@@ -607,23 +608,6 @@ export default function AdminCafe() {
   const { data: session, isPending } = useSession();
 
   const userRole = (session?.user as { role?: string })?.role;
-  useEffect(() => {
-    if (isPending) return;
-    if (!session?.user) { router.push("/login"); return; }
-    if (!hasRole(userRole, "admin") && !hasRole(userRole, "chef")) { router.push("/login"); return; }
-    fetchMenuItems();
-    fetchAllOrders();
-
-    const pollingInterval = setInterval(() => {
-      if (activeTab !== "orders") return;
-      if (typeof document !== "undefined" && document.hidden) return;
-      fetchAllOrders(true);
-    }, 10000);
-    return () => {
-      clearInterval(pollingInterval);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPending, session, userRole, activeTab]);
 
   const fetchMenuItems = async () => {
     try {
@@ -670,6 +654,25 @@ export default function AdminCafe() {
       }
     }
   };
+
+  useEffect(() => {
+    if (isPending) return;
+    if (!session?.user) { router.push("/login"); return; }
+    if (!hasRole(userRole, "admin") && !hasRole(userRole, "chef")) { router.push("/login"); return; }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchMenuItems();
+    fetchAllOrders();
+
+    const pollingInterval = setInterval(() => {
+      if (activeTab !== "orders") return;
+      if (typeof document !== "undefined" && document.hidden) return;
+      fetchAllOrders(true);
+    }, 10000);
+    return () => {
+      clearInterval(pollingInterval);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPending, session, userRole, activeTab]);
 
   const updateOrderStatus = useCallback(async (orderId: string, newStatus: string) => {
     try {

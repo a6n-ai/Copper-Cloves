@@ -22,15 +22,18 @@ export default function CheckinDeepLink() {
   }, [isPending, session, token, submit]);
 
   useEffect(() => {
-    if (!signedOut) return;
-    // /login has no redirect-back; sign in then use the in-app Scan button.
-    const id = setTimeout(() => void router.replace("/login"), 1800);
+    if (!signedOut || !token) return;
+    const callbackURL = `/checkin?t=${encodeURIComponent(token)}`;
+    const id = setTimeout(
+      () => void router.replace(`/login?callbackURL=${encodeURIComponent(callbackURL)}`),
+      1800,
+    );
     return () => clearTimeout(id);
-  }, [signedOut, router]);
+  }, [signedOut, token, router]);
 
   let body: React.ReactNode = "Checking you in…";
   if (!isPending && !token) body = "Missing check-in code.";
-  else if (signedOut) body = "Please sign in, then tap “Scan check-in” in your dashboard.";
+  else if (signedOut) body = "Please sign in — you'll come straight back here to finish checking in.";
   else if (state.kind === "done") body = `${state.text} You can close this.`;
   else if (state.kind === "error") body = state.text;
   else if (state.kind === "confirm") {

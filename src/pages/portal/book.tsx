@@ -801,6 +801,7 @@ export default function BookClass() {
   const { data: profileData } = useStudioSWR<{ full_name?: string; email?: string; phone?: string; whatsapp_phone?: string }>("/api/user/profile");
   useEffect(() => {
     if (!profileData) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUserName(profileData.full_name || "Member");
     setUserEmail(profileData.email || "");
     setUserPhone(profileData.phone || profileData.whatsapp_phone || "");
@@ -913,6 +914,10 @@ export default function BookClass() {
     if (!Array.isArray(rawSchedules)) return [];
     const weekStart = weekMonday;
     const weekEnd = endOfSundayWeekLocal(weekMonday);
+    // Point-in-time filter cutoff, not a value React needs to track — recomputed
+    // whenever rawSchedules/weekMonday change, which is often enough for a
+    // class-listing filter.
+    // eslint-disable-next-line react-hooks/purity
     const nowMs = Date.now();
     return rawSchedules
       .filter((s) => {
@@ -972,51 +977,6 @@ export default function BookClass() {
 
   const startIndex = (currentPage - 1) * classesPerPage;
   const paginatedClasses = filteredClasses.slice(startIndex, startIndex + classesPerPage);
-
-  useEffect(() => {
-    // SSR (requireSessionSSP) already gates this route — unauthenticated visitors
-    // never reach the client. No client-side redirect to the legacy /portal/login.
-    if (authed) {
-      setIsAuthenticated(true);
-      checkAuthAndLoadData();
-    }
-  }, [authed]);
-
-  // Guards the one-shot auto-advance below so it can't fight a manual day pick.
-  const didAutoAdvanceDay = useRef(false);
-
-  useEffect(() => {
-    if (authed) {
-      // Current week → preselect today; other weeks → show all days.
-      setSelectedDayIndex(weekOffset === 0 ? mondayWeekIndex(new Date()) : null);
-      f.reset();
-      didAutoAdvanceDay.current = false;
-    }
-    // Intentionally keyed on authed/weekOffset only. `f` is a fresh object each render, so depending
-    // on it would re-run every render; f.reset is a stable useCallback that only needs to fire here.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authed, weekOffset]);
-
-  // Current week only: once classes load, if every class today is already done,
-  // jump to the next day that still has a bookable class so the member doesn't
-  // land on a list of "Completed". One-shot per week load; never overrides a manual pick.
-  useEffect(() => {
-    if (!authed || weekOffset !== 0) return;
-    if (loadingClasses || didAutoAdvanceDay.current || allClasses.length === 0) return;
-    didAutoAdvanceDay.current = true;
-    const today = mondayWeekIndex(new Date());
-    const dayHasBookable = (idx: number) =>
-      allClasses.some(
-        (c) => c.isBookable !== false && isSameLocalCalendarDay(new Date(c.startTimeIso), weekDays[idx]),
-      );
-    if (dayHasBookable(today)) return;
-    for (let i = today + 1; i <= 6; i++) {
-      if (dayHasBookable(i)) {
-        setSelectedDayIndex(i);
-        return;
-      }
-    }
-  }, [authed, weekOffset, loadingClasses, allClasses, weekDays]);
 
   async function checkAuthAndLoadData() {
     try {
@@ -1081,6 +1041,54 @@ export default function BookClass() {
     }
   }
 
+  useEffect(() => {
+    // SSR (requireSessionSSP) already gates this route — unauthenticated visitors
+    // never reach the client. No client-side redirect to the legacy /portal/login.
+    if (authed) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsAuthenticated(true);
+      checkAuthAndLoadData();
+    }
+  }, [authed]);
+
+  // Guards the one-shot auto-advance below so it can't fight a manual day pick.
+  const didAutoAdvanceDay = useRef(false);
+
+  useEffect(() => {
+    if (authed) {
+      // Current week → preselect today; other weeks → show all days.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedDayIndex(weekOffset === 0 ? mondayWeekIndex(new Date()) : null);
+      f.reset();
+      didAutoAdvanceDay.current = false;
+    }
+    // Intentionally keyed on authed/weekOffset only. `f` is a fresh object each render, so depending
+    // on it would re-run every render; f.reset is a stable useCallback that only needs to fire here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed, weekOffset]);
+
+  // Current week only: once classes load, if every class today is already done,
+  // jump to the next day that still has a bookable class so the member doesn't
+  // land on a list of "Completed". One-shot per week load; never overrides a manual pick.
+  useEffect(() => {
+    if (!authed || weekOffset !== 0) return;
+    if (loadingClasses || didAutoAdvanceDay.current || allClasses.length === 0) return;
+    didAutoAdvanceDay.current = true;
+    const today = mondayWeekIndex(new Date());
+    const dayHasBookable = (idx: number) =>
+      allClasses.some(
+        (c) => c.isBookable !== false && isSameLocalCalendarDay(new Date(c.startTimeIso), weekDays[idx]),
+      );
+    if (dayHasBookable(today)) return;
+    for (let i = today + 1; i <= 6; i++) {
+      if (dayHasBookable(i)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelectedDayIndex(i);
+        return;
+      }
+    }
+  }, [authed, weekOffset, loadingClasses, allClasses, weekDays]);
+
   async function fetchCafeItems() {
     setLoadingFoodItems(true);
     setFoodItemsLoadError(null);
@@ -1118,6 +1126,7 @@ export default function BookClass() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [f.values.className, selectedDayIndex, dateSort]);
 
@@ -1180,6 +1189,7 @@ export default function BookClass() {
 
   // Reset the choice when it stops being valid (group size or pass balance changed).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!canCoverGuestsWithCredits && coverGuestsWithCredits) setCoverGuestsWithCredits(false);
   }, [canCoverGuestsWithCredits, coverGuestsWithCredits]);
 

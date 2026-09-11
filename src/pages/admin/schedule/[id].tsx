@@ -485,14 +485,17 @@ export default function AdminClassPage() {
   // Locked for edits once terminal OR the scheduled end has passed (the class
   // is over). Roster check-in/add stays available below — only class details
   // and status/delete are gated.
+  // Point-in-time gates, not values React needs to track for correctness.
   const isLocked =
     roster?.status === "completed" ||
     roster?.status === "abandoned" ||
+    // eslint-disable-next-line react-hooks/purity
     (!!roster && new Date(roster.endTime).getTime() < Date.now());
   // Past/completed classes let a walk-in be recorded over capacity (real attendee
   // after the fact). The roster itself stays editable even when locked.
   const isPastClass =
     !!roster &&
+    // eslint-disable-next-line react-hooks/purity
     (new Date(roster.endTime).getTime() < Date.now() ||
       roster.status === "completed" ||
       roster.status === "abandoned");
@@ -775,6 +778,8 @@ export default function AdminClassPage() {
                           const isPending = b.status === "payment_pending";
                           const isCancelled = b.status === "cancelled";
                           const refundPill = isCancelled ? bookingRefundPill(b.refundStatus) : null;
+                          // Point-in-time gate, not a value React needs to track.
+                          // eslint-disable-next-line react-hooks/purity
                           const heldFuture = !!b.holdExpiresAt && new Date(b.holdExpiresAt).getTime() > Date.now();
                           return (
                           <li key={b.id} className={cn("flex items-center justify-between gap-3 py-2.5", isCancelled && "opacity-60")}>

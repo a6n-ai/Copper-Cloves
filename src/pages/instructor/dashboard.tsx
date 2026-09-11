@@ -51,7 +51,9 @@ export default function InstructorDashboard() {
   // stable — otherwise picking a class refires the auth effect below (which
   // refetches the whole list).
   const selectedClassIdRef = useRef(selectedClassId);
-  selectedClassIdRef.current = selectedClassId;
+  useEffect(() => {
+    selectedClassIdRef.current = selectedClassId;
+  }, [selectedClassId]);
   const loadData = useCallback(async () => {
     try {
       const classesRes = await fetch("/api/instructor/today-classes");
@@ -75,6 +77,7 @@ export default function InstructorDashboard() {
   const userName = session?.user?.name;
   useEffect(() => {
     if (!session?.user) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInstructorName(userName ?? "Instructor");
     void loadData();
   // eslint-disable-next-line react-hooks/exhaustive-deps

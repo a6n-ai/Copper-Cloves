@@ -33,6 +33,7 @@ export function ItemQuickView({
   const [qty, setQty] = useState(1);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (open) setQty(1);
   }, [open, item?.id]);
 

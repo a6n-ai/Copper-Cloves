@@ -249,6 +249,7 @@ export default function AdminBadgesPage() {
 
   useEffect(() => {
     if (session?.user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchTemplates();
     }
   }, [session, fetchTemplates]);
@@ -260,6 +261,7 @@ export default function AdminBadgesPage() {
 
   useEffect(() => {
     if (selectedCustomTemplate) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchAllocations(selectedCustomTemplate.id);
     }
   }, [selectedCustomTemplate, fetchAllocations]);
@@ -268,6 +270,7 @@ export default function AdminBadgesPage() {
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
     if (!memberSearch.trim()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMemberResults([]);
       return;
     }

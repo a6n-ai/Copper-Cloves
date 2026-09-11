@@ -41,6 +41,7 @@ export function EmailSettings({ onChanged }: EmailSettingsProps) {
 
   // Auto-select the first template once data lands (desktop two-pane needs a right pane).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!draft && !selectedId && templates.length > 0) setSelectedId(templates[0].id);
   }, [templates, selectedId, draft]);
 

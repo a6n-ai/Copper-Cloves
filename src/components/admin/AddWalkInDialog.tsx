@@ -99,6 +99,8 @@ export function AddWalkInDialog({
   // A walk-in is only an "attended" record once the class has actually started.
   // For upcoming classes the check-in box stays off (and disabled) so attendance,
   // streaks and payouts aren't polluted by a class that hasn't happened.
+  // Point-in-time gate, not a value React needs to track for correctness.
+  // eslint-disable-next-line react-hooks/purity
   const classStarted = new Date(classStartTime).getTime() <= Date.now();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [member, setMember] = useState<MemberLite | null>(null);

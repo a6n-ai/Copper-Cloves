@@ -84,8 +84,9 @@ function isSet(name: string): boolean {
 function check() {
   const groups = new Map<string, VarDef[]>();
   for (const v of VARS) {
-    if (!groups.has(v.group)) groups.set(v.group, []);
-    groups.get(v.group)!.push(v);
+    const group = groups.get(v.group) ?? [];
+    group.push(v);
+    groups.set(v.group, group);
   }
 
   const missing: VarDef[] = [];

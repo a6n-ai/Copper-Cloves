@@ -70,32 +70,31 @@ export function pickPackageCharge(input: PackageChargeInput): {
   offerApplied: boolean;
   couponApplied: boolean;
 } {
-  const { originalInr, offerPayableInr, coupon } = input;
-  const offerActiveNow = offerPayableInr != null;
+  const { originalInr, offerPayableInr: offer, coupon } = input;
 
   if (!coupon) {
     return {
-      chargeInr: offerActiveNow ? offerPayableInr! : originalInr,
-      offerApplied: offerActiveNow,
+      chargeInr: offer != null ? offer : originalInr,
+      offerApplied: offer != null,
       couponApplied: false,
     };
   }
 
-  if (!offerActiveNow) {
+  if (offer == null) {
     const charge = Math.max(0, originalInr - coupon.discountOnOriginalInr);
     return { chargeInr: charge, offerApplied: false, couponApplied: coupon.discountOnOriginalInr > 0 };
   }
 
   if (coupon.stackable) {
-    const charge = Math.max(0, offerPayableInr! - coupon.discountOnOfferInr);
+    const charge = Math.max(0, offer - coupon.discountOnOfferInr);
     return { chargeInr: charge, offerApplied: true, couponApplied: coupon.discountOnOfferInr > 0 };
   }
 
   // best-of: lower of (offer price) vs (coupon applied to original). Tie → offer wins
   // (coupon left unapplied), so a coupon is only marked used when it strictly beats the offer.
   const couponOnOriginal = Math.max(0, originalInr - coupon.discountOnOriginalInr);
-  if (couponOnOriginal < offerPayableInr!) {
+  if (couponOnOriginal < offer) {
     return { chargeInr: couponOnOriginal, offerApplied: false, couponApplied: true };
   }
-  return { chargeInr: offerPayableInr!, offerApplied: true, couponApplied: false };
+  return { chargeInr: offer, offerApplied: true, couponApplied: false };
 }

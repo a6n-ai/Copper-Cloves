@@ -63,6 +63,9 @@ export default function AnalyticsPage() {
         <div className="mb-4 flex items-center justify-between">
           <h1 className="font-display text-2xl text-charcoal">Account Access</h1>
           <span className="font-body text-xs text-muted-foreground">
+            {/* "Xs ago" label — re-renders on the 5s poll interval below, not a
+                value React needs to track for correctness on its own. */}
+            {/* eslint-disable-next-line react-hooks/purity */}
             live · {updatedAt ? `updated ${Math.round((Date.now() - updatedAt) / 1000)}s ago` : "loading…"}
           </span>
         </div>

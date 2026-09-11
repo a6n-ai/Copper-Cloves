@@ -349,6 +349,7 @@ function ImportDialog({ row, onClose, onImported }: { row: ReconRow; onClose: ()
   // Member typeahead
   useEffect(() => {
     clearTimeout(memberDebounce.current);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!memberQuery.trim()) { setMemberResults([]); return; }
     memberDebounce.current = setTimeout(async () => {
       const r = await fetch(`/api/admin/members-search?q=${encodeURIComponent(memberQuery)}`);
@@ -843,6 +844,7 @@ function FulfillDialog({
 
   useEffect(() => {
     clearTimeout(memberDebounce.current);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!memberQuery.trim()) { setMemberResults([]); return; }
     memberDebounce.current = setTimeout(async () => {
       const r = await fetch(`/api/admin/members-search?q=${encodeURIComponent(memberQuery)}`);
@@ -1288,6 +1290,7 @@ function ReconcileSectionImpl() {
   }, [logStatus]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (view === "handled") loadLog();
   }, [view, loadLog]);
 

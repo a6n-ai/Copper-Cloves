@@ -15,7 +15,6 @@ Font.register({
 
 const SAGE = "#8f9779";
 const TERRACOTTA = "#c17856";
-const CREAM = "#f5f2ea";
 const CHARCOAL = "#333333";
 const MUTED = "#6b6b6b";
 

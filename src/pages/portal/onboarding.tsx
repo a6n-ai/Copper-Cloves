@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "@/lib/auth/client";
 import Image from "next/image";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, useWatch, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -139,7 +139,6 @@ export default function OnboardingPage() {
   const {
     control,
     handleSubmit,
-    watch,
     trigger,
     formState: { errors, isSubmitting },
   } = useForm<OnboardingValues>({
@@ -155,7 +154,7 @@ export default function OnboardingPage() {
     },
   });
 
-  const gender = watch("gender");
+  const gender = useWatch({ control, name: "gender" });
   const isFemale = gender === "female";
 
   async function goNext() {

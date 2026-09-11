@@ -3,7 +3,7 @@ import { streamText, convertToModelMessages, stepCountIs, type UIMessage } from 
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { getChatModel } from "@/lib/llmProvider";
 import { createExerciseAiSdkTools } from "@/lib/mcp/exerciseAiSdkTools";
-import { EXERCISE_SYSTEM_PROMPT } from "@/lib/chat/exerciseSystemPrompt";
+import { buildExerciseSystemPrompt } from "@/lib/chat/exerciseSystemPrompt";
 import prisma from "@/lib/prisma";
 import { requestLogger } from "@/lib/logger";
 
@@ -37,7 +37,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const result = streamText({
     model: getChatModel(),
-    system: EXERCISE_SYSTEM_PROMPT,
+    // Built per-request: the prompt carries the current date, without which the model
+    // cannot resolve "this week" and asks the member for ISO dates instead of calling
+    // the tool.
+    system: buildExerciseSystemPrompt(),
     messages: modelMessages,
     tools,
     // Cap the tool-call loop — model calls a tool, reads the result, replies. 5 steps

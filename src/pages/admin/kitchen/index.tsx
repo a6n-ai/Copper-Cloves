@@ -198,6 +198,9 @@ export default function KitchenDashboard() {
           const step = NEXT_STATUS[o.status];
           const startTime = o.booking?.class_schedule?.start_time;
           const className = o.booking?.class_schedule?.class_model?.name;
+          // Point-in-time urgency gate for the kitchen queue display, not a
+          // value React needs to track for correctness across renders.
+          // eslint-disable-next-line react-hooks/purity
           const minsToClass = startTime ? Math.round((new Date(startTime).getTime() - Date.now()) / 60000) : null;
           const isUrgent = minsToClass !== null && minsToClass <= URGENT_MINS;
           return (

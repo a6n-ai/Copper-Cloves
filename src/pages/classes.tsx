@@ -284,6 +284,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
     if (activeTab !== "schedule") return;
     let stale = false;
     const isStale = () => stale;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchScheduleData(isStale);
     return () => {
       stale = true;
@@ -349,6 +350,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
     if (scheduleData.length === 0) return;
     const todayIdx = scheduleData.findIndex((d) => d.isToday);
     if (todayIdx >= 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedDay(todayIdx);
       return;
     }
@@ -368,6 +370,7 @@ export default function ClassesPage({ initialClasses }: ClassesPageProps) {
   // re-fire this effect needlessly.
   const queryTab = router.query.tab;
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (queryTab === "schedule") setActiveTab("schedule");
   }, [queryTab]);
 

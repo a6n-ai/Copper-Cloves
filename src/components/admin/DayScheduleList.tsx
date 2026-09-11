@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/router";
 import { Repeat, CalendarIcon, ChevronRight, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { Pill } from "@/components/ui/pill";
@@ -174,17 +174,18 @@ export function DayScheduleList({
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   // Don't nest setSortDir inside a setSortKey updater — StrictMode invokes the
-  // updater twice which flips direction back. Read latest key via ref.
-  const sortKeyRef = useRef(sortKey);
-  sortKeyRef.current = sortKey;
-  const toggleSort = useCallback((key: SortKey) => {
-    if (sortKeyRef.current === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  }, []);
+  // updater twice which flips direction back.
+  const toggleSort = useCallback(
+    (key: SortKey) => {
+      if (sortKey === key) {
+        setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      } else {
+        setSortKey(key);
+        setSortDir("asc");
+      }
+    },
+    [sortKey],
+  );
 
   const sorted = useMemo(() => {
     return [...items].sort((a, b) => {

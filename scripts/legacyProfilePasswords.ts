@@ -14,5 +14,9 @@ export async function legacyHashedPasswords(): Promise<Map<string, string>> {
   const rows = await prisma.$queryRaw<Array<{ id: string; hashedPassword: string | null }>>`
     SELECT id, "hashedPassword" FROM profiles WHERE "hashedPassword" IS NOT NULL
   `;
-  return new Map(rows.filter((r) => r.hashedPassword).map((r) => [r.id, r.hashedPassword!]));
+  return new Map(
+    rows
+      .filter((r): r is { id: string; hashedPassword: string } => r.hashedPassword != null)
+      .map((r) => [r.id, r.hashedPassword]),
+  );
 }

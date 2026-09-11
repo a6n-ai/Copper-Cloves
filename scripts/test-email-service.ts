@@ -9,7 +9,7 @@ assert.equal(links.Portal_Link, "https://x.in/portal/dashboard");
 
 console.log("email-service: all assertions passed");
 
-import { EMAIL_KINDS } from "../src/lib/notifications/email/kinds";
+import { EMAIL_KINDS, type EmailKind } from "../src/lib/notifications/email/kinds";
 
 // Every kind's codeBuilder, rendered with its declared palette as stub values,
 // must leave no {{token}} unresolved that is NOT in the declared palette.
@@ -36,7 +36,7 @@ const r = renderEmail(
     subject: "Hi {{Member_Name}}",
     buildVars: () => ({}),
     codeBuilder: () => "<p>code</p>",
-  } as any,
+  } as EmailKind,
   { Member_Name: "Asha" },
   "<p>hi {{Member_Name}}</p>",
 );
@@ -45,7 +45,7 @@ assert.equal(r.html.includes("Asha"), true);
 assert.equal(/\{\{/.test(r.html), false);
 // Falls back to codeBuilder when no template body.
 const r2 = renderEmail(
-  { templateKey: "x", variables: [], subject: "S", buildVars: () => ({}), codeBuilder: () => "<p>code</p>" } as any,
+  { templateKey: "x", variables: [], subject: "S", buildVars: () => ({}), codeBuilder: () => "<p>code</p>" } as EmailKind,
   {},
   null,
 );

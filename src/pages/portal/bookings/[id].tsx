@@ -261,6 +261,8 @@ export default function BookingDetailPage() {
 
   const classTimeIso = booking?.classTime ?? null;
   const holdMs = booking?.holdExpiresAt ? new Date(booking.holdExpiresAt).getTime() : null;
+  // Point-in-time gate, not a value React needs to track.
+  // eslint-disable-next-line react-hooks/purity
   const holdActive = holdMs != null && holdMs > Date.now();
 
   const showRecovery =

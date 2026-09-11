@@ -24,10 +24,13 @@ export function usePagination<T>(
 
   useEffect(() => {
     // Clamp to the last valid page (not back to page 1) when the list shrinks.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
   useEffect(() => {
+    // Reset to page 1 whenever the caller's resetKey changes (filter/sort change).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
   }, [resetKey]);
 

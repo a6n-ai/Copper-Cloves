@@ -64,7 +64,10 @@ async function ensureInvoiceNumber(bookingId: string): Promise<string> {
     if (res.count === 0) {
       // Another concurrent txn already assigned a number; return the persisted value, not ours.
       const winner = await tx.booking.findUnique({ where: { id: bookingId }, select: { invoice_number: true } });
-      return winner!.invoice_number!;
+      if (!winner?.invoice_number) {
+        throw new Error(`Invoice number race: booking ${bookingId} has no invoice_number after concurrent assignment`);
+      }
+      return winner.invoice_number;
     }
     return formatted;
   });

@@ -16,8 +16,13 @@ import {
   payoutPeriodToQuery,
   parsePayoutPeriod,
   type RateCard,
-  type PayableBasis,
 } from "../src/lib/payoutCalc";
+
+/** Asserts `v` is present and returns it — used in place of `!`. */
+function must<T>(v: T | undefined | null): T {
+  if (v == null) throw new Error("expected value, got null/undefined");
+  return v;
+}
 
 const near = (got: number, want: number, tol = 1) =>
   assert.ok(Math.abs(got - want) <= tol, `expected ~${want}, got ${got}`);
@@ -154,10 +159,10 @@ assert.deepEqual(parsePayoutPeriod({}, NOW), currentMonthPeriod(NOW));
   const now = new Date("2026-07-11T09:00:00Z");
   // future month is rejected by the start>now check the endpoint applies
   const future = resolvePayoutPeriod({ granularity: "month", year: 2026, index: 8 }, now);
-  assert.ok(future.start! > now, "August start is in the future relative to July");
+  assert.ok(must(future.start) > now, "August start is in the future relative to July");
   // current + past months are allowed
-  assert.ok(resolvePayoutPeriod({ granularity: "month", year: 2026, index: 7 }, now).start! <= now);
-  assert.ok(resolvePayoutPeriod({ granularity: "month", year: 2026, index: 3 }, now).start! <= now);
+  assert.ok(must(resolvePayoutPeriod({ granularity: "month", year: 2026, index: 7 }, now).start) <= now);
+  assert.ok(must(resolvePayoutPeriod({ granularity: "month", year: 2026, index: 3 }, now).start) <= now);
   // only month is adjustable
   assert.equal(isAdjustableGranularity("quarter"), false);
 }

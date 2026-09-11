@@ -49,6 +49,10 @@ export function UpcomingScheduleCard({
         entry,
         when: formatWhen(entry.whenISO),
         cancelBy: formatWhen(entry.cancelByISO),
+        // Point-in-time gate for showing the Cancel action, not a value React
+        // needs to track for correctness — a stale read just means the row
+        // reflects last render's clock, refreshed on the next parent re-render.
+        // eslint-disable-next-line react-hooks/purity
         cancelOpen: entry.cancelByISO ? Date.now() < new Date(entry.cancelByISO).getTime() : false,
       })),
     [entries],
