@@ -18,6 +18,7 @@ type Props = {
   onSignedIn: (role: string | undefined) => void;
   onResetDone: () => void;
   onBack: () => void;
+  onSwitchToSignup: () => void;
 };
 
 function verifyErrorMessage(code: string | undefined) {
@@ -25,7 +26,7 @@ function verifyErrorMessage(code: string | undefined) {
   return "That code is incorrect or has expired.";
 }
 
-export function OtpAuthFlow({ mode, initialEmail, onSignedIn, onResetDone, onBack }: Props) {
+export function OtpAuthFlow({ mode, initialEmail, onSignedIn, onResetDone, onBack, onSwitchToSignup }: Props) {
   const [email, setEmail] = useState(initialEmail);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
@@ -150,8 +151,25 @@ export function OtpAuthFlow({ mode, initialEmail, onSignedIn, onResetDone, onBac
       )}
 
       <Button type="button" variant="link" onClick={onBack} className="mt-6 text-sage h-auto p-0">
-        ← Back to password sign in
+        {isReset ? "← Back to sign in" : "Use my password instead"}
       </Button>
+
+      <div className="mt-7 space-y-3 sm:mt-8">
+        <div className="flex items-center gap-3" aria-hidden>
+          <span className="h-px flex-1 bg-charcoal/15" />
+          <span className="font-body text-xs text-charcoal/60">New to The Studio?</span>
+          <span className="h-px flex-1 bg-charcoal/15" />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          onClick={onSwitchToSignup}
+          className="w-full rounded-md border-sage/50 bg-white-warm/30 backdrop-blur-md text-sm uppercase tracking-[0.15em] text-charcoal hover:border-sage hover:bg-sage/10 hover:text-charcoal"
+        >
+          Create account
+        </Button>
+      </div>
     </>
   );
 }
