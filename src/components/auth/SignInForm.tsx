@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { OtpAuthFlow } from "@/components/auth/OtpAuthFlow";
 import { PasswordInput } from "@/components/ui/password-input";
 import { FormAlert } from "@/components/ui/form-alert";
 import { LayoutDashboard, Calendar, Users, ShieldCheck, ChefHat, type LucideIcon } from "lucide-react";
@@ -28,11 +29,25 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [resetLoading, setResetLoading] = useState(false);
-  const [resetMsg, setResetMsg] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [view, setView] = useState<"password" | "otp" | "reset">("password");
+
+  function goAfterSignIn(roleValue: string | undefined) {
+    const role = primaryRole(roleValue) ?? "user";
+    // Only ever follow a same-origin relative path (e.g. back to a QR
+    // check-in link) — a raw query param is not a trusted redirect target,
+    // so reject anything that isn't a genuine relative path.
+    const raw = typeof router.query.callbackURL === "string" ? router.query.callbackURL : "";
+    const callbackURL = raw.startsWith("/") && !raw.startsWith("//") ? raw : null;
+    // Hard navigation so the new session starts with a clean in-memory SWR
+    // cache — a soft router.replace would reuse the previous user's cached
+    // data (profile/packages/stats) and land you in "someone else's account".
+    window.location.assign(callbackURL ?? PORTALS[role].href);
+  }
 
   async function doSignIn() {
     setError(null);
+    setNotice(null);
     setLoading(true);
     try {
       const { user, error: signInError } = await authService.signIn(email.trim(), password);
@@ -41,16 +56,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
         setLoading(false);
         return;
       }
-      const role = primaryRole(user.role) ?? "user";
-      // Only ever follow a same-origin relative path (e.g. back to a QR
-      // check-in link) — a raw query param is not a trusted redirect target,
-      // so reject anything that isn't a genuine relative path.
-      const raw = typeof router.query.callbackURL === "string" ? router.query.callbackURL : "";
-      const callbackURL = raw.startsWith("/") && !raw.startsWith("//") ? raw : null;
-      // Hard navigation so the new session starts with a clean in-memory SWR
-      // cache — a soft router.replace would reuse the previous user's cached
-      // data (profile/packages/stats) and land you in "someone else's account".
-      window.location.assign(callbackURL ?? PORTALS[role].href);
+      goAfterSignIn(user.role);
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -62,28 +68,20 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
     doSignIn();
   }
 
-  async function handleForgotPassword() {
-    const target = email.trim();
-    if (!target) {
-      setError("Enter your email above, then tap “Forgot password?” again.");
-      return;
-    }
-    setError(null);
-    setResetMsg(null);
-    setResetLoading(true);
-    try {
-      // API always returns 200 (never reveals whether the email exists).
-      await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: target }),
-      });
-      setResetMsg(`If an account exists for ${target}, a password reset link is on its way. Check your inbox (and spam).`);
-    } catch {
-      setResetMsg("Could not send the reset email just now. Please try again in a moment.");
-    } finally {
-      setResetLoading(false);
-    }
+  if (view !== "password") {
+    return (
+      <OtpAuthFlow
+        mode={view === "reset" ? "reset" : "sign-in"}
+        initialEmail={email}
+        onSignedIn={goAfterSignIn}
+        onResetDone={() => {
+          setPassword("");
+          setNotice("Password updated. Sign in with your new password.");
+          setView("password");
+        }}
+        onBack={() => setView("password")}
+      />
+    );
   }
 
   return (
@@ -146,16 +144,15 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
             <Button
               type="button"
               variant="link"
-              onClick={handleForgotPassword}
-              disabled={resetLoading}
+              onClick={() => setView("reset")}
               className="text-sage h-auto p-0"
             >
-              {resetLoading ? "Sending…" : "Forgot password?"}
+              Forgot password?
             </Button>
           </div>
-          {resetMsg && (
-            <p className="font-body text-sm text-sage/90 bg-sage/5 border border-sage/15 rounded-lg px-3 py-2">
-              {resetMsg}
+          {notice && (
+            <p role="status" className="font-body text-sm text-sage/90 bg-sage/5 border border-sage/15 rounded-lg px-3 py-2">
+              {notice}
             </p>
           )}
         </div>
@@ -170,6 +167,9 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
           {loading
             ? <><Spinner className="mr-2 size-4" />Signing in…</>
             : "Sign In"}
+        </Button>
+        <Button type="button" variant="outline" size="lg" onClick={() => setView("otp")} className="w-full rounded-md border-sage/50 bg-white-warm/30 text-sm uppercase tracking-[0.15em] text-charcoal hover:border-sage hover:bg-sage/10 hover:text-charcoal">
+          Email me a sign-in code
         </Button>
       </form>
 

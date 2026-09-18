@@ -1,11 +1,12 @@
 import { betterAuth } from "better-auth";
 import type { BetterAuthOptions } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { admin, customSession } from "better-auth/plugins";
+import { admin, customSession, emailOTP } from "better-auth/plugins";
 import { APIError } from "better-auth/api";
 import prisma from "@/lib/prisma";
 import logger from "@/lib/logger";
 import { studioPassword } from "./password";
+import { sendOtpEmail } from "./otpEmail";
 import { parseRoles, hasRole } from "./roles";
 
 /**
@@ -15,6 +16,8 @@ import { parseRoles, hasRole } from "./roles";
  * login mid check-in more often than it buys anything.
  */
 const SESSION_MAX_AGE_S = 7 * 24 * 60 * 60;
+
+const OTP_TTL_S = 10 * 60;
 
 /**
  * Split out from the betterAuth() call so it can be handed to customSession as
@@ -79,6 +82,9 @@ const options = {
     // this can never lock out an existing account with a shorter password.
     minPasswordLength: 8,
     maxPasswordLength: 256,
+    // OTP reset writes the credential Account through better-auth; this keeps the
+    // old flow's "reset signs out every device" guarantee.
+    revokeSessionsOnPasswordReset: true,
   },
 
   user: {
@@ -119,7 +125,23 @@ const options = {
     },
   },
 
-  plugins: [admin({ defaultRole: "user", adminRoles: ["admin"] })],
+  plugins: [
+    admin({ defaultRole: "user", adminRoles: ["admin"] }),
+    emailOTP({
+      // Sign-in OTP auto-registers unknown emails by default. Here a bare User
+      // with no Profile is unusable (session gate refuses it), so never create one.
+      disableSignUp: true,
+      expiresIn: OTP_TTL_S,
+      // Emails lag; "reuse" resends the SAME code instead of stacking valid ones,
+      // which is what made the old link flow kill the previous email on each retry.
+      resendStrategy: "reuse",
+      allowedAttempts: 5,
+      // Fire-and-forget on purpose — see sendOtpEmail.
+      async sendVerificationOTP({ email, otp, type }) {
+        void sendOtpEmail({ email, otp, type, ttlMinutes: OTP_TTL_S / 60 });
+      },
+    }),
+  ],
 } satisfies BetterAuthOptions;
 
 export const auth = betterAuth({
