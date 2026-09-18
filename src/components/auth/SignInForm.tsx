@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
 import { authService } from "@/services/authService";
 import { primaryRole } from "@/lib/auth/roles";
 import { Button } from "@/components/ui/button";
@@ -22,13 +23,14 @@ const PORTALS: Record<Role, { label: string; blurb: string; href: string; icon: 
 };
 
 export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void }) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [view, setView] = useState<"password" | "otp" | "reset">("password");
+  const [view, setView] = useState<"password" | "otp" | "reset">("otp");
 
   function goAfterSignIn(roleValue: string | undefined) {
     const role = primaryRole(roleValue) ?? "user";
@@ -77,7 +79,8 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
           setNotice("Password updated. Sign in with your new password.");
           setView("password");
         }}
-        onBack={() => setView("password")}
+        onBack={() => setView(view === "reset" ? "otp" : "password")}
+        onSwitchToSignup={onSwitchToSignup}
       />
     );
   }
@@ -167,7 +170,7 @@ export function SignInForm({ onSwitchToSignup }: { onSwitchToSignup: () => void 
             : "Sign In"}
         </Button>
         <Button type="button" variant="outline" size="lg" onClick={() => setView("otp")} className="w-full rounded-md border-sage/50 bg-white-warm/30 text-sm uppercase tracking-[0.15em] text-charcoal hover:border-sage hover:bg-sage/10 hover:text-charcoal">
-          Email me a sign-in code
+          Sign in with a code instead
         </Button>
       </form>
 
