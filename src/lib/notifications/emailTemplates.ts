@@ -625,3 +625,73 @@ export function welcomeSetPasswordEmail(opts: WelcomeSetPasswordEmailOpts): stri
     ${footer()}
   `);
 }
+
+// ── Template: one-time code (sign-in / password reset / verify / change email) ─
+
+export type OtpEmailKind = "sign-in" | "forget-password" | "email-verification" | "change-email";
+
+const OTP_COPY: Record<OtpEmailKind, { subtitle: string; heading: string; lead: string }> = {
+  "sign-in": {
+    subtitle: "your sign-in code",
+    heading: "welcome back",
+    lead: "Enter this code on the sign-in page to get into your account.",
+  },
+  "forget-password": {
+    subtitle: "reset your password",
+    heading: "let's get you back in",
+    lead: "Enter this code on the reset page, then choose a new password.",
+  },
+  "email-verification": {
+    subtitle: "verify your email",
+    heading: "one quick check",
+    lead: "Enter this code to confirm this is your email address.",
+  },
+  "change-email": {
+    subtitle: "confirm your new email",
+    heading: "confirm your new email",
+    lead: "Enter this code to confirm the change to your account email.",
+  },
+};
+
+export interface OtpEmailOpts {
+  kind: OtpEmailKind;
+  otp: string;
+  ttlMinutes: number;
+}
+
+export function otpSubject(kind: OtpEmailKind): string {
+  return `${OTP_COPY[kind].subtitle} - The Studio`;
+}
+
+export function otpEmail(opts: OtpEmailOpts): string {
+  const { subtitle, heading, lead } = OTP_COPY[opts.kind];
+  return emailWrapper(`
+    ${logoHeader(subtitle)}
+    <div style="padding:32px 32px 0">
+
+      <div style="text-align:center;margin-bottom:28px">
+        <h1 style="font-family:Georgia,serif;font-size:28px;font-weight:400;color:${CHARCOAL};margin:0">${h(heading)}</h1>
+      </div>
+
+      <div style="border-left:3px solid ${SAGE};padding-left:20px;margin-bottom:28px">
+        <p style="font-family:Georgia,serif;font-size:15px;color:${CHARCOAL};margin:0;line-height:1.7">${h(lead)}</p>
+      </div>
+
+      <div style="background:${CREAM};border:1px solid ${BORDER};border-radius:12px;padding:24px 16px;margin-bottom:16px;text-align:center">
+        <p style="font-family:'Courier New',Courier,monospace;font-size:38px;font-weight:700;letter-spacing:12px;color:${CHARCOAL};margin:0;padding-left:12px">${h(opts.otp)}</p>
+      </div>
+
+      <p style="font-family:Georgia,serif;font-size:13px;color:${MUTED};margin:0 0 28px;text-align:center;line-height:1.6">
+        This code expires in ${opts.ttlMinutes} minutes and works once. If you didn't ask for it, you can safely ignore this email — your account is untouched.
+      </p>
+
+      ${needHelpCard()}
+
+      <div style="text-align:center;padding:24px 0">
+        <p style="font-family:Georgia,serif;font-size:14px;color:${SAGE};margin:0">The Studio Team</p>
+      </div>
+
+    </div>
+    ${footer()}
+  `);
+}
