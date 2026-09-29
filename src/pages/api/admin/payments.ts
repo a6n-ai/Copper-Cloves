@@ -88,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!result.ok) {
-      return res.status(400).json({ error: result.error });
+      return res.status(result.status ?? 400).json({ error: result.error });
     }
     const payment = result.payment;
     if (result.replayed) {

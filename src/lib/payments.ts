@@ -48,6 +48,8 @@ export type RecordManualPaymentInput = {
 export type RecordManualPaymentResult = {
   ok: boolean;
   error?: string;
+  /** HTTP status for the error; callers default to 400 when unset. */
+  status?: number;
   payment?: Awaited<ReturnType<typeof prisma.payment.create>>;
   replayed?: boolean;
 };
@@ -97,6 +99,22 @@ export async function recordManualPayment(
   });
   if (existing) {
     return { ok: true, payment: existing, replayed: true };
+  }
+
+  // `reference` is globally @unique. Check first rather than catching P2002:
+  // inside a caller's transaction a failed insert aborts the whole tx.
+  if (refNorm) {
+    const taken = await client.payment.findFirst({
+      where: { reference: refNorm },
+      select: { created_at: true },
+    });
+    if (taken) {
+      return {
+        ok: false,
+        status: 409,
+        error: `Reference "${refNorm}" is already used on another payment (recorded ${taken.created_at.toISOString().slice(0, 10)}). Enter the transaction ID for this payment.`,
+      };
+    }
   }
 
   const payment = await client.payment.create({
@@ -184,6 +202,9 @@ export async function updateManualPayment(
     const next =
       typeof input.reference === "string" && input.reference.trim() ? input.reference.trim() : null;
     if (next !== existing.reference) {
+      if (next && (await prisma.payment.findFirst({ where: { reference: next, id: { not: id } }, select: { id: true } }))) {
+        throw new Error(`Reference "${next}" is already used on another payment`);
+      }
       data.reference = next;
       changes.push({ field: "reference", from: existing.reference, to: next });
     }
