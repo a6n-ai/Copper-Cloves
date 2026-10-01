@@ -15,3 +15,20 @@ export function validateCreditAdjust(
   }
   return { ok: true };
 }
+
+// Upgrade keeps the original term: extend the current expiry by the month
+// difference (6→12 adds 6, not 12). A pass with no month duration counts as 0,
+// so its remaining validity carries over plus the full target term. An already
+// lapsed expiry starts from now. Returns null when the target has no duration.
+export function computeUpgradeExpiry(
+  currentExpiry: Date | null,
+  currentMonths: number | null,
+  targetMonths: number | null,
+  now: Date = new Date(),
+): Date | null {
+  if (!targetMonths || targetMonths <= 0) return null;
+  const base = currentExpiry && currentExpiry.getTime() > now.getTime() ? currentExpiry : now;
+  const out = new Date(base);
+  out.setMonth(out.getMonth() + Math.max(0, targetMonths - (currentMonths ?? 0)));
+  return out;
+}

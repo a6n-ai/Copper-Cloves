@@ -7,7 +7,7 @@ import { getDynamicStats, getDynamicStatsForUsers } from "@/lib/attendanceStats"
 import { logActivity } from "@/lib/activityLog";
 import { HISTORY_STATUSES } from "@/lib/bookingStatus";
 import { getStudioSettings } from "@/lib/studioSettings";
-import { validateCreditAdjust } from "@/lib/passAdjust";
+import { computeUpgradeExpiry, validateCreditAdjust } from "@/lib/passAdjust";
 import { moneyRefundStatusByBooking } from "@/lib/reconcileStatus";
 import { recordManualPayment, RECORDABLE_METHODS } from "@/lib/payments";
 import { normalizeLoginEmail } from "@/lib/loginEmail";
@@ -599,10 +599,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         const proofUrl = typeof req.body?.proof_url === "string" ? req.body.proof_url : null;
 
+        // Admin-edited expiry wins; else keep the original term — current expiry
+        // extended by the month difference (computeUpgradeExpiry).
+        const oldType = oldPkg.package_type_id
+          ? await prisma.packageType.findUnique({ where: { id: oldPkg.package_type_id }, select: { duration_months: true } })
+          : null;
+        const derivedExpiry = computeUpgradeExpiry(oldPkg.expiration_date, oldType?.duration_months ?? null, targetType.duration_months);
         let expiryForCreate: Date;
-        if (targetType.duration_months && targetType.duration_months > 0) {
-          expiryForCreate = new Date();
-          expiryForCreate.setMonth(expiryForCreate.getMonth() + targetType.duration_months);
+        if (typeof expiration_date === "string" && expiration_date) {
+          expiryForCreate = new Date(expiration_date);
+          if (Number.isNaN(expiryForCreate.getTime())) return res.status(400).json({ error: "Invalid expiration date" });
+        } else if (derivedExpiry) {
+          expiryForCreate = derivedExpiry;
         } else {
           const settings = await getStudioSettings();
           expiryForCreate = new Date();

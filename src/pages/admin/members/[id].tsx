@@ -82,7 +82,7 @@ import {
   type PassMemberContext,
   type PackageRow as CatalogPackageRow,
 } from "@/components/admin/managePass";
-import { computeUpgradeDifferencePaise } from "@/lib/passAdjust";
+import { computeUpgradeDifferencePaise, computeUpgradeExpiry } from "@/lib/passAdjust";
 import { toast } from "sonner";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["admin"] });
@@ -410,6 +410,7 @@ export default function MemberDetailPage() {
   const [upgradeCatalog, setUpgradeCatalog] = useState<CatalogPackageRow[]>([]);
   const [upgradeTargetId, setUpgradeTargetId] = useState("");
   const [upgradeAmount, setUpgradeAmount] = useState("");
+  const [upgradeExpiry, setUpgradeExpiry] = useState("");
   const [upgradeMethod, setUpgradeMethod] = useState("");
   const [upgradeProofUrl, setUpgradeProofUrl] = useState("");
   const [upgradeProofUploading, setUpgradeProofUploading] = useState(false);
@@ -532,6 +533,7 @@ export default function MemberDetailPage() {
     // Upgrade tab
     setUpgradeTargetId("");
     setUpgradeAmount("");
+    setUpgradeExpiry("");
     setUpgradeMethod("");
     setUpgradeProofUrl("");
     setUpgradeReason("");
@@ -694,6 +696,13 @@ export default function MemberDetailPage() {
       const currentPriceInr = editPass.price ?? 0;
       const diffPaise = computeUpgradeDifferencePaise(currentPriceInr, target.price);
       setUpgradeAmount((diffPaise / 100).toFixed(2));
+      const exp = computeUpgradeExpiry(
+        editPass.expiresAt ? new Date(editPass.expiresAt) : null,
+        editPass.durationMonths,
+        target.duration_months,
+      );
+      // Empty = server applies the default validity for duration-less targets.
+      setUpgradeExpiry(exp ? exp.toISOString().slice(0, 10) : "");
     }
   }
   async function uploadUpgradeProof(file: File) {
@@ -733,6 +742,7 @@ export default function MemberDetailPage() {
           action: "upgrade_pass",
           target_package_type_id: upgradeTargetId,
           amount_paise: amountPaise,
+          expiration_date: upgradeExpiry || undefined,
           method: upgradeMethod || undefined,
           proof_url: upgradeProofUrl || undefined,
           reason: upgradeReason.trim(),
@@ -919,6 +929,13 @@ export default function MemberDetailPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-body text-sm text-charcoal/70">New expiry</Label>
+                  <Input type="date" value={upgradeExpiry} onChange={(e) => setUpgradeExpiry(e.target.value)} className="font-body" />
+                  <p className="font-body text-xs text-charcoal/50">
+                    Current expiry {editPass?.expiresAt ? editPass.expiresAt.slice(0, 10) : "—"} plus the extra months of the new pass. Edit if needed.
+                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <Label className="font-body text-sm text-charcoal/70">Amount to collect (₹)</Label>

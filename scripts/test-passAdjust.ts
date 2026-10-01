@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { computeUpgradeDifferencePaise, validateCreditAdjust } from "../src/lib/passAdjust";
+import { computeUpgradeDifferencePaise, computeUpgradeExpiry, validateCreditAdjust } from "../src/lib/passAdjust";
 
 // upgrade diff: target more expensive than current → positive paise, rounded
 assert.strictEqual(computeUpgradeDifferencePaise(3000, 5000), 200000);
@@ -21,5 +21,18 @@ assert.strictEqual(validateCreditAdjust({ credits: 2.5, isUnlimited: false }).ok
 // zero and positive integers accepted
 assert.deepStrictEqual(validateCreditAdjust({ credits: 0, isUnlimited: false }), { ok: true });
 assert.deepStrictEqual(validateCreditAdjust({ credits: 12, isUnlimited: false }), { ok: true });
+
+// upgrade expiry: 6→12 month adds only the 6-month difference to the current expiry
+const now = new Date("2026-10-01T00:00:00Z");
+const exp = new Date("2027-01-01T00:00:00Z");
+assert.strictEqual(computeUpgradeExpiry(exp, 6, 12, now)?.toISOString(), "2027-07-01T00:00:00.000Z");
+// no month duration on current pass → remaining validity + full target term
+assert.strictEqual(computeUpgradeExpiry(exp, null, 3, now)?.toISOString(), "2027-04-01T00:00:00.000Z");
+// lapsed current expiry → starts from now
+assert.strictEqual(computeUpgradeExpiry(new Date("2026-09-01T00:00:00Z"), 6, 12, now)?.toISOString(), "2027-04-01T00:00:00.000Z");
+// equal/shorter target never shortens the pass
+assert.strictEqual(computeUpgradeExpiry(exp, 12, 6, now)?.toISOString(), exp.toISOString());
+// target without duration → null (caller falls back)
+assert.strictEqual(computeUpgradeExpiry(exp, 6, null, now), null);
 
 console.log("passAdjust OK");
