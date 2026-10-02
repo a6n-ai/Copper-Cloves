@@ -150,6 +150,11 @@ export async function createStudioProfile({
   password?: string;
   profile?: ProfileFields;
 }): Promise<CreatedStudioProfile> {
+  // Profile.email is globally unique. A Profile can hold this email without a
+  // matching User (legacy rows, mixed-case User email), which resolveStudioUser
+  // cannot see — the insert below would then P2002 into a 500.
+  const clash = await prisma.profile.findUnique({ where: { email }, select: { role: true } });
+  if (clash) throw new LoginEmailTakenError(email, primaryRole(clash.role));
   const { userId, created } = await resolveStudioUser({ email, name, role });
   try {
     const row = await prisma.profile.create({

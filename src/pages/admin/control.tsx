@@ -638,7 +638,11 @@ export default function ControlPanel() {
           image_file_id: imageFileId,
         }),
       });
-      if (!res.ok) throw new Error("Create instructor failed");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        toast.error(body?.error ?? "Failed to create instructor. Please try again.");
+        return;
+      }
 
       toast.success("Instructor created successfully!");
       setShowAddInstructorDialog(false);
