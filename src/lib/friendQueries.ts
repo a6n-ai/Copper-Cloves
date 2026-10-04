@@ -1,6 +1,38 @@
 import prisma from "@/lib/prisma";
 
-export type FriendDto = { id: string; name: string; email: string; phone: string | null; avatar_url: string | null };
+/**
+ * What one member may see about another. Email and phone are deliberately
+ * absent — `has_phone` is all the booking flow needs to decide whether to ask
+ * for a number (resolve-invites backfills it server-side by profile_id).
+ */
+export type FriendDto = { id: string; name: string; username: string | null; has_phone: boolean; avatar_url: string | null };
+
+export const FRIEND_DTO_SELECT = {
+  id: true,
+  full_name: true,
+  phone: true,
+  avatar_url: true,
+  identity: { select: { username: true, displayUsername: true } },
+} as const;
+
+type FriendDtoRow = {
+  id: string;
+  full_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  identity: { username: string | null; displayUsername: string | null } | null;
+};
+
+export function toFriendDto(p: FriendDtoRow): FriendDto {
+  const username = p.identity?.displayUsername ?? p.identity?.username ?? null;
+  return {
+    id: p.id,
+    name: p.full_name?.trim() || (username ? `@${username}` : "Member"),
+    username,
+    has_phone: !!p.phone?.trim(),
+    avatar_url: p.avatar_url ?? null,
+  };
+}
 
 /** All profile ids the given user has an ACTIVE friendship with. */
 export async function activeFriendIds(userId: string): Promise<string[]> {
@@ -26,12 +58,7 @@ export async function profilesToDtos(ids: string[]): Promise<Map<string, FriendD
   if (ids.length === 0) return new Map();
   const profiles = await prisma.profile.findMany({
     where: { id: { in: ids }, role: "user" },
-    select: { id: true, full_name: true, email: true, phone: true, avatar_url: true },
+    select: FRIEND_DTO_SELECT,
   });
-  return new Map(
-    profiles.map((p) => [
-      p.id,
-      { id: p.id, name: p.full_name ?? p.email, email: p.email, phone: p.phone ?? null, avatar_url: p.avatar_url ?? null },
-    ]),
-  );
+  return new Map(profiles.map((p) => [p.id, toFriendDto(p)]));
 }

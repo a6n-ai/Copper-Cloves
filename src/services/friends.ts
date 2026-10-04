@@ -1,4 +1,6 @@
-export type Friend = { id: string; name: string; email: string; phone: string | null; avatar_url: string | null };
+import type { FriendDto } from "@/lib/friendQueries";
+
+export type Friend = FriendDto;
 export type Suggestion = Friend & { mutualCount: number };
 export type FriendRequests = { incoming: Friend[]; outgoing: Friend[] };
 

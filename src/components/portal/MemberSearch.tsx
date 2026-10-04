@@ -14,21 +14,22 @@ import {
 import { X, UserPlus, Users } from "lucide-react";
 import { cdnUrl } from "@/lib/cdnUrl";
 import { suggestEmailCorrection } from "@/lib/emailTypo";
+import type { FriendDto } from "@/lib/friendQueries";
 
+/**
+ * An existing member (profile_id set) carries only name + @username — their
+ * email/phone are never sent to other members. `email` is set only for a
+ * brand-new guest typed in by the booker.
+ */
 export type AddedMember = {
   profile_id?: string;
   name: string;
-  email: string;
+  username?: string | null;
+  email?: string;
   phone?: string;
 };
 
-interface SearchResult {
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  avatar_url: string | null;
-}
+type SearchResult = FriendDto;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // A query of mostly digits (optionally +, spaces, dashes) reads as a phone number.
@@ -111,7 +112,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
     let cancelled = false;
     import("@/services/friends").then(({ getFriends }) =>
       getFriends().then((fs) => {
-        if (!cancelled) setFriends(fs.map((f) => ({ id: f.id, name: f.name, email: f.email, phone: f.phone, avatar_url: f.avatar_url })));
+        if (!cancelled) setFriends(fs);
       }),
     );
     return () => { cancelled = true; };
@@ -171,20 +172,18 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
 
   // Add a member picked from search results / friends. If they have no phone on
   // file we collect one first (phone is mandatory for every attendee).
-  function addExistingMember(m: { profile_id?: string; name: string; email: string; phone?: string | null }) {
-    if (isAlreadyAdded(m.profile_id, m.email)) return;
-    // Booker can't add themselves as a guest (search/friends path had no guard).
-    if (selfEmail && m.email.trim().toLowerCase() === selfEmail) {
-      setInviteError("You're the booker — you can't add yourself as a guest.");
-      return;
-    }
-    const phone = m.phone?.trim();
-    if (phone) {
-      addMember({ profile_id: m.profile_id, name: m.name, email: m.email, phone });
+  // Self is excluded server-side from both search and friends; resolve-invites
+  // re-checks profile_id === booker.
+  function addExistingMember(m: SearchResult) {
+    if (isAlreadyAdded(m.id)) return;
+    const picked: AddedMember = { profile_id: m.id, name: m.name, username: m.username };
+    // Phone on file stays server-side; resolve-invites uses it via profile_id.
+    if (m.has_phone) {
+      addMember(picked);
       return;
     }
     setShowInviteForm(false);
-    setPendingPhoneMember({ profile_id: m.profile_id, name: m.name, email: m.email });
+    setPendingPhoneMember(picked);
     setPhoneDraft("" as PhoneValue);
     setPhoneError(null);
     setQuery("");
@@ -288,7 +287,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
               <Avatar name={m.name} avatarUrl={null} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-charcoal">{m.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{m.email}</p>
+                <p className="truncate text-xs text-muted-foreground">{m.username ? `@${m.username}` : m.email}</p>
               </div>
               <Button
                 type="button"
@@ -314,7 +313,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {friends
-                  .filter((f) => !isAlreadyAdded(f.id, f.email))
+                  .filter((f) => !isAlreadyAdded(f.id))
                   .slice(0, 8)
                   .map((f) => (
                     <Button
@@ -323,7 +322,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
                       variant="outline"
                       size="sm"
                       className="h-auto gap-1.5 rounded-full py-1 pl-1 pr-3"
-                      onClick={() => addExistingMember({ profile_id: f.id, name: f.name, email: f.email, phone: f.phone })}
+                      onClick={() => addExistingMember(f)}
                     >
                       <Avatar name={f.name} avatarUrl={f.avatar_url} />
                       <span>{f.name}</span>
@@ -346,7 +345,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
                   setShowInviteForm(false);
                 }}
                 onFocus={() => query.length >= 2 && setShowDropdown(true)}
-                placeholder="Search members by name, email or mobile…"
+                placeholder="Search members by name or @username…"
               />
 
               {showDropdown && query.length >= 2 && (
@@ -373,14 +372,14 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
                   )}
 
                   {results.map((r) => {
-                    const added = isAlreadyAdded(r.id, r.email);
+                    const added = isAlreadyAdded(r.id);
                     return (
                       <CommandItem
                         key={r.id}
                         value={r.id}
                         disabled={added}
                         onSelect={() =>
-                          addExistingMember({ profile_id: r.id, name: r.name, email: r.email, phone: r.phone })
+                          addExistingMember(r)
                         }
                         className="gap-2.5"
                       >
@@ -388,7 +387,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
                         <div className="min-w-0 flex-1 text-left">
                           <div className="truncate text-sm font-medium text-charcoal">{r.name}</div>
                           <div className="truncate text-xs text-muted-foreground">
-                            {r.email}{r.phone ? ` · ${r.phone}` : ""}
+                            {r.username ? `@${r.username}` : "Member"}
                           </div>
                         </div>
                         {added && <Pill tone="success" size="sm">Added</Pill>}
@@ -474,7 +473,7 @@ export function MemberSearch({ value, onChange, maxMembers = 5, currentEmail, cu
         <div className="space-y-2 rounded-lg border border-border bg-sand/30 p-3">
           <p className="text-xs font-semibold text-charcoal">Add phone for {pendingPhoneMember.name}</p>
           <p className="text-xs text-muted-foreground">
-            We need a mobile number for every attendee. {pendingPhoneMember.email}
+            We need a mobile number for every attendee.
           </p>
           <PhoneInput
             placeholder="Mobile number (required)"

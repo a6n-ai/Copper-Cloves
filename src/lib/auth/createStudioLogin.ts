@@ -3,6 +3,7 @@ import logger from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { primaryRole, serializeRoles, type Role } from "@/lib/auth/roles";
 import { LoginEmailTakenError } from "@/lib/auth/studioIdentity";
+import { generateUniqueUsername } from "@/lib/auth/username";
 import type { Prisma } from "@/generated/prisma/client";
 
 /**
@@ -52,7 +53,9 @@ export async function createStudioLogin({
 
   // Throws APIError on a password shorter than minPasswordLength / longer than
   // maxPasswordLength — callers surface it rather than swallowing it.
-  const created = await auth.api.signUpEmail({ body: { email, password, name } });
+  const created = await auth.api.signUpEmail({
+    body: { email, password, name, username: await generateUniqueUsername(name, email) },
+  });
   const userId = created?.user?.id;
   if (!userId) throw new Error("[auth] sign-up returned no user");
 

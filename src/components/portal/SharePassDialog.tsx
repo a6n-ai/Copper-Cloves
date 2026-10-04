@@ -106,7 +106,7 @@ export function SharePassDialog({
             <Avatar name={friend.name} avatarUrl={friend.avatar_url} />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-charcoal">{friend.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{friend.email}</p>
+              {friend.username && <p className="truncate text-xs text-muted-foreground">@{friend.username}</p>}
             </div>
           </div>
         )}

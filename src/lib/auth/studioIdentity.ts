@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import logger from "@/lib/logger";
 import { studioPassword } from "./password";
 import { hasRole, parseRoles, primaryRole, serializeRoles, type Role } from "./roles";
+import { generateUniqueUsername } from "./username";
 import type { Prisma } from "@/generated/prisma/client";
 
 const ROLE_LABEL: Record<Role, string> = {
@@ -107,7 +108,13 @@ export async function resolveStudioUser({
   // BY email (an invite, an onboarding, an admin who typed their address), so
   // the address is as confirmed as the backfilled ones.
   const created = await prisma.user.create({
-    data: { email, name, emailVerified: true, role: serializeRoles([role]) },
+    data: {
+      email,
+      name,
+      emailVerified: true,
+      role: serializeRoles([role]),
+      username: await generateUniqueUsername(name, email),
+    },
   });
   return { userId: created.id, created: true };
 }

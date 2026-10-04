@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import type { BetterAuthOptions } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, customSession, emailOTP } from "better-auth/plugins";
+import { username } from "better-auth/plugins/username";
 import { APIError } from "better-auth/api";
 import prisma from "@/lib/prisma";
 import logger from "@/lib/logger";
@@ -159,6 +160,9 @@ const options = {
 
   plugins: [
     admin({ defaultRole: "user", adminRoles: ["admin"] }),
+    // Public handle for friend search. Sign-in stays email-based; this plugin is
+    // here for the schema, normalization and /is-username-available + updateUser.
+    username(),
     emailOTP({
       // Sign-in OTP auto-registers unknown emails by default. Here a bare User
       // with no Profile is unusable (session gate refuses it), so never create one.

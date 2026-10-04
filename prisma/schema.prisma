@@ -85,6 +85,10 @@ model User {
   email         String   @unique
   emailVerified Boolean  @default(false) @map("email_verified")
   image         String?
+  /// better-auth username plugin. Public handle for friend search — email/phone
+  /// are never exposed to other members. Lowercase-normalized by the plugin.
+  username        String? @unique
+  displayUsername String? @map("display_username")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
 

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
+import { UsernameField } from "@/components/profile/UsernameField";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   User, Save, CheckCircle2, Mail, Phone, Camera, Lock,
@@ -411,6 +412,8 @@ export function ProfileSection({ isMember, title, subtitle }: ProfileSectionProp
                   <Input value={email} disabled className="bg-cream/50 border-sage/20 text-charcoal/60 cursor-not-allowed h-11 font-body" />
                   <p className="text-xs text-charcoal/40 font-body">Email cannot be changed</p>
                 </div>
+
+                {isMember && <UsernameField />}
 
                 {isMember && (
                   <div className="grid grid-cols-2 gap-4">

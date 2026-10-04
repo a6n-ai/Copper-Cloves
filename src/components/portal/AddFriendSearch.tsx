@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { cdnUrl } from "@/lib/cdnUrl";
 import { sendFriendRequest, inviteFriend } from "@/services/friends";
+import type { FriendDto } from "@/lib/friendQueries";
 
-type Result = { id: string; name: string; email: string; phone: string | null; avatar_url: string | null };
+type Result = FriendDto;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[+\d][\d\s-]{5,}$/;
@@ -112,7 +113,7 @@ export function AddFriendSearch({ existingIds, onSent }: { existingIds: Set<stri
 
   return (
     <Command shouldFilter={false} className="overflow-visible rounded-lg border border-input bg-card focus-within:border-sage focus-within:ring-2 focus-within:ring-sage">
-      <CommandInput value={query} onValueChange={setQuery} placeholder="Search members by name, email or mobile…" />
+      <CommandInput value={query} onValueChange={setQuery} placeholder="Search members by name or @username…" />
       {query.length >= 2 && (
         <CommandList className="max-h-72 py-1">
           {searching && results.length === 0 && <p className="px-3 py-3 text-sm text-muted-foreground">Searching…</p>}
@@ -131,7 +132,7 @@ export function AddFriendSearch({ existingIds, onSent }: { existingIds: Set<stri
                 <Avatar name={r.name} avatarUrl={r.avatar_url} />
                 <div className="min-w-0 flex-1 text-left">
                   <div className="truncate text-sm font-medium text-charcoal">{r.name}</div>
-                  <div className="truncate text-xs text-muted-foreground">{r.email}</div>
+                  <div className="truncate text-xs text-muted-foreground">{r.username ? `@${r.username}` : "Member"}</div>
                 </div>
                 {connected ? <Pill tone="success" size="sm">Connected</Pill>
                   : sent ? <Pill tone="warning" size="sm">Requested</Pill>

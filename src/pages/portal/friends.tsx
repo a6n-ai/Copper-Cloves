@@ -10,6 +10,7 @@ import { FriendActivityFeed } from "@/components/portal/FriendActivityFeed";
 import { SharePassDialog } from "@/components/portal/SharePassDialog";
 import { SharedWithYouCard } from "@/components/portal/SharedWithYouCard";
 import type { Friend } from "@/services/friends";
+import { UsernameBadge } from "@/components/portal/UsernameBadge";
 
 export const getServerSideProps = requireSessionSSP({ roles: ["user"] });
 
@@ -35,7 +36,12 @@ export default function FriendsPage() {
             <Card>
               <CardHeader><CardTitle className="text-xl text-charcoal">Your people</CardTitle></CardHeader>
               <CardContent className="space-y-6">
-                <AddFriendSearch existingIds={existingIds} onSent={graph.reload} />
+                <div className="space-y-1.5">
+                  <AddFriendSearch existingIds={existingIds} onSent={graph.reload} />
+                  <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                    Friends can find you as <UsernameBadge />
+                  </p>
+                </div>
                 <FriendsLists graph={graph} onFriendClick={setShareTarget} />
               </CardContent>
             </Card>

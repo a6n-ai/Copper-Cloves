@@ -80,6 +80,7 @@ const VitalityAreaChart = dynamic(
   },
 );
 import { useSession } from "@/lib/auth/client";
+import { UsernameBadge } from "@/components/portal/UsernameBadge";
 import { useStudioSWR } from "@/lib/swr";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
@@ -687,6 +688,7 @@ export default function Dashboard() {
                 <h1 className="font-body font-semibold text-2xl md:text-4xl text-charcoal mb-1 leading-tight">
                   Welcome Home, {userName || "Member"}
                 </h1>
+                <UsernameBadge className="mb-1.5" />
                 <p className="font-body text-sm text-charcoal/60">
                   <span className="tabular-nums">{userClassesCompleted}</span> classes completed
                   {currentStreak > 0 && (

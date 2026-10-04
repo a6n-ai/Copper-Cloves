@@ -13,7 +13,7 @@ import {
 
 const INVITE_TOKEN_TTL_MS = 72 * 60 * 60 * 1000; // 72 hours
 
-type AddedMember = { profile_id?: string; name: string; email: string; phone?: string };
+type AddedMember = { profile_id?: string; name: string; email?: string; phone?: string };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
@@ -57,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (member.profile_id && member.profile_id === selfId) {
       return res.status(400).json({ error: "You can't add yourself as a guest." });
     }
-    if (selfEmail && member.email.trim().toLowerCase() === selfEmail) {
+    if (selfEmail && (member.email ?? "").trim().toLowerCase() === selfEmail) {
       return res.status(400).json({ error: "You can't add yourself as a guest." });
     }
     const memberPhone = member.phone?.trim();
@@ -92,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    const email = member.email.trim().toLowerCase();
+    const email = (member.email ?? "").trim().toLowerCase();
     if (!email) return res.status(400).json({ error: "Invalid email in added_members" });
 
     // Find or create the profile
