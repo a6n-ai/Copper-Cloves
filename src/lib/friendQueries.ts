@@ -12,7 +12,7 @@ export const FRIEND_DTO_SELECT = {
   full_name: true,
   phone: true,
   avatar_url: true,
-  identity: { select: { username: true, displayUsername: true } },
+  identity: { select: { username: true } },
 } as const;
 
 type FriendDtoRow = {
@@ -20,11 +20,14 @@ type FriendDtoRow = {
   full_name: string | null;
   phone: string | null;
   avatar_url: string | null;
-  identity: { username: string | null; displayUsername: string | null } | null;
+  identity: { username: string | null } | null;
 };
 
 export function toFriendDto(p: FriendDtoRow): FriendDto {
-  const username = p.identity?.displayUsername ?? p.identity?.username ?? null;
+  // `username` only — it is unique and validated. displayUsername is neither
+  // (any member can set it via /update-user), so showing it would let anyone
+  // render as someone else's @handle.
+  const username = p.identity?.username ?? null;
   return {
     id: p.id,
     name: p.full_name?.trim() || (username ? `@${username}` : "Member"),

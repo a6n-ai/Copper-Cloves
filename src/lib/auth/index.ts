@@ -168,7 +168,9 @@ const options = {
     admin({ defaultRole: "user", adminRoles: ["admin"] }),
     // Public handle for friend search: schema, normalization, uniqueness and
     // updateUser validation. Its /sign-in/username route is disabled above.
-    username({ usernameValidator: isAllowedUsername }),
+    // displayUsername is not unique and is never shown to other members (see
+    // toFriendDto); validated anyway so it cannot carry arbitrary text.
+    username({ usernameValidator: isAllowedUsername, displayUsernameValidator: isAllowedUsername }),
     emailOTP({
       // Sign-in OTP auto-registers unknown emails by default. Here a bare User
       // with no Profile is unusable (session gate refuses it), so never create one.
