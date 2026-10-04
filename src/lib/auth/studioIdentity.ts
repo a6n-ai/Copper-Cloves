@@ -113,7 +113,7 @@ export async function resolveStudioUser({
       name,
       emailVerified: true,
       role: serializeRoles([role]),
-      username: await generateUniqueUsername(name, email),
+      username: await generateUniqueUsername(name),
     },
   });
   return { userId: created.id, created: true };

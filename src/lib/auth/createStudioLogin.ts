@@ -54,7 +54,7 @@ export async function createStudioLogin({
   // Throws APIError on a password shorter than minPasswordLength / longer than
   // maxPasswordLength — callers surface it rather than swallowing it.
   const created = await auth.api.signUpEmail({
-    body: { email, password, name, username: await generateUniqueUsername(name, email) },
+    body: { email, password, name, username: await generateUniqueUsername(name) },
   });
   const userId = created?.user?.id;
   if (!userId) throw new Error("[auth] sign-up returned no user");

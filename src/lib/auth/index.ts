@@ -4,6 +4,7 @@ import type { BetterAuthOptions } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, customSession, emailOTP } from "better-auth/plugins";
 import { username } from "better-auth/plugins/username";
+import { isAllowedUsername } from "./username";
 import { APIError } from "better-auth/api";
 import prisma from "@/lib/prisma";
 import logger from "@/lib/logger";
@@ -57,6 +58,11 @@ const options = {
   secret: process.env.BETTER_AUTH_SECRET,
 
   database: prismaAdapter(prisma, { provider: "postgresql" }),
+
+  // The username plugin also mounts password sign-in by username. Usernames are
+  // public and derived from real names, so that would hand credential-stuffing
+  // a guessable login id. Sign-in stays email-only.
+  disabledPaths: ["/sign-in/username"],
 
   // /get-session runs on every authenticated request; joins cut it to one query.
   experimental: { joins: true },
@@ -160,9 +166,9 @@ const options = {
 
   plugins: [
     admin({ defaultRole: "user", adminRoles: ["admin"] }),
-    // Public handle for friend search. Sign-in stays email-based; this plugin is
-    // here for the schema, normalization and /is-username-available + updateUser.
-    username(),
+    // Public handle for friend search: schema, normalization, uniqueness and
+    // updateUser validation. Its /sign-in/username route is disabled above.
+    username({ usernameValidator: isAllowedUsername }),
     emailOTP({
       // Sign-in OTP auto-registers unknown emails by default. Here a bare User
       // with no Profile is unusable (session gate refuses it), so never create one.

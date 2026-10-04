@@ -1,6 +1,6 @@
 /**
  * Backfill: give every User without a username one, derived from their Profile
- * full_name (fallback: User.name, then email local part). Never from phone.
+ * full_name (fallback: User.name, then "member" + digits). Never from email or phone.
  *
  * Idempotent — only touches rows where username IS NULL. Dry run by default;
  * pass --apply to write.
@@ -23,7 +23,7 @@ async function main() {
 
   const users = await prisma.user.findMany({
     where: { username: null },
-    select: { id: true, name: true, email: true, profile: { select: { full_name: true } } },
+    select: { id: true, name: true, profile: { select: { full_name: true } } },
     orderBy: { createdAt: "asc" },
   });
   console.log(`${users.length} user(s) without a username. ${apply ? "APPLYING" : "DRY RUN"}`);
@@ -32,8 +32,8 @@ async function main() {
   const planned = new Set<string>();
   let done = 0;
   for (const u of users) {
-    let username = await generateUniqueUsername(u.profile?.full_name || u.name, u.email);
-    while (planned.has(username)) username = await generateUniqueUsername(`${username} x`, u.email);
+    let username = await generateUniqueUsername(u.profile?.full_name || u.name);
+    while (planned.has(username)) username = await generateUniqueUsername(`${username} x`);
     planned.add(username);
     if (apply) {
       await prisma.user.update({ where: { id: u.id }, data: { username, displayUsername: username } });
