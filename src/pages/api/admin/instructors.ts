@@ -52,6 +52,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const body = req.body ?? {};
     const email = typeof body.email === "string" ? body.email.trim() : "";
 
+    // Instructor.profile_id is unique: a login already linked to an instructor
+    // cannot be linked to a second one, so re-adding that person used to 500.
+    if (email) {
+      const linked = await prisma.instructor.findFirst({
+        where: { profile: { email: email.toLowerCase() } },
+        select: { name: true, is_active: true },
+      });
+      if (linked) {
+        return res.status(409).json({
+          error: `This email already belongs to instructor "${linked.name}"${linked.is_active ? "" : " (inactive)"}. Edit or reactivate that instructor instead.`,
+        });
+      }
+    }
+
     // One-time password for the new instructor login. The usable credential is
     // written by attachStudioCredential below.
     const tempPassword = generateTempPassword();
