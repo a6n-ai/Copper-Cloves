@@ -292,8 +292,6 @@ export default function AdminDashboard() {
   const [rentalInquiriesLoading, setRentalInquiriesLoading] = useState(false);
 
   const [overviewLoaded, setOverviewLoaded] = useState(false);
-  const [peakHours, setPeakHours] = useState<{ slots: string[]; days: string[]; grid: number[][]; max: number }>({ slots: [], days: [], grid: [], max: 0 });
-  const [classesLoaded, setClassesLoaded] = useState(false);
   const [overviewStats, setOverviewStats] = useState({
     totalMembers: 0,
     activeToday: 0,
@@ -352,12 +350,6 @@ export default function AdminDashboard() {
       photo?: string | null;
     }[]
   >([]);
-  const [classPerformance, setClassPerformance] = useState<
-    { name: string; bookings: number; capacity: number; utilization: number; discipline: string }[]
-  >([]);
-  const [disciplineSplit, setDisciplineSplit] = useState<{ name: string; count: number; percentage: number }[]>(
-    []
-  );
   const [memberList, setMemberList] = useState<Record<string, unknown>[]>([]);
   const [expiringMembers, setExpiringMembers] = useState<
     { id: string; name: string; email: string; package: string; expires: string; credits: number }[]
@@ -530,35 +522,6 @@ export default function AdminDashboard() {
       const d = await r.json();
       if (!cancelled && Array.isArray(d.instructors)) setDashboardInstructors(d.instructors);
     });
-    return () => { cancelled = true; };
-  }, [session, userRole, activeTab]);
-
-  /** Classes tab. */
-  useEffect(() => {
-    if (!session?.user) return;
-    if (!hasRole(userRole, "admin") || activeTab !== "classes") return;
-    let cancelled = false;
-
-    void loadSection("class-performance", async () => {
-      const r = await fetch("/api/admin/dashboard/class-performance");
-      if (!r.ok || cancelled) return;
-      const d = await r.json();
-      if (!cancelled) {
-        if (Array.isArray(d.classPerformance)) setClassPerformance(d.classPerformance);
-        if (Array.isArray(d.disciplineSplit)) setDisciplineSplit(d.disciplineSplit);
-        setClassesLoaded(true);
-      }
-    });
-
-    void loadSection("peak-hours", async () => {
-      const r = await fetch("/api/admin/dashboard/peak-hours");
-      if (!r.ok || cancelled) return;
-      const d = await r.json();
-      if (!cancelled && Array.isArray(d.grid)) {
-        setPeakHours({ slots: d.slots ?? [], days: d.days ?? [], grid: d.grid, max: Number(d.max ?? 0) });
-      }
-    });
-
     return () => { cancelled = true; };
   }, [session, userRole, activeTab]);
 
@@ -1060,12 +1023,7 @@ export default function AdminDashboard() {
 
               {/* CLASSES TAB */}
               <TabsContent value="classes" className="space-y-6">
-                <ClassesTab
-                  classPerformance={classPerformance}
-                  disciplineSplit={disciplineSplit}
-                  peakHours={peakHours}
-                  classesLoaded={classesLoaded}
-                />
+                <ClassesTab />
               </TabsContent>
             </Tabs>
 
