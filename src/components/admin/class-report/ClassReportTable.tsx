@@ -149,7 +149,10 @@ function ClassReportTableImpl({
                 <TableCell>
                   <button
                     type="button"
-                    onClick={() => onSelect(row.classId)}
+                    onClick={(e) => {
+                      e.currentTarget.focus(); // Safari does not focus buttons on click; the dialog restores focus here
+                      onSelect(row.classId);
+                    }}
                     className="group/name -my-1 block rounded-sm py-1 text-left font-body active:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
                   >
                     <span className="block font-medium text-charcoal underline decoration-sage/50 underline-offset-4 group-hover/name:decoration-sage">

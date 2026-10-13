@@ -29,14 +29,19 @@ function detail(totals: Totals): string {
 }
 
 function ClassHeatmapImpl({ heatmap }: Readonly<{ heatmap: ClassReport["heatmap"] }>) {
-  const [current, setCurrent] = useState<[number, number] | null>(null);
+  // `tab` is the roving tab stop (keyboard and focus only); `readout` is the cell the caption describes (also hover and tap).
+  const [tab, setTab] = useState<[number, number]>([0, 0]);
+  const [readout, setReadout] = useState<[number, number] | null>(null);
 
   if (heatmap.hours.length === 0) {
     return <p className="font-body text-sm text-charcoal/70 py-10 text-center">No sessions in this range.</p>;
   }
 
-  const [curRow, curCol] = current ?? [0, 0];
-  const tabRow = Math.min(curRow, heatmap.hours.length - 1);
+  const lastRow = heatmap.hours.length - 1;
+  const tabRow = Math.min(tab[0], lastRow);
+  const tabCol = tab[1];
+  const readRow = readout ? Math.min(readout[0], lastRow) : 0;
+  const readCol = readout ? readout[1] : 0;
   const totalsAt = (row: number, col: number) => heatmap.cells[`${heatmap.hours[row]}-${col}`] ?? EMPTY;
 
   const onKeyDown = (e: KeyboardEvent<HTMLTableCellElement>, row: number, col: number) => {
@@ -86,15 +91,18 @@ function ClassHeatmapImpl({ heatmap }: Readonly<{ heatmap: ClassReport["heatmap"
                   const totals = totalsAt(row, col);
                   const utilization = rates(totals).utilization;
                   const hasSessions = totals.sessions > 0;
-                  const isCurrent = current !== null && row === tabRow && col === curCol;
+                  const isCurrent = readout !== null && row === readRow && col === readCol;
                   return (
                     <td
                       key={day}
                       data-cell={`${row}-${col}`}
-                      tabIndex={row === tabRow && col === curCol ? 0 : -1}
-                      onFocus={() => setCurrent([row, col])}
-                      onPointerEnter={() => setCurrent([row, col])}
-                      onClick={() => setCurrent([row, col])}
+                      tabIndex={row === tabRow && col === tabCol ? 0 : -1}
+                      onFocus={() => {
+                        setTab([row, col]);
+                        setReadout([row, col]);
+                      }}
+                      onPointerEnter={() => setReadout([row, col])}
+                      onClick={() => setReadout([row, col])}
                       onKeyDown={(e) => onKeyDown(e, row, col)}
                       className={`h-11 md:h-10 rounded-md text-center text-xs font-medium tabular-nums text-charcoal cursor-default ring-offset-white-warm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 ${
                         isCurrent ? "ring-1 ring-charcoal/40 ring-offset-1" : ""
@@ -126,8 +134,8 @@ function ClassHeatmapImpl({ heatmap }: Readonly<{ heatmap: ClassReport["heatmap"
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         {/* Hidden from screen readers: each cell already carries the same numbers. */}
         <p aria-hidden className="font-body text-xs text-charcoal/70 tabular-nums">
-          {current
-            ? `${DAYS[curCol]} ${hourLabel(heatmap.hours[tabRow])}: ${detail(totalsAt(tabRow, curCol))}`
+          {readout
+            ? `${DAYS[readCol]} ${hourLabel(heatmap.hours[readRow])}: ${detail(totalsAt(readRow, readCol))}`
             : "Point at or tap a slot to see seats and sessions."}
         </p>
         <div aria-hidden className="flex items-center gap-2">

@@ -1,9 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ClassReport } from "@/lib/classReport";
 
-// Names from every report loaded this session, so the class dialog can title itself
-// before its own request lands, and keep the name if that request fails.
-export const knownClassNames = new Map<string, string>();
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+
+// Only what the tab and dialog dereference unguarded.
+function isClassReport(b: unknown): b is ClassReport {
+  return (
+    isObj(b) &&
+    isObj(b.range) &&
+    isObj(b.current) &&
+    isObj(b.previous) &&
+    isObj(b.heatmap) &&
+    Array.isArray(b.trend) &&
+    Array.isArray(b.classes)
+  );
+}
 
 export function useClassReport(from: string, to: string, classId?: string) {
   const [data, setData] = useState<ClassReport | null>(null);
@@ -31,12 +42,11 @@ export function useClassReport(from: string, to: string, classId?: string) {
           const msg = (body as { error?: string } | null)?.error;
           throw new Error(msg ?? `Request failed (${r.status})`);
         }
-        if (body === null || typeof body !== "object") throw new Error("Invalid response from server");
-        return body as ClassReport;
+        if (!isClassReport(body)) throw new Error("Invalid response from server");
+        return body;
       })
       .then((d) => {
         if (ctrl.signal.aborted) return;
-        for (const c of d.classes ?? []) knownClassNames.set(c.classId, c.name);
         setData(d);
         setLoading(false);
       })

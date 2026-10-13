@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { hasRole } from "@/lib/auth/roles";
 import { BOOKING_STATUS, REVENUE_STATUSES } from "@/lib/bookingStatus";
-import { buildClassReport, resolveRange, type SessionRow } from "@/lib/classReport";
+import { buildClassReport, resolveRange, toSessionRow } from "@/lib/classReport";
 import logger from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -41,27 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const rows: SessionRow[] = schedules.map((s) => {
-      const taughtBy = s.actual_instructor ?? s.instructor;
-      return {
-        id: s.id,
-        classId: s.class_id,
-        className: s.class_model?.name ?? "Unknown class",
-        category: s.class_model?.category || "general",
-        status: s.status,
-        startTime: s.start_time,
-        endTime: s.end_time,
-        capacity: s.capacity ?? s.class_model?.max_capacity ?? 0,
-        instructorId: taughtBy?.id ?? null,
-        instructorName: taughtBy?.name ?? "Unassigned",
-        bookings: s.bookings.map((b) => ({
-          status: b.status,
-          checkedIn: b.checked_in,
-          outcome: b.check_in_outcome,
-          guests: b.extra_guest_count,
-        })),
-      };
-    });
+    const rows = schedules.map(toSessionRow);
 
     return res.json(buildClassReport(rows, range, now, Boolean(classId)));
   } catch (e) {

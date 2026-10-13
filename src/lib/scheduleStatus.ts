@@ -21,6 +21,9 @@ export const LOCKED_SCHEDULE_STATUSES = ["completed", "abandoned"] as const;
 /** Booking is blocked outright when the schedule is in one of these states. */
 export const NON_BOOKABLE_SCHEDULE_STATUSES = ["cancelled", "inactive"] as const;
 
+/** Sessions in these states never count in reports: hidden ones plus abandoned (cancelled after the fact). */
+export const REPORT_EXCLUDED_SCHEDULE_STATUSES: readonly string[] = [...HIDDEN_SCHEDULE_STATUSES, "abandoned"];
+
 export function isScheduleVisible(status: string): boolean {
   return !(HIDDEN_SCHEDULE_STATUSES as readonly string[]).includes(status);
 }

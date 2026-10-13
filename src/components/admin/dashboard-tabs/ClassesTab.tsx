@@ -72,7 +72,12 @@ function ClassesTabImpl() {
     [data],
   );
   // A new date range can drop the chosen discipline; fall back rather than strand an empty table.
-  const discipline = disciplines.includes(pickedDiscipline) ? pickedDiscipline : ALL_DISCIPLINES;
+  // With one discipline the select is hidden, so a stale choice must not leak into headings.
+  const discipline = disciplines.length > 1 && disciplines.includes(pickedDiscipline) ? pickedDiscipline : ALL_DISCIPLINES;
+  const onDisciplineChange = useCallback((next: string) => {
+    setPickedDiscipline(next);
+    setShowAllAttention(false);
+  }, []);
 
   // Emptiest first: the class with the most unsold seats is the one to act on.
   const flagged = useMemo(
@@ -194,7 +199,10 @@ function ClassesTabImpl() {
                           <li key={c.classId}>
                             <button
                               type="button"
-                              onClick={() => setSelectedClassId(c.classId)}
+                              onClick={(e) => {
+                                e.currentTarget.focus(); // Safari does not focus buttons on click; the dialog restores focus here
+                                setSelectedClassId(c.classId);
+                              }}
                               className="flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-terracotta/25 bg-white-warm px-3 py-2 text-left font-body text-sm text-charcoal transition-colors duration-150 hover:border-terracotta/60 active:bg-terracotta/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
                             >
                               <span className="min-w-0 font-medium">{c.name}</span>
@@ -242,7 +250,7 @@ function ClassesTabImpl() {
                     classes={data.classes}
                     disciplines={disciplines}
                     discipline={discipline}
-                    onDisciplineChange={setPickedDiscipline}
+                    onDisciplineChange={onDisciplineChange}
                     onSelect={setSelectedClassId}
                   />
                 </CardContent>
@@ -263,7 +271,13 @@ function ClassesTabImpl() {
           )
         )}
       </div>
-      <ClassDetailDialog classId={selectedClassId} from={from} to={to} onClose={closeDetail} />
+      <ClassDetailDialog
+        classId={selectedClassId}
+        from={from}
+        to={to}
+        fallbackName={data?.classes.find((c) => c.classId === selectedClassId)?.name}
+        onClose={closeDetail}
+      />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import { BOOKING_STATUS, REVENUE_STATUSES } from "./bookingStatus";
+import { REPORT_EXCLUDED_SCHEDULE_STATUSES } from "./scheduleStatus";
 import { istMidnightToUtc, utcToIstParts } from "./istTime";
 
 export type Totals = {
@@ -79,7 +80,6 @@ const DAY_MS = 86_400_000;
 const DEFAULT_RANGE_DAYS = 30;
 export const MAX_RANGE_DAYS = 366;
 const DAILY_BUCKET_MAX_DAYS = 31;
-const EXCLUDED_SESSION_STATUSES: readonly string[] = ["cancelled", "inactive", "abandoned"];
 const CONFIRMED: readonly string[] = REVENUE_STATUSES;
 
 /** Tunable thresholds for the needs-attention list. */
@@ -119,11 +119,19 @@ function bucketOfDay(dayKey: number, bucket: RangeInfo["bucket"]): number {
 
 export function resolveRange(fromRaw: unknown, toRaw: unknown, now: Date): ReportRange | { error: string } {
   const today = istDayKey(now);
-  const f = typeof fromRaw === "string" ? parseDay(fromRaw) : null;
-  const t = typeof toRaw === "string" ? parseDay(toRaw) : null;
-  const valid = f !== null && t !== null;
-  const to = valid ? t : today;
-  const from = valid ? f : today - (DEFAULT_RANGE_DAYS - 1) * DAY_MS;
+  const absent = (v: unknown) => v === undefined || v === "";
+  let from: number;
+  let to: number;
+  if (absent(fromRaw) && absent(toRaw)) {
+    to = today;
+    from = today - (DEFAULT_RANGE_DAYS - 1) * DAY_MS;
+  } else {
+    const f = typeof fromRaw === "string" ? parseDay(fromRaw) : null;
+    const t = typeof toRaw === "string" ? parseDay(toRaw) : null;
+    if (f === null || t === null) return { error: "from and to must both be real dates in YYYY-MM-DD format" };
+    from = f;
+    to = t;
+  }
   if (from > to) return { error: "from must be on or before to" };
   const days = (to - from) / DAY_MS + 1;
   if (days > MAX_RANGE_DAYS) return { error: `Range cannot exceed ${MAX_RANGE_DAYS} days` };
@@ -137,6 +145,42 @@ export function resolveRange(fromRaw: unknown, toRaw: unknown, now: Date): Repor
     fromUtc: dayKeyToUtc(from),
     toUtcExclusive: dayKeyToUtc(to + DAY_MS),
     prevFromUtc: dayKeyToUtc(prevFrom),
+  };
+}
+
+/** Structural shape of a schedule row as the report query selects it; keeps Prisma types out of this module. */
+export type ScheduleRowInput = {
+  id: string;
+  class_id: string;
+  status: string;
+  start_time: Date;
+  end_time: Date;
+  capacity: number | null;
+  class_model: { name: string; category: string | null; max_capacity: number | null } | null;
+  instructor: { id: string; name: string } | null;
+  actual_instructor: { id: string; name: string } | null;
+  bookings: { status: string; checked_in: boolean; check_in_outcome: string | null; extra_guest_count: number }[];
+};
+
+export function toSessionRow(s: ScheduleRowInput): SessionRow {
+  const taughtBy = s.actual_instructor ?? s.instructor;
+  return {
+    id: s.id,
+    classId: s.class_id,
+    className: s.class_model?.name ?? "Unknown class",
+    category: s.class_model?.category || "general",
+    status: s.status,
+    startTime: s.start_time,
+    endTime: s.end_time,
+    capacity: s.capacity ?? s.class_model?.max_capacity ?? 0,
+    instructorId: taughtBy?.id ?? null,
+    instructorName: taughtBy?.name ?? "Unassigned",
+    bookings: s.bookings.map((b) => ({
+      status: b.status,
+      checkedIn: b.checked_in,
+      outcome: b.check_in_outcome,
+      guests: b.extra_guest_count,
+    })),
   };
 }
 
@@ -237,7 +281,7 @@ export function buildClassReport(rows: SessionRow[], range: ReportRange, now: Da
   const sessions: SessionEntry[] = [];
 
   for (const s of rows) {
-    if (EXCLUDED_SESSION_STATUSES.includes(s.status)) continue;
+    if (REPORT_EXCLUDED_SCHEDULE_STATUSES.includes(s.status)) continue;
     const startMs = s.startTime.getTime();
     if (startMs < prevFromMs || startMs >= toMs) continue;
     const isCurrent = startMs >= fromMs;

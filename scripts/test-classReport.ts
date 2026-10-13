@@ -8,7 +8,9 @@ import {
   pointDelta,
   rates,
   resolveRange,
+  toSessionRow,
   type ReportRange,
+  type ScheduleRowInput,
   type SessionRow,
 } from "../src/lib/classReport";
 
@@ -59,10 +61,26 @@ function range(from: string, to: string): ReportRange {
   assert.equal(def.prevFrom, "2026-08-14");
   assert.equal(def.bucket, "day");
 
-  // Malformed input falls back to the default window.
-  for (const bad of ["garbage", "2026-02-31", "", 42, null]) {
-    const r = resolveRange(bad, "2026-10-12", NOW) as ReportRange;
-    assert.equal(r.from, "2026-09-13", `fallback for ${String(bad)}`);
+  // Both absent (undefined or empty) means the default window; anything else must be valid.
+  const emptyDef = resolveRange("", "", NOW) as ReportRange;
+  assert.equal(emptyDef.from, "2026-09-13");
+  assert.equal(emptyDef.to, "2026-10-12");
+  const bad: [unknown, unknown][] = [
+    ["garbage", "2026-10-12"],
+    ["2026-02-31", "2026-10-12"],
+    ["2026-10-01", "2026-13-01"],
+    [42, "2026-10-12"],
+    [null, "2026-10-12"],
+    [["2026-10-01"], "2026-10-12"],
+    ["2026-10-01", undefined],
+    [undefined, "2026-10-12"],
+    ["", "2026-10-12"],
+    ["2026-10-01", ""],
+  ];
+  for (const [f, t] of bad) {
+    const r = resolveRange(f, t, NOW);
+    assert.ok("error" in r, `rejected ${String(f)} / ${String(t)}`);
+    assert.match((r as { error: string }).error, /YYYY-MM-DD/);
   }
 
   assert.ok("error" in resolveRange("2026-10-12", "2026-10-01", NOW), "reversed range rejected");
@@ -149,6 +167,60 @@ function range(from: string, to: string): ReportRange {
   assert.equal(detail.sessions?.[1].cancelled, 1);
   assert.equal(detail.instructors?.[0].name, "Asha");
   assert.equal(detail.instructors?.[0].totals.sessions, 2);
+}
+
+// --- row mapping ----------------------------------------------------------
+{
+  const raw = (over: Partial<ScheduleRowInput> = {}): ScheduleRowInput => ({
+    id: "x",
+    class_id: "c9",
+    status: "available",
+    start_time: ist("2026-10-05", "10:00"),
+    end_time: ist("2026-10-05", "11:00"),
+    capacity: 12,
+    class_model: { name: "Mat", category: "yoga", max_capacity: 20 },
+    instructor: null,
+    actual_instructor: null,
+    bookings: [{ status: "confirmed", checked_in: true, check_in_outcome: "on_time", extra_guest_count: 2 }],
+    ...over,
+  });
+  const none = toSessionRow(raw());
+  assert.equal(none.instructorId, null);
+  assert.equal(none.instructorName, "Unassigned");
+  assert.deepEqual(none.bookings, [{ status: "confirmed", checkedIn: true, outcome: "on_time", guests: 2 }]);
+  const planned = { id: "p", name: "Planned" };
+  const actual = { id: "a", name: "Actual" };
+  assert.equal(toSessionRow(raw({ instructor: planned })).instructorName, "Planned");
+  const both = toSessionRow(raw({ instructor: planned, actual_instructor: actual }));
+  assert.equal(both.instructorId, "a");
+  assert.equal(both.instructorName, "Actual");
+  assert.equal(toSessionRow(raw({ actual_instructor: actual })).instructorId, "a");
+  assert.equal(none.capacity, 12);
+  assert.equal(toSessionRow(raw({ capacity: null })).capacity, 20);
+  assert.equal(toSessionRow(raw({ capacity: 0 })).capacity, 0, "an explicit zero is not a missing value");
+  assert.equal(toSessionRow(raw({ capacity: null, class_model: { name: "Mat", category: "yoga", max_capacity: null } })).capacity, 0);
+  const noClass = toSessionRow(raw({ class_model: null, capacity: null }));
+  assert.equal(noClass.className, "Unknown class");
+  assert.equal(noClass.category, "general");
+  assert.equal(noClass.capacity, 0);
+  assert.equal(toSessionRow(raw({ class_model: { name: "Mat", category: "", max_capacity: 5 } })).category, "general");
+
+  // An unassigned session shows once in the detail instructor list.
+  const r = range("2026-10-01", "2026-10-12");
+  const rep = buildClassReport(
+    [
+      session("2026-10-05", "10:00", { instructorId: null, instructorName: "Unassigned", bookings: [booked(), booked()] }),
+      session("2026-10-06", "10:00", { instructorId: null, instructorName: "Unassigned", bookings: [booked(false)] }),
+    ],
+    r,
+    NOW,
+    true,
+  );
+  assert.equal(rep.instructors?.length, 1);
+  assert.equal(rep.instructors?.[0].name, "Unassigned");
+  assert.equal(rep.instructors?.[0].instructorId, null);
+  assert.equal(rep.instructors?.[0].totals.sessions, 2);
+  assert.equal(rep.instructors?.[0].totals.signups, 3);
 }
 
 // --- week buckets ---------------------------------------------------------

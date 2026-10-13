@@ -18,7 +18,7 @@ import { ClassHeatmap } from "./ClassHeatmap";
 import { ClassReportKpis } from "./ClassReportKpis";
 import { ClassTrendChart } from "./ClassTrendChart";
 import { fmtPct, fmtRange } from "./format";
-import { knownClassNames, useClassReport } from "./useClassReport";
+import { useClassReport } from "./useClassReport";
 
 const EMPTY = emptyTotals();
 const NO_SESSIONS: SessionEntry[] = [];
@@ -35,12 +35,17 @@ const SECTION = "font-body font-semibold text-base text-charcoal";
 const NUM = "font-body text-sm tabular-nums text-right";
 const EMPTY_ROW = "font-body text-sm text-charcoal/70 text-center py-6";
 
-function DetailBody({ classId, from, to }: Readonly<{ classId: string; from: string; to: string }>) {
+function DetailBody({
+  classId,
+  from,
+  to,
+  fallbackName,
+}: Readonly<{ classId: string; from: string; to: string; fallbackName?: string }>) {
   const { data, error, loading, retry } = useClassReport(from, to, classId);
   const cls = data?.classes[0];
   const instructors = data?.instructors ?? [];
   const sessions = usePagination(data?.sessions ?? NO_SESSIONS, 10);
-  const name = cls?.name ?? knownClassNames.get(classId);
+  const name = cls?.name ?? fallbackName;
 
   return (
     <>
@@ -185,8 +190,9 @@ export function ClassDetailDialog({
   classId,
   from,
   to,
+  fallbackName,
   onClose,
-}: Readonly<{ classId: string | null; from: string; to: string; onClose: () => void }>) {
+}: Readonly<{ classId: string | null; from: string; to: string; fallbackName?: string; onClose: () => void }>) {
   const isOpen = classId !== null;
   const opener = useRef<HTMLElement | null>(null);
 
@@ -211,7 +217,7 @@ export function ClassDetailDialog({
         }}
       >
         {/* key resets fetch state per class, so one class's numbers never flash under another's name */}
-        {classId && <DetailBody key={classId} classId={classId} from={from} to={to} />}
+        {classId && <DetailBody key={classId} classId={classId} from={from} to={to} fallbackName={fallbackName} />}
       </ResponsiveDialogContent>
     </ResponsiveDialog>
   );
