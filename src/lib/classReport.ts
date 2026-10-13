@@ -55,6 +55,7 @@ export type InstructorEntry = { instructorId: string | null; name: string; total
 export type SessionEntry = {
   id: string;
   startTime: string;
+  className: string;
   instructorName: string;
   ended: boolean;
   capacity: number;
@@ -182,6 +183,23 @@ export function toSessionRow(s: ScheduleRowInput): SessionRow {
       guests: b.extra_guest_count,
     })),
   };
+}
+
+/** Stands in for the id of sessions with no instructor recorded. */
+export const UNASSIGNED_INSTRUCTOR = "unassigned";
+const instructorKey = (s: SessionRow) => s.instructorId ?? UNASSIGNED_INSTRUCTOR;
+
+/** Sessions one instructor taught (the substitute, when one stepped in). */
+export function taughtBy(rows: SessionRow[], instructorId: string): SessionRow[] {
+  return rows.filter((s) => instructorKey(s) === instructorId);
+}
+
+/**
+ * Re-keys sessions by who taught them, so the report's per-class rollup (`classes`)
+ * comes out as one entry per instructor: `classId` holds the instructor id, `name` their name.
+ */
+export function byInstructor(rows: SessionRow[]): SessionRow[] {
+  return rows.map((s) => ({ ...s, classId: instructorKey(s), className: s.instructorName, category: "" }));
 }
 
 export function emptyTotals(): Totals {
@@ -327,6 +345,7 @@ export function buildClassReport(rows: SessionRow[], range: ReportRange, now: Da
     sessions.push({
       id: s.id,
       startTime: s.startTime.toISOString(),
+      className: s.className,
       instructorName: s.instructorName,
       ended,
       capacity: s.capacity,

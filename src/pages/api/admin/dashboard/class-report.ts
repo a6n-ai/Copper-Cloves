@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { hasRole } from "@/lib/auth/roles";
 import { BOOKING_STATUS, REVENUE_STATUSES } from "@/lib/bookingStatus";
-import { buildClassReport, resolveRange, toSessionRow } from "@/lib/classReport";
+import { buildClassReport, byInstructor, resolveRange, taughtBy, toSessionRow } from "@/lib/classReport";
 import logger from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -16,7 +16,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const now = new Date();
   const range = resolveRange(req.query.from, req.query.to, now);
   if ("error" in range) return res.status(400).json({ error: range.error });
-  const classId = typeof req.query.classId === "string" && req.query.classId ? req.query.classId : undefined;
+  const param = (v: unknown) => (typeof v === "string" && v ? v : undefined);
+  const classId = param(req.query.classId);
+  const instructorId = param(req.query.instructorId);
+  const groupByInstructor = req.query.groupBy === "instructor";
 
   try {
     const schedules = await prisma.classSchedule.findMany({
@@ -41,9 +44,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const rows = schedules.map(toSessionRow);
+    // ponytail: the instructor filter runs in JS because "taught by" is actual_instructor ?? instructor;
+    // push it into the query if a year of schedules ever gets slow.
+    let rows = schedules.map(toSessionRow);
+    if (instructorId) rows = taughtBy(rows, instructorId);
+    else if (groupByInstructor) rows = byInstructor(rows);
 
-    return res.json(buildClassReport(rows, range, now, Boolean(classId)));
+    return res.json(buildClassReport(rows, range, now, Boolean(classId || instructorId)));
   } catch (e) {
     logger.error({ err: e }, "[dashboard/class-report]");
     return res.status(500).json({ error: "Could not load the class report" });

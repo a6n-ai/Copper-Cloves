@@ -2,13 +2,16 @@ import assert from "node:assert/strict";
 import {
   attentionReason,
   buildClassReport,
+  byInstructor,
   disciplineLabel,
   emptyTotals,
   percentDelta,
   pointDelta,
   rates,
   resolveRange,
+  taughtBy,
   toSessionRow,
+  UNASSIGNED_INSTRUCTOR,
   type ReportRange,
   type ScheduleRowInput,
   type SessionRow,
@@ -282,6 +285,36 @@ function range(from: string, to: string): ReportRange {
   assert.equal(attentionReason(t(4, 40, 24), emptyTotals()), null, "no previous data");
 
   assert.equal(disciplineLabel("hot_yoga"), "Hot Yoga");
+}
+
+// --- instructor report ----------------------------------------------------
+{
+  const r = range("2026-10-01", "2026-10-12");
+  const rows = [
+    session("2026-10-05", "10:00", { bookings: [booked(), booked(false)] }),
+    session("2026-10-06", "10:00", { classId: "c2", className: "Barre", bookings: [booked()] }),
+    session("2026-10-07", "10:00", { instructorId: "i2", instructorName: "Dev", bookings: [booked(), booked(), booked()] }),
+    session("2026-10-08", "10:00", { instructorId: null, instructorName: "Unassigned", bookings: [booked()] }),
+    session("2026-09-25", "10:00", { bookings: [booked()] }), // previous period
+  ];
+
+  // Grouped: one entry per instructor, across the classes they taught.
+  const all = buildClassReport(byInstructor(rows), r, NOW);
+  assert.deepEqual(all.classes.map((c) => [c.classId, c.name, c.current.sessions, c.current.signups]), [
+    ["i1", "Asha", 2, 3],
+    ["i2", "Dev", 1, 3],
+    [UNASSIGNED_INSTRUCTOR, "Unassigned", 1, 1],
+  ]);
+  assert.equal(all.classes[0].previous.sessions, 1, "previous period follows the instructor too");
+  assert.equal(all.current.signups, 7, "studio totals are unchanged by the grouping");
+
+  // One instructor: their classes, and a session list that names the class.
+  const asha = buildClassReport(taughtBy(rows, "i1"), r, NOW, true);
+  assert.equal(asha.current.sessions, 2);
+  assert.deepEqual(asha.classes.map((c) => c.name).sort(), ["Barre", "Reformer Flow"]);
+  assert.deepEqual(asha.sessions?.map((s) => s.className), ["Barre", "Reformer Flow"]);
+  assert.equal(taughtBy(rows, UNASSIGNED_INSTRUCTOR).length, 1);
+  assert.equal(taughtBy(rows, "nobody").length, 0);
 }
 
 console.log("classReport: all assertions passed");

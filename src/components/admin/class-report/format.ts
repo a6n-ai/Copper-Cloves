@@ -36,3 +36,10 @@ export function fmtRange(from: string, to: string): string {
   const sameYear = start.getFullYear() === end.getFullYear();
   return `${format(start, sameYear ? "d MMM" : "d MMM yyyy")} – ${format(end, "d MMM yyyy")}`;
 }
+
+/** The report groups sessions either by class or by who taught them; only the wording and query differ. */
+export const REPORT_KINDS = {
+  class: { one: "class", many: "classes", title: "Classes", listQuery: "", idParam: "classId" },
+  instructor: { one: "instructor", many: "instructors", title: "Instructors", listQuery: "groupBy=instructor", idParam: "instructorId" },
+} as const;
+export type ReportKind = keyof typeof REPORT_KINDS;

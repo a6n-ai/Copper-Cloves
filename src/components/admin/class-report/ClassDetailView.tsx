@@ -8,11 +8,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
-import { disciplineLabel, emptyTotals, rates, type SessionEntry } from "@/lib/classReport";
+import { disciplineLabel, emptyTotals, rates, UNASSIGNED_INSTRUCTOR, type SessionEntry } from "@/lib/classReport";
 import { ClassHeatmap } from "./ClassHeatmap";
 import { ClassReportKpis } from "./ClassReportKpis";
 import { ClassTrendChart } from "./ClassTrendChart";
-import { fmtPct, fmtRange } from "./format";
+import { fmtPct, fmtRange, REPORT_KINDS, type ReportKind } from "./format";
 import { useClassReport } from "./useClassReport";
 
 const EMPTY = emptyTotals();
@@ -33,18 +33,26 @@ const TITLE = "font-body font-semibold text-xl text-charcoal";
 const NUM = "font-body text-sm tabular-nums text-right";
 const EMPTY_ROW = "font-body text-sm text-charcoal/70 text-center py-6";
 
+/** One class's report, or one instructor's: `id` is read as whichever `kind` says. */
 export function ClassDetailView({
-  classId,
+  kind,
+  id,
   from,
   to,
   fallbackName,
   onBack,
-}: Readonly<{ classId: string; from: string; to: string; fallbackName?: string; onBack: () => void }>) {
-  const { data, error, loading, retry } = useClassReport(from, to, classId);
-  const cls = data?.classes[0];
-  const instructors = data?.instructors ?? [];
+}: Readonly<{ kind: ReportKind; id: string; from: string; to: string; fallbackName?: string; onBack: () => void }>) {
+  const { one, many, idParam } = REPORT_KINDS[kind];
+  const byClass = kind === "class";
+  const { data, error, loading, retry } = useClassReport(from, to, `${idParam}=${encodeURIComponent(id)}`);
+  const cls = byClass ? data?.classes[0] : undefined;
+  // A class splits by who taught it; an instructor splits by what they taught.
+  const split = byClass
+    ? (data?.instructors ?? []).map((i) => ({ key: i.instructorId ?? UNASSIGNED_INSTRUCTOR, name: i.name, totals: i.totals }))
+    : (data?.classes ?? []).filter((c) => c.current.sessions > 0).map((c) => ({ key: c.classId, name: c.name, totals: c.current }));
+  const splitNoun = byClass ? "instructor" : "class";
   const sessions = usePagination(data?.sessions ?? NO_SESSIONS, 10);
-  const name = cls?.name ?? fallbackName;
+  const name = cls?.name ?? fallbackName ?? (byClass ? undefined : data?.sessions?.[0]?.instructorName);
   const heading = useRef<HTMLHeadingElement>(null);
 
   // The list above is long; without this the report opens scrolled to wherever the class was picked.
@@ -58,11 +66,11 @@ export function ClassDetailView({
       <div className="scroll-mt-24 space-y-3">
         <Button variant="ghost" size="sm" onClick={onBack} className="font-body -ml-2 text-charcoal hover:bg-sage/10 hover:text-charcoal">
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          All classes
+          All {many}
         </Button>
         <div>
           <h2 ref={heading} tabIndex={-1} className="font-body text-2xl font-semibold text-charcoal focus-visible:outline-none">
-            {name ?? (loading ? "Loading class…" : "Class report")}
+            {name ?? (loading ? `Loading ${one}…` : `${byClass ? "Class" : "Instructor"} report`)}
           </h2>
           <p className="font-body text-sm text-charcoal/70 tabular-nums">
             {cls ? `${disciplineLabel(cls.category)} · ${fmtRange(from, to)}` : fmtRange(from, to)}
@@ -93,7 +101,7 @@ export function ClassDetailView({
         {loading && !data && !error && <Skeleton className="h-[460px] w-full rounded-xl bg-sage/10" />}
 
         {data && data.current.sessions === 0 && (
-          <p className="font-body text-sm text-charcoal/70 py-8 text-center">This class had no sessions in this range.</p>
+          <p className="font-body text-sm text-charcoal/70 py-8 text-center">This {one} had no sessions in this range.</p>
         )}
 
         {data && data.current.sessions > 0 && (
@@ -118,14 +126,14 @@ export function ClassDetailView({
 
             <Card className={`${TABLE_CARD} min-w-0`}>
               <CardHeader className="max-md:px-0">
-                <CardTitle role="heading" aria-level={3} className={TITLE}>By instructor</CardTitle>
+                <CardTitle role="heading" aria-level={3} className={TITLE}>By {splitNoun}</CardTitle>
               </CardHeader>
               <CardContent className="max-md:px-0 max-md:pb-0">
                 <ResponsiveTable stack>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Instructor</TableHead>
+                        <TableHead className="capitalize">{splitNoun}</TableHead>
                         <TableHead className="text-right">Sessions</TableHead>
                         <TableHead className="text-right">Signups</TableHead>
                         <TableHead className="text-right">Utilization</TableHead>
@@ -133,15 +141,15 @@ export function ClassDetailView({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {instructors.length === 0 && (
+                      {split.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={5} className={EMPTY_ROW}>No instructor is recorded for these sessions.</TableCell>
+                          <TableCell colSpan={5} className={EMPTY_ROW}>No {splitNoun} is recorded for these sessions.</TableCell>
                         </TableRow>
                       )}
-                      {instructors.map((i) => {
+                      {split.map((i) => {
                         const r = rates(i.totals);
                         return (
-                          <TableRow key={i.instructorId ?? "unassigned"}>
+                          <TableRow key={i.key}>
                             <TableCell className="font-body font-medium text-charcoal">{i.name}</TableCell>
                             <TableCell className={NUM}>{i.totals.sessions}</TableCell>
                             <TableCell className={NUM}>
@@ -168,7 +176,7 @@ export function ClassDetailView({
                     <TableHeader>
                       <TableRow>
                         <TableHead>When</TableHead>
-                        <TableHead>Instructor</TableHead>
+                        <TableHead className="capitalize">{splitNoun}</TableHead>
                         <TableHead className="text-right">Signups</TableHead>
                         <TableHead className="text-right">Attended</TableHead>
                         <TableHead className="text-right">No-shows</TableHead>
@@ -192,7 +200,7 @@ export function ClassDetailView({
                             </Link>
                             {!s.ended && <Pill tone="info" className="font-body ml-2">Upcoming</Pill>}
                           </TableCell>
-                          <TableCell className="font-body text-sm">{s.instructorName}</TableCell>
+                          <TableCell className="font-body text-sm">{byClass ? s.instructorName : s.className}</TableCell>
                           <TableCell className={NUM}>
                             {s.signups} <span className="text-charcoal/70">/ {s.capacity}</span>
                           </TableCell>

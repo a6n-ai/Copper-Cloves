@@ -166,12 +166,6 @@ interface TodayClassDetail {
   [key: string]: unknown;
 }
 
-interface DashboardInstructorRow {
-  id: string;
-  name: string;
-  [key: string]: unknown;
-}
-
 interface MemberBooking {
   class?: string;
   date?: string;
@@ -234,7 +228,6 @@ export default function AdminDashboard() {
     "overview"
   );
   const [selectedMember, setSelectedMember] = useState("all");
-  const [selectedInstructor, setSelectedInstructor] = useState("all");
   const [showMemberProfile, setShowMemberProfile] = useState(false);
   const [selectedMemberProfile, setSelectedMemberProfile] = useState<SelectedMemberProfile | null>(null);
 
@@ -339,22 +332,10 @@ export default function AdminDashboard() {
     memberGrowth: [] as { month: string; growth: number }[],
     streakDistribution: [] as { range: string; count: number }[],
   });
-  const [instructorPerformance, setInstructorPerformance] = useState<
-    {
-      name: string;
-      classes: number;
-      avgAttendance: number;
-      totalCheckIns: number;
-      rating: number;
-      specialties: string;
-      photo?: string | null;
-    }[]
-  >([]);
   const [memberList, setMemberList] = useState<Record<string, unknown>[]>([]);
   const [expiringMembers, setExpiringMembers] = useState<
     { id: string; name: string; email: string; package: string; expires: string; credits: number }[]
   >([]);
-  const [dashboardInstructors, setDashboardInstructors] = useState<DashboardInstructorRow[]>([]);
 
   // Auth enforced server-side (see `getServerSideProps` above). Client-side
   // `useSession()` is kept so existing effects that key on `session` for
@@ -502,27 +483,6 @@ export default function AdminDashboard() {
       if (Array.isArray(d.expiringMembers)) setExpiringMembers(d.expiringMembers);
       return true;
     });
-  }, [session, userRole, activeTab]);
-
-  /** Instructors tab. */
-  useEffect(() => {
-    if (!session?.user) return;
-    if (!hasRole(userRole, "admin") || activeTab !== "instructors") return;
-    let cancelled = false;
-
-    void loadSection("instructor-performance", async () => {
-      const r = await fetch("/api/admin/dashboard/instructor-performance");
-      if (!r.ok || cancelled) return;
-      const d = await r.json();
-      if (!cancelled && Array.isArray(d.instructorPerformance)) setInstructorPerformance(d.instructorPerformance);
-    });
-    void loadSection("instructors-summary", async () => {
-      const r = await fetch("/api/admin/dashboard/instructors-summary");
-      if (!r.ok || cancelled) return;
-      const d = await r.json();
-      if (!cancelled && Array.isArray(d.instructors)) setDashboardInstructors(d.instructors);
-    });
-    return () => { cancelled = true; };
   }, [session, userRole, activeTab]);
 
   // Finance tab data now lives in `FinanceTabConnected` via `useAdminFinanceData`
@@ -1013,12 +973,7 @@ export default function AdminDashboard() {
 
               {/* INSTRUCTORS TAB */}
               <TabsContent value="instructors" className="space-y-6">
-                <InstructorsTab
-                  dashboardInstructors={dashboardInstructors}
-                  instructorPerformance={instructorPerformance}
-                  selectedInstructor={selectedInstructor}
-                  onSelectInstructor={setSelectedInstructor}
-                />
+                <InstructorsTab />
               </TabsContent>
 
               {/* CLASSES TAB */}

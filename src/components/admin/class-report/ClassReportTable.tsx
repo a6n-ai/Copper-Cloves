@@ -7,7 +7,7 @@ import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { Pill } from "@/components/ui/pill";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { disciplineLabel, pointDelta, rates, type ClassEntry } from "@/lib/classReport";
-import { fmtPct, plural, SAGE_DEEP } from "./format";
+import { fmtPct, plural, REPORT_KINDS, SAGE_DEEP, type ReportKind } from "./format";
 
 type SortKey = "name" | "sessions" | "signups" | "utilization" | "attendance" | "change";
 export const ALL_DISCIPLINES = "all";
@@ -45,18 +45,21 @@ function ChangeCell({ change }: Readonly<{ change: number | null }>) {
 }
 
 function ClassReportTableImpl({
+  kind,
   classes,
   disciplines,
   discipline,
   onDisciplineChange,
   onSelect,
 }: Readonly<{
+  kind: ReportKind;
   classes: ClassEntry[];
   disciplines: string[];
   discipline: string;
   onDisciplineChange: (discipline: string) => void;
   onSelect: (classId: string) => void;
 }>) {
+  const { one, many } = REPORT_KINDS[kind];
   const running = useMemo(() => classes.filter((c) => c.current.sessions > 0), [classes]);
 
   const rows = useMemo(
@@ -104,7 +107,7 @@ function ClassReportTableImpl({
     <div className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="font-body text-sm text-charcoal/70 tabular-nums">
-          {plural(rows.length, "class", "classes")}
+          {plural(rows.length, one, many)}
           {discipline === ALL ? "" : ` in ${disciplineLabel(discipline)}`}
         </p>
         {disciplines.length > 1 && (
@@ -127,7 +130,7 @@ function ClassReportTableImpl({
         <Table>
           <TableHeader>
             <TableRow>
-              <SortableHeader className={HEAD} sortKey="name" active={sortKey} dir={sortDir} onToggle={toggle}>Class</SortableHeader>
+              <SortableHeader className={`${HEAD} capitalize`} sortKey="name" active={sortKey} dir={sortDir} onToggle={toggle}>{one}</SortableHeader>
               <SortableHeader className={HEAD_NUM} sortKey="sessions" active={sortKey} dir={sortDir} onToggle={toggle}>Sessions</SortableHeader>
               <SortableHeader className={HEAD_NUM} sortKey="signups" active={sortKey} dir={sortDir} onToggle={toggle}>Signups</SortableHeader>
               <SortableHeader className={HEAD} sortKey="utilization" active={sortKey} dir={sortDir} onToggle={toggle}>Utilization</SortableHeader>
@@ -140,7 +143,7 @@ function ClassReportTableImpl({
             {pg.pageItems.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="font-body text-sm text-charcoal/70 text-center py-8">
-                  {discipline === ALL ? "No classes ran in this range." : "No classes ran in this discipline in this range."}
+                  {discipline === ALL ? `No ${many} had sessions in this range.` : "No classes ran in this discipline in this range."}
                 </TableCell>
               </TableRow>
             )}
@@ -158,7 +161,7 @@ function ClassReportTableImpl({
                     <span className="block font-medium text-charcoal underline decoration-sage/50 underline-offset-4 group-hover/name:decoration-sage">
                       {row.name}
                     </span>
-                    <span className="block text-xs text-charcoal/70">{disciplineLabel(row.category)}</span>
+                    {row.category && <span className="block text-xs text-charcoal/70">{disciplineLabel(row.category)}</span>}
                   </button>
                 </TableCell>
                 <TableCell className={NUM}>{row.current.sessions}</TableCell>

@@ -16,7 +16,8 @@ function isClassReport(b: unknown): b is ClassReport {
   );
 }
 
-export function useClassReport(from: string, to: string, classId?: string) {
+/** `filter` is extra query string, e.g. "classId=…", "instructorId=…" or "groupBy=instructor". */
+export function useClassReport(from: string, to: string, filter = "") {
   const [data, setData] = useState<ClassReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,8 +30,7 @@ export function useClassReport(from: string, to: string, classId?: string) {
     setLoading(true);
     setError(null);
     const qs = new URLSearchParams({ from, to });
-    if (classId) qs.set("classId", classId);
-    fetch(`/api/admin/dashboard/class-report?${qs}`, { signal: ctrl.signal })
+    fetch(`/api/admin/dashboard/class-report?${qs}${filter && `&${filter}`}`, { signal: ctrl.signal })
       .then(async (r) => {
         let body: unknown = null;
         try {
@@ -57,7 +57,7 @@ export function useClassReport(from: string, to: string, classId?: string) {
         setLoading(false);
       });
     return () => ctrl.abort();
-  }, [from, to, classId, attempt]);
+  }, [from, to, filter, attempt]);
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
   return { data, error, loading, retry };

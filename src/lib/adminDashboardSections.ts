@@ -14,7 +14,6 @@ import { ROSTER_STATUSES } from "@/lib/bookingStatus";
 import { deriveScheduleState } from "@/lib/scheduleStatus";
 import { getDynamicStats, getDynamicStatsForUsers, getStreakLeaderboardAndDistribution } from "@/lib/attendanceStats";
 
-import { cdnUrl } from "@/lib/cdnUrl";
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
 function dt(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -165,75 +164,6 @@ export async function getExpiringMembers(db: Db = prisma) {
       Math.ceil((up.expiration_date.getTime() - now.getTime()) / 86400000),
     )} days`,
     credits: up.credits_remaining ?? 0,
-  }));
-}
-
-export async function getInstructorPerformance(db: Db = prisma) {
-  const mAgo = monthAgo();
-  const bookings30 = await db.booking.findMany({
-    where: { booking_date: { gte: mAgo }, status: "confirmed", class_schedule_id: { not: null } },
-    select: {
-      checked_in: true,
-      class_schedule: {
-        select: {
-          instructor_id: true,
-          instructor: { select: { name: true, specialties: true, image_url: true } },
-        },
-      },
-    },
-  });
-
-  type InstAgg = { name: string; specialties: string; photo: string | null; bookings: number; checkIns: number };
-  const instMap = new Map<string, InstAgg>();
-  for (const b of bookings30) {
-    const sch = b.class_schedule;
-    if (!sch?.instructor_id || !sch.instructor) continue;
-    const prev =
-      instMap.get(sch.instructor_id) ??
-      ({
-        name: sch.instructor.name,
-        specialties: sch.instructor.specialties?.slice(0, 2).join(", ") ?? "Classes",
-        photo: sch.instructor.image_url ?? null,
-        bookings: 0,
-        checkIns: 0,
-      } satisfies InstAgg);
-    prev.bookings++;
-    if (b.checked_in) prev.checkIns++;
-    instMap.set(sch.instructor_id, prev);
-  }
-
-  const rows = [...instMap.values()].map((i) => ({
-    name: i.name,
-    classes: i.bookings,
-    avgAttendance: i.bookings > 0 ? Math.round((i.checkIns / Math.max(i.bookings, 1)) * 14 * 10) / 10 : 0,
-    totalCheckIns: i.checkIns,
-    rating: Math.min(5, Number((4.5 + Math.min(i.checkIns / Math.max(i.bookings, 1), 1) * 0.49).toFixed(1))),
-    specialties: i.specialties,
-    photo: i.photo,
-  }));
-  return rows.length > 0
-    ? rows
-    : [{ name: "—", classes: 0, avgAttendance: 0, totalCheckIns: 0, rating: 0, specialties: "", photo: null }];
-}
-
-export async function getInstructorsSummary(db: Db = prisma) {
-  const rows = await db.instructor.findMany({
-    orderBy: [{ display_order: "asc" }, { name: "asc" }],
-    select: {
-      id: true, name: true, email: true, phone: true,
-      specialties: true, philosophy: true, about: true, image_url: true,
-    },
-  });
-  return rows.map((ins, idx) => ({
-    id: ins.id,
-    name: ins.name,
-    email: ins.email ?? `coach${idx + 1}@thestudio.local`,
-    phone: ins.phone ?? "—",
-    specialties: Array.isArray(ins.specialties) && ins.specialties.length > 0 ? ins.specialties.slice(0, 4) : ["Classes"],
-    philosophy: ins.philosophy || ins.about || "",
-    paymentPercentage: 60,
-    photo: ins.image_url || cdnUrl("/placeholder.jpg"),
-    status: "active" as const,
   }));
 }
 
