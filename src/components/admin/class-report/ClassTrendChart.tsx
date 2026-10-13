@@ -24,7 +24,7 @@ const SURFACE = "var(--color-white-warm)";
 const TICK = { fontSize: 11, fill: "var(--color-muted-foreground)" };
 const GRID = "var(--color-border)";
 const MARGIN = { top: 8, right: 8, left: 0, bottom: 0 };
-const ACTIVE_DOT = { r: 5, stroke: SURFACE, strokeWidth: 2 };
+const ACTIVE_DOT ={ r: 5, stroke: SURFACE, strokeWidth: 2 };
 const MOTION = { animationDuration: 300, animationEasing: "ease-out" as const };
 
 const DAY_MS = 86_400_000;
@@ -232,7 +232,6 @@ function ClassTrendChartImpl({
             <YAxis
               width={36}
               domain={[0, 100]}
-              allowDataOverflow
               tickLine={false}
               axisLine={false}
               tick={TICK}

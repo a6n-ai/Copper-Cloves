@@ -150,7 +150,7 @@ function ClassReportTableImpl({
                   <button
                     type="button"
                     onClick={(e) => {
-                      e.currentTarget.focus(); // Safari does not focus buttons on click; the dialog restores focus here
+                      e.currentTarget.focus(); // Safari does not focus buttons on click; going back restores focus here
                       onSelect(row.classId);
                     }}
                     className="group/name -my-1 block rounded-sm py-1 text-left font-body active:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
