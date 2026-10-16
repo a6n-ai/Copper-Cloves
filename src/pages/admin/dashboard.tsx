@@ -227,7 +227,6 @@ export default function AdminDashboard() {
     ["overview", "finance", "meal-waitlist", "rental-inquiries", "members", "instructors", "classes"],
     "overview"
   );
-  const [selectedMember, setSelectedMember] = useState("all");
   const [showMemberProfile, setShowMemberProfile] = useState(false);
   const [selectedMemberProfile, setSelectedMemberProfile] = useState<SelectedMemberProfile | null>(null);
 
@@ -332,7 +331,6 @@ export default function AdminDashboard() {
     memberGrowth: [] as { month: string; growth: number }[],
     streakDistribution: [] as { range: string; count: number }[],
   });
-  const [memberList, setMemberList] = useState<Record<string, unknown>[]>([]);
   const [expiringMembers, setExpiringMembers] = useState<
     { id: string; name: string; email: string; package: string; expires: string; credits: number }[]
   >([]);
@@ -467,13 +465,6 @@ export default function AdminDashboard() {
       if (!r.ok) return false;
       const d = await r.json();
       if (d.memberStats) setMemberStats(d.memberStats);
-      return true;
-    });
-    void loadSection("member-list", async () => {
-      const r = await fetch("/api/admin/dashboard/member-list");
-      if (!r.ok) return false;
-      const d = await r.json();
-      if (Array.isArray(d.memberList)) setMemberList(d.memberList);
       return true;
     });
     void loadSection("expiring-members", async () => {
@@ -962,13 +953,7 @@ export default function AdminDashboard() {
 
               {/* MEMBERS TAB */}
               <TabsContent value="members" className="space-y-6">
-                <MembersTab
-                  memberList={memberList}
-                  memberStats={memberStats}
-                  selectedMember={selectedMember}
-                  onSelectMember={setSelectedMember}
-                  onViewProfile={handleViewProfile}
-                />
+                <MembersTab memberStats={memberStats} />
               </TabsContent>
 
               {/* INSTRUCTORS TAB */}

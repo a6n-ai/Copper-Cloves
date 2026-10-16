@@ -1,6 +1,4 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { format, startOfDay, subDays } from "date-fns";
-import type { DateRange } from "react-day-picker";
 import { AlertTriangle, CheckCircle2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,10 +13,9 @@ import { ALL_DISCIPLINES, ClassReportTable } from "@/components/admin/class-repo
 import { ClassTrendChart } from "@/components/admin/class-report/ClassTrendChart";
 import { fmtRange, plural, REPORT_KINDS, type ReportKind } from "@/components/admin/class-report/format";
 import { useClassReport } from "@/components/admin/class-report/useClassReport";
+import { useReportRange } from "@/components/admin/class-report/useReportRange";
 
 const EMPTY = emptyTotals();
-const DAY = "yyyy-MM-dd";
-const RANGE_SETTLE_MS = 400;
 const ATTENTION_PREVIEW = 6;
 const ATTENTION_RULE = `under ${ATTENTION.lowUtilization}% full or down ${ATTENTION.dropPoints}+ points on the previous period`;
 
@@ -26,46 +23,15 @@ const CARD = "border-sage/20 bg-white-warm shadow-none";
 const TITLE = "font-body font-semibold text-xl text-charcoal";
 const DESC = "font-body text-charcoal/70";
 
-function defaultRange(): DateRange {
-  const today = startOfDay(new Date());
-  return { from: subDays(today, 29), to: today };
-}
-
-function sameDay(a: Date | undefined, b: Date | undefined): boolean {
-  return !!a && !!b && format(a, DAY) === format(b, DAY);
-}
-
 function ReportTabImpl({ kind }: Readonly<{ kind: ReportKind }>) {
   const { one, many, title, listQuery } = REPORT_KINDS[kind];
-  // The picker reports a complete one-day range on the first click, so `picked`
-  // (drives the filter button) updates at once while `applied` (drives the fetch)
-  // only follows after the selection has been stable for RANGE_SETTLE_MS.
-  const [picked, setPicked] = useState<DateRange | undefined>(defaultRange);
-  const [applied, setApplied] = useState<DateRange>(defaultRange);
+  const { picked, onRangeChange, from, to, isDefault } = useReportRange();
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [showAllAttention, setShowAllAttention] = useState(false);
   const [pickedDiscipline, setPickedDiscipline] = useState(ALL_DISCIPLINES);
 
-  useEffect(() => {
-    if (!picked?.from || !picked.to) return;
-    const { from: f, to: t } = picked;
-    const timer = setTimeout(() => setApplied({ from: f, to: t }), RANGE_SETTLE_MS);
-    return () => clearTimeout(timer);
-  }, [picked]);
-
-  const from = format(applied.from as Date, DAY);
-  const to = format(applied.to as Date, DAY);
   const { data, error, loading, retry } = useClassReport(from, to, listQuery);
 
-  const onRangeChange = (next: DateRange | undefined) => {
-    if (!next?.from) {
-      const reset = defaultRange();
-      setPicked(reset);
-      setApplied(reset);
-      return;
-    }
-    setPicked(next);
-  };
   // The overview stays mounted (hidden) under a class report, so going back lands on the
   // control that opened it, at the same scroll position.
   const opener = useRef<{ el: HTMLElement | null; scrollY: number } | null>(null);
@@ -117,11 +83,6 @@ function ReportTabImpl({ kind }: Readonly<{ kind: ReportKind }>) {
   const otherFlagged = flagged.length - attention.length;
   const inDiscipline = discipline === ALL_DISCIPLINES ? "" : ` in ${disciplineLabel(discipline)}`;
   const shownAttention = showAllAttention ? attention : attention.slice(0, ATTENTION_PREVIEW);
-
-  // At the default the filter gets no value, so it reads "Last 30 days" and offers no
-  // clear control: clearing a range that is already the default would do nothing.
-  const base = defaultRange();
-  const isDefault = sameDay(picked?.from, base.from) && sameDay(picked?.to, base.to);
 
   const firstLoad = loading && !data;
   const refreshing = loading && !!data;

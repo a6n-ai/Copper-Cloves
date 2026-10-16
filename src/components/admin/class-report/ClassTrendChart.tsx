@@ -1,10 +1,9 @@
 import { memo, useId, useMemo } from "react";
-import { format, parseISO } from "date-fns";
 import { useReducedMotion } from "framer-motion";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { rates, type ClassReport } from "@/lib/classReport";
-import { fmtBucket, fmtPct, plural, SAGE_DEEP } from "./format";
+import { describeBucket, fmtBucket, fmtPct, plural, SAGE_DEEP } from "./format";
 
 // Deep sage against terracotta clears the colour-blind and 3:1 mark-contrast checks that
 // plain sage against terracotta fails; the dashed attendance line is the second cue.
@@ -26,17 +25,6 @@ const GRID = "var(--color-border)";
 const MARGIN = { top: 8, right: 8, left: 0, bottom: 0 };
 const ACTIVE_DOT ={ r: 5, stroke: SURFACE, strokeWidth: 2 };
 const MOTION = { animationDuration: 300, animationEasing: "ease-out" as const };
-
-const DAY_MS = 86_400_000;
-// Range and bucket keys are IST calendar dates; reading them as UTC midnights keeps the day
-// count exact whatever the browser's timezone.
-const dayNumber = (iso: string) => Date.parse(`${iso}T00:00:00Z`) / DAY_MS;
-
-// Weekly buckets start on a Monday, so the first and last can hold fewer than 7 days of the range.
-function daysInRange(bucketStart: string, from: string, to: string): number {
-  const start = dayNumber(bucketStart);
-  return Math.min(start + 6, dayNumber(to)) - Math.max(start, dayNumber(from)) + 1;
-}
 
 type RateKey = "utilization" | "attendance";
 
@@ -136,14 +124,7 @@ function ClassTrendChartImpl({
     () =>
       trend.map((b) => {
         const r = rates(b.totals);
-        const day = parseISO(b.bucket);
-        const days = bucket === "week" ? daysInRange(b.bucket, from, to) : 7;
-        const partial = days < 7;
-        let full = format(day, "EEE d MMM");
-        if (bucket === "week") {
-          full = `Week of ${format(day, "d MMM")}`;
-          if (partial) full += `, partial week: ${plural(days, "day")} in range`;
-        }
+        const { full, partial } = describeBucket(b.bucket, bucket, from, to);
         return {
           label: fmtBucket(b.bucket),
           full,

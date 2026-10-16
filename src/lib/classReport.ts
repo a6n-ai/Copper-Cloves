@@ -118,6 +118,20 @@ function bucketOfDay(dayKey: number, bucket: RangeInfo["bucket"]): number {
   return bucket === "day" ? dayKey : dayKey - weekdayIdx(dayKey) * DAY_MS;
 }
 
+/** IST start date ("YYYY-MM-DD") of the trend bucket an instant falls in. */
+export function bucketOf(instant: Date, bucket: RangeInfo["bucket"]): string {
+  return fmtDay(bucketOfDay(istDayKey(instant), bucket));
+}
+
+/** Every trend bucket a range touches, oldest first. */
+export function bucketsIn(range: RangeInfo): string[] {
+  const step = range.bucket === "day" ? DAY_MS : 7 * DAY_MS;
+  const out: string[] = [];
+  const last = parseDay(range.to) as number;
+  for (let k = bucketOfDay(parseDay(range.from) as number, range.bucket); k <= last; k += step) out.push(fmtDay(k));
+  return out;
+}
+
 export function resolveRange(fromRaw: unknown, toRaw: unknown, now: Date): ReportRange | { error: string } {
   const today = istDayKey(now);
   const absent = (v: unknown) => v === undefined || v === "";

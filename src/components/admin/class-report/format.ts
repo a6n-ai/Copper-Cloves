@@ -43,3 +43,21 @@ export const REPORT_KINDS = {
   instructor: { one: "instructor", many: "instructors", title: "Instructors", listQuery: "groupBy=instructor", idParam: "instructorId" },
 } as const;
 export type ReportKind = keyof typeof REPORT_KINDS;
+
+const DAY_MS = 86_400_000;
+// Range and bucket keys are IST calendar dates; reading them as UTC midnights keeps the day
+// count exact whatever the browser's timezone.
+const dayNumber = (iso: string) => Date.parse(`${iso}T00:00:00Z`) / DAY_MS;
+
+/**
+ * Tooltip title for a trend bucket. Weekly buckets start on a Monday, so the first and last
+ * can hold fewer than 7 days of the range: `partial` flags those, so a short week is not read as a drop.
+ */
+export function describeBucket(bucketStart: string, bucket: "day" | "week", from: string, to: string) {
+  const day = parseISO(bucketStart);
+  if (bucket === "day") return { full: format(day, "EEE d MMM"), partial: false };
+  const start = dayNumber(bucketStart);
+  const days = Math.min(start + 6, dayNumber(to)) - Math.max(start, dayNumber(from)) + 1;
+  const partial = days < 7;
+  return { full: `Week of ${format(day, "d MMM")}${partial ? `, partial week: ${plural(days, "day")} in range` : ""}`, partial };
+}

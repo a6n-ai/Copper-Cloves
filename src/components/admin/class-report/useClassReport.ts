@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ClassReport } from "@/lib/classReport";
 
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+export const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
 // Only what the tab and dialog dereference unguarded.
 function isClassReport(b: unknown): b is ClassReport {
@@ -18,7 +18,12 @@ function isClassReport(b: unknown): b is ClassReport {
 
 /** `filter` is extra query string, e.g. "classId=…", "instructorId=…" or "groupBy=instructor". */
 export function useClassReport(from: string, to: string, filter = "") {
-  const [data, setData] = useState<ClassReport | null>(null);
+  return useReport("class-report", isClassReport, from, to, filter);
+}
+
+/** Fetches a dashboard report for a date range. `isValid` must be a stable (module-level) function. */
+export function useReport<T>(endpoint: string, isValid: (body: unknown) => body is T, from: string, to: string, filter = "") {
+  const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [attempt, setAttempt] = useState(0);
@@ -30,7 +35,7 @@ export function useClassReport(from: string, to: string, filter = "") {
     setLoading(true);
     setError(null);
     const qs = new URLSearchParams({ from, to });
-    fetch(`/api/admin/dashboard/class-report?${qs}${filter && `&${filter}`}`, { signal: ctrl.signal })
+    fetch(`/api/admin/dashboard/${endpoint}?${qs}${filter && `&${filter}`}`, { signal: ctrl.signal })
       .then(async (r) => {
         let body: unknown = null;
         try {
@@ -42,7 +47,7 @@ export function useClassReport(from: string, to: string, filter = "") {
           const msg = (body as { error?: string } | null)?.error;
           throw new Error(msg ?? `Request failed (${r.status})`);
         }
-        if (!isClassReport(body)) throw new Error("Invalid response from server");
+        if (!isValid(body)) throw new Error("Invalid response from server");
         return body;
       })
       .then((d) => {
@@ -57,7 +62,7 @@ export function useClassReport(from: string, to: string, filter = "") {
         setLoading(false);
       });
     return () => ctrl.abort();
-  }, [from, to, filter, attempt]);
+  }, [endpoint, isValid, from, to, filter, attempt]);
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
   return { data, error, loading, retry };

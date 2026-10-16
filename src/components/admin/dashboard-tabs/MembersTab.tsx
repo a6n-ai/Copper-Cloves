@@ -1,544 +1,376 @@
-import { memo, useCallback, useMemo, useRef, useState } from "react";
-import {
-  AlertTriangle,
-  ArrowUpDown,
-  Award,
-  Calendar,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  CreditCard,
-  Flame,
-  Infinity as InfinityIcon,
-  Star,
-  Trophy,
-  UserCheck,
-  Users,
-} from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { memo, useCallback, useMemo, useState } from "react";
+import Link from "next/link";
+import { AlertTriangle, CalendarCheck, CheckCircle2, ChevronRight, Repeat, UserPlus, UserX, Users } from "lucide-react";
+import { SortableHeader, useTableSort } from "@/components/admin/sortable-table";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Pill } from "@/components/ui/pill";
-import { passTypePill } from "@/lib/pillMaps";
-import { chartColors } from "@/lib/chartColors";
-import { Progress } from "@/components/ui/progress";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import { FilterDateRange } from "@/components/filters/FilterDateRange";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 import { MetricCard } from "@/components/admin/MetricCard";
-import { ListAvatar } from "@/components/admin/ListAvatar";
 import { Pagination, usePagination } from "@/components/Pagination";
+import { percentDelta, pointDelta } from "@/lib/classReport";
+import { EXPIRY_WARNING_DAYS, memberRates, type MemberReport, type MemberRow } from "@/lib/memberReport";
+import { fmtPct, fmtRange, percentLabel, plural, pointsLabel } from "@/components/admin/class-report/format";
+import { isObj, useReport } from "@/components/admin/class-report/useClassReport";
+import { useReportRange } from "@/components/admin/class-report/useReportRange";
+import { MemberTrendChart } from "@/components/admin/member-report/MemberTrendChart";
 
-// Recharts MUST be static (see InstructorsTab.tsx comment). Tab itself is dynamic-loaded.
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Label as RechartsLabel,
-  Pie,
-  PieChart as RechartsPieChart,
-  XAxis,
-  YAxis,
-} from "recharts";
-
+/** Live pass counts (not tied to the date range); loaded by the dashboard page. */
 export interface MemberStats {
-  memberOfMonth: { name: string; classes: number; streak: number };
-  topClass: { name: string; bookings: number };
-  weeklyStreak: { average: number; top: number };
-  onTimeCheckIns: number;
-  lateCheckIns: number;
-  checkInSample: number;
-  onTimeCheckInPct: number;
-  lateCheckInPct: number;
-  noShows: number;
   expiring7Days: number;
   expiring15Days: number;
   expiring30Days: number;
-  premiumActive: number;
-  specialtyActive: number;
-  inactiveUsers: number;
-  totalMembers: number;
-  activeMembers: number;
   studioPassActive: number;
   classPassActive: number;
-  checkInsThisMonth: number;
-  memberGrowth: { month: string; growth: number }[];
-  streakDistribution: { range: string; count: number }[];
+  [key: string]: unknown;
 }
 
-type SortKey = "name" | "streak" | "onTime" | "late" | "noShow";
-
-interface Props {
-  memberList: Record<string, unknown>[];
-  memberStats: MemberStats;
-  selectedMember: string;
-  onSelectMember: (v: string) => void;
-  onViewProfile: (member: Record<string, unknown>) => void;
+// Only what the tab dereferences unguarded.
+function isMemberReport(b: unknown): b is MemberReport {
+  return (
+    isObj(b) &&
+    isObj(b.range) &&
+    isObj(b.current) &&
+    isObj(b.previous) &&
+    isObj(b.retention) &&
+    Array.isArray(b.trend) &&
+    Array.isArray(b.members) &&
+    Array.isArray(b.atRisk)
+  );
 }
 
-const isStudioPkg = (pkg: string) =>
-  pkg.includes("studio") || pkg.includes("aerial") || pkg.includes("special") || pkg.includes("unlimited");
+const AT_RISK_PREVIEW = 6;
+const CARD = "border-sage/20 bg-white-warm shadow-none";
+const FLAT = "shadow-none";
+const TITLE = "font-body font-semibold text-xl text-charcoal";
+const DESC = "font-body text-charcoal/70";
+const HEAD = "px-4 text-[11px] font-semibold tracking-wider text-muted-foreground";
+const HEAD_NUM = `${HEAD} text-right`;
+const NUM = "font-body text-sm tabular-nums text-right";
+const MEMBER_LINK =
+  "rounded-sm font-medium text-charcoal underline decoration-sage/50 underline-offset-4 hover:decoration-sage focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage";
+const memberHref = (userId: string) => `/admin/members/${encodeURIComponent(userId)}`;
+const lastVisitFmt = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" });
 
-function MembersTabImpl({
-  memberList,
-  memberStats,
-  selectedMember,
-  onSelectMember,
-  onViewProfile,
-}: Props) {
-  const [perfSortKey, setPerfSortKey] = useState<SortKey | null>(null);
-  const [perfSortDir, setPerfSortDir] = useState<"asc" | "desc">("desc");
+type SortKey = "name" | "attended" | "bookings" | "attendance" | "noShows" | "cancelled" | "lastVisit";
 
-  const filteredMemberList = useMemo(
-    () =>
-      memberList.filter((m) => {
-        if (selectedMember === "all") return true;
-        const pkg = String((m as { package?: string }).package ?? "").toLowerCase();
-        const credits = Number((m as { credits?: number }).credits ?? 0);
-        const active = Boolean((m as { isUnlimited?: boolean }).isUnlimited) || credits > 0;
-        if (selectedMember === "studio") return active && isStudioPkg(pkg);
-        if (selectedMember === "class") return active && !isStudioPkg(pkg);
-        if (selectedMember === "active") return active;
-        if (selectedMember === "inactive") return !active;
-        return true;
-      }),
-    [memberList, selectedMember],
+function MemberTable({ members }: Readonly<{ members: MemberRow[] }>) {
+  const [search, setSearch] = useState("");
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return members
+      .filter((m) => !q || m.name.toLowerCase().includes(q))
+      .map((m) => ({ ...m, attendance: memberRates({ ...m, active: 1 }).attendance }));
+  }, [members, search]);
+  type Row = (typeof rows)[number];
+
+  const getValue = useCallback((row: Row, key: SortKey): number | string | null => row[key], []);
+  const { sorted, sortKey, sortDir, toggle } = useTableSort(rows, {
+    initialKey: "attended",
+    initialDir: "desc",
+    getValue,
+    defaultDirFor: (k) => (k === "name" ? "asc" : "desc"),
+  });
+  const pg = usePagination(sorted, 10, `${sortKey}|${sortDir}|${search}`);
+  const head = (key: SortKey, label: string, num = true) => (
+    <SortableHeader className={num ? HEAD_NUM : HEAD} sortKey={key} active={sortKey} dir={sortDir} onToggle={toggle}>
+      {label}
+    </SortableHeader>
   );
 
-  const filteredMemberStats = useMemo(() => {
-    const sum = (k: string) =>
-      filteredMemberList.reduce((s, m) => s + (Number((m as Record<string, unknown>)[k]) || 0), 0);
-    const onTime = sum("onTime");
-    const late = sum("late");
-    const noShows = sum("noShow");
-    const sample = onTime + late;
-    const isPremium = (pkg: string) => pkg.includes("premium");
-    const isSpecialty = (pkg: string) =>
-      pkg.includes("aerial") || pkg.includes("special") || pkg.includes("unlimited");
-    let premiumActive = 0;
-    let specialtyActive = 0;
-    let inactive = 0;
-    let active = 0;
-    let studio = 0;
-    let classPass = 0;
-    for (const m of filteredMemberList) {
-      const pkg = String((m as { package?: string }).package ?? "").toLowerCase();
-      const credits = Number((m as { credits?: number }).credits ?? 0);
-      if (credits <= 0) {
-        inactive += 1;
-      } else {
-        active += 1;
-        if (isSpecialty(pkg)) studio += 1;
-        else classPass += 1;
-      }
-      if (credits > 0 && isPremium(pkg)) premiumActive += 1;
-      if (credits > 0 && isSpecialty(pkg)) specialtyActive += 1;
-    }
-    return {
-      onTimeCheckIns: onTime,
-      lateCheckIns: late,
-      noShows,
-      checkInSample: sample,
-      onTimeCheckInPct: sample > 0 ? Math.round((onTime / sample) * 100) : 0,
-      lateCheckInPct: sample > 0 ? Math.round((late / sample) * 100) : 0,
-      premiumActive,
-      specialtyActive,
-      inactiveUsers: inactive,
-      activeMembers: active,
-      studioPassActive: studio,
-      classPassActive: classPass,
-    };
-  }, [filteredMemberList]);
-
-  const displayedMemberStats = useMemo(
-    () => (selectedMember !== "all" ? { ...memberStats, ...filteredMemberStats } : memberStats),
-    [selectedMember, memberStats, filteredMemberStats],
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="font-body text-sm text-charcoal/70 tabular-nums">{plural(rows.length, "member")} with a booking in this range</p>
+        <Input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name"
+          aria-label="Search members by name"
+          className="w-full sm:w-[220px] font-body"
+        />
+      </div>
+      <ResponsiveTable stack>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {head("name", "Member", false)}
+              {head("attended", "Visits")}
+              {head("bookings", "Booked")}
+              {head("attendance", "Attendance")}
+              {head("noShows", "No-shows")}
+              {head("cancelled", "Cancelled")}
+              {head("lastVisit", "Last visit")}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pg.pageItems.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="font-body text-sm text-charcoal/70 text-center py-8">
+                  {search ? "No member matches that name." : "No member booked a class in this range."}
+                </TableCell>
+              </TableRow>
+            )}
+            {pg.pageItems.map((m) => (
+              <TableRow key={m.userId}>
+                <TableCell className="font-body">
+                  <Link href={memberHref(m.userId)} className={MEMBER_LINK}>{m.name}</Link>
+                </TableCell>
+                <TableCell className={NUM}>{m.attended}</TableCell>
+                <TableCell className={NUM}>{m.bookings}</TableCell>
+                <TableCell className={NUM}>{fmtPct(m.attendance)}</TableCell>
+                <TableCell className={NUM}>{m.noShows}</TableCell>
+                <TableCell className={NUM}>{m.cancelled}</TableCell>
+                <TableCell className={`${NUM} whitespace-nowrap`}>
+                  {m.lastVisit ? lastVisitFmt.format(new Date(m.lastVisit)) : "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </ResponsiveTable>
+      <Pagination page={pg.page} total={pg.total} onChange={pg.setPage} />
+    </div>
   );
-  const activeMemberTierTotal = useMemo(
-    () => displayedMemberStats.studioPassActive + displayedMemberStats.classPassActive,
-    [displayedMemberStats.studioPassActive, displayedMemberStats.classPassActive],
+}
+
+function PassCount({ label, value }: Readonly<{ label: string; value: number }>) {
+  return (
+    <div className="rounded-lg border border-sage/15 px-4 py-3">
+      <dt className="font-body text-xs text-charcoal/70">{label}</dt>
+      <dd className="font-body text-2xl font-semibold tabular-nums text-charcoal">{value}</dd>
+    </div>
   );
+}
 
-  const sortedMemberList = useMemo(() => {
-    if (!perfSortKey) return filteredMemberList;
-    const dir = perfSortDir === "asc" ? 1 : -1;
-    return [...filteredMemberList].sort((a, b) => {
-      const aa = a as Record<string, unknown>;
-      const bb = b as Record<string, unknown>;
-      const cmp =
-        perfSortKey === "name"
-          ? String(aa.name ?? "").localeCompare(String(bb.name ?? ""))
-          : (Number(aa[perfSortKey]) || 0) - (Number(bb[perfSortKey]) || 0);
-      return cmp * dir;
-    });
-  }, [filteredMemberList, perfSortKey, perfSortDir]);
+function MembersTabImpl({ memberStats }: Readonly<{ memberStats: MemberStats }>) {
+  const { picked, onRangeChange, from, to, isDefault } = useReportRange();
+  const { data, error, loading, retry } = useReport("member-report", isMemberReport, from, to);
+  const [showAllRisk, setShowAllRisk] = useState(false);
 
-  // Don't nest setPerfSortDir inside setPerfSortKey updater — StrictMode double-
-  // invocation flips direction back. Read latest key via ref.
-  const perfSortKeyRef = useRef(perfSortKey);
-  perfSortKeyRef.current = perfSortKey;
-  const togglePerfSort = useCallback((key: SortKey) => {
-    if (perfSortKeyRef.current === key) {
-      setPerfSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setPerfSortKey(key);
-      setPerfSortDir(key === "name" ? "asc" : "desc");
-    }
-  }, []);
-
-  const perfSortIcon = (key: SortKey) =>
-    perfSortKey === key ? (
-      perfSortDir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
-    ) : (
-      <ArrowUpDown className="h-3 w-3 opacity-40" />
-    );
-
-  const membersPg = usePagination(sortedMemberList, 10, `${selectedMember}|${perfSortKey}|${perfSortDir}`);
-
-  const activeInactivePieData = useMemo(() => {
-    const active = displayedMemberStats.activeMembers ?? 0;
-    const inactive = displayedMemberStats.inactiveUsers ?? 0;
-    const total = active + inactive;
-    const activePct = total > 0 ? Math.round((active / total) * 100) : 0;
-    return { active, inactive, activePct, data: [{ name: "Active", value: active }, { name: "Inactive", value: inactive }] };
-  }, [displayedMemberStats.activeMembers, displayedMemberStats.inactiveUsers]);
+  const firstLoad = loading && !data;
+  const dim = `transition-opacity duration-200 motion-reduce:transition-none ${loading && data ? "opacity-60" : ""}`;
+  const cur = data?.current;
+  const prev = data?.previous;
+  const c = cur ? memberRates(cur) : null;
+  const p = prev ? memberRates(prev) : null;
+  const rate = (v: number | null | undefined) => (v == null ? { value: "—" } : { value: Math.round(v), suffix: "%" });
+  const retention = data && data.retention.base > 0 ? Math.round((data.retention.returned / data.retention.base) * 100) : null;
+  const visitsDelta =
+    c?.visitsPerActive != null && p?.visitsPerActive != null ? percentDelta(c.visitsPerActive * 10, p.visitsPerActive * 10) : null;
+  const atRisk = data?.atRisk ?? [];
+  const shownRisk = showAllRisk ? atRisk : atRisk.slice(0, AT_RISK_PREVIEW);
+  const isEmpty = !!cur && cur.bookings === 0 && cur.cancelled === 0 && cur.newMembers === 0;
 
   return (
     <>
-      <div className="rounded-xl border border-sage/20 bg-white-warm p-3">
-        <div className="font-body text-sm font-medium text-charcoal">Metrics scope</div>
-        <div className="font-body text-xs text-charcoal/60">
-          {selectedMember === "all"
-            ? "Showing stats across all members"
-            : `Showing stats from the ${filteredMemberList.length} member(s) matching the current filter`}
-        </div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <FilterDateRange
+          value={isDefault ? undefined : picked}
+          onChange={onRangeChange}
+          placeholder="Last 30 days"
+          allTimeLabel="Reset to 30 days"
+          className="w-full sm:w-[260px] text-charcoal"
+        />
+        {data && (
+          <p className={`font-body text-xs text-charcoal/70 tabular-nums ${dim}`}>
+            Showing {fmtRange(data.range.from, data.range.to)}, compared with{" "}
+            {fmtRange(data.range.prevFrom, data.range.prevTo)}
+          </p>
+        )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-        <MetricCard label="Total Members" value={memberStats.totalMembers} icon={Users} tone="sage" description="Total registered member accounts" />
-        <MetricCard label="Active" value={memberStats.activeMembers} icon={UserCheck} tone="sage" hint="Holding an active pass" description="Members currently holding an active, unexpired pass" />
-        <MetricCard label="Studio Pass" value={memberStats.studioPassActive} icon={Trophy} tone="sage" hint="Active studio passes" description="Members with an active studio pass" />
-        <MetricCard label="Class Pass" value={memberStats.classPassActive} icon={CreditCard} tone="sage" hint="Active class passes" description="Members with an active class pass" />
-        <MetricCard label="Check-ins (mo)" value={memberStats.checkInsThisMonth} icon={Calendar} tone="clay" hint="This month" description="Total member class check-ins so far this calendar month" />
-      </div>
+      {error && (
+        <Card className="border-destructive/40 bg-destructive/10 shadow-none">
+          <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div role="alert" className="space-y-1">
+              <p className="font-body text-sm font-medium text-charcoal">{error}</p>
+              {data && (
+                <p className="font-body text-xs text-charcoal/75 tabular-nums">
+                  Still showing {fmtRange(data.range.from, data.range.to)}, the last range that loaded.
+                </p>
+              )}
+            </div>
+            <Button variant="outline" size="sm" onClick={retry} disabled={loading} className="font-body w-full sm:w-auto">
+              Try again
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-sage/20 bg-white-warm">
+      <div className={`space-y-6 ${dim}`} aria-busy={loading}>
+        {(data || !error) && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {/* Full row on phones: five cards in two columns would strand one, and this is the number the tab leads with. */}
+            <MetricCard
+              label="Active members"
+              value={cur?.active ?? 0}
+              icon={Users}
+              tone="sage"
+              loading={firstLoad}
+              className={`${FLAT} col-span-2 md:col-span-1`}
+              hint={percentLabel(cur && prev ? percentDelta(cur.active, prev.active) : null)}
+              description="Members who attended at least one class in the selected range."
+            />
+            <MetricCard
+              label="New members"
+              value={cur?.newMembers ?? 0}
+              icon={UserPlus}
+              tone="sage"
+              loading={firstLoad}
+              className={FLAT}
+              hint={percentLabel(cur && prev ? percentDelta(cur.newMembers, prev.newMembers) : null)}
+              description="Member accounts created in the selected range."
+            />
+            <MetricCard
+              label="Visits per member"
+              value={c?.visitsPerActive ?? "—"}
+              decimals={1}
+              icon={CalendarCheck}
+              tone="sage"
+              loading={firstLoad}
+              className={FLAT}
+              hint={percentLabel(visitsDelta)}
+              description="Classes attended, divided by active members."
+            />
+            <MetricCard
+              label="Attendance rate"
+              {...rate(c?.attendance)}
+              icon={CheckCircle2}
+              tone="sage"
+              loading={firstLoad}
+              className={FLAT}
+              hint={pointsLabel(pointDelta(c?.attendance ?? null, p?.attendance ?? null))}
+              description="Share of confirmed bookings that checked in, for classes that have already ended."
+            />
+            <MetricCard
+              label="No-show rate"
+              {...rate(c?.noShowRate)}
+              icon={UserX}
+              tone="terracotta"
+              loading={firstLoad}
+              className={FLAT}
+              hint={pointsLabel(pointDelta(c?.noShowRate ?? null, p?.noShowRate ?? null))}
+              description="Share of confirmed bookings marked no-show, for classes that have ended."
+            />
+          </div>
+        )}
+
+        {firstLoad && <Skeleton className="h-[420px] w-full rounded-xl bg-sage/10" />}
+
+        {isEmpty && (
+          <Card className={CARD}>
+            <CardContent className="py-16 text-center">
+              <p className="font-body text-base text-charcoal">No member activity in this range.</p>
+              <p className="font-body text-sm text-charcoal/70 mt-1">Pick a wider range to see how members are doing.</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {data && !isEmpty && (
+          <>
+            <p className="flex items-start gap-2 font-body text-sm text-charcoal">
+              <Repeat className="mt-0.5 h-4 w-4 shrink-0 text-sage" aria-hidden />
+              {retention === null
+                ? "No one attended in the previous period, so there is no return rate to show."
+                : `${data.retention.returned} of the ${plural(data.retention.base, "member")} who attended in the previous period came back (${retention}%).`}
+            </p>
+
+            <div className={atRisk.length > 0 ? "grid gap-6 xl:grid-cols-3" : undefined}>
+              <Card className={`${CARD} min-w-0 xl:col-span-2`}>
+                <CardHeader>
+                  <CardTitle role="heading" aria-level={2} className={TITLE}>Trend</CardTitle>
+                  <CardDescription className={DESC}>
+                    Members attending and new accounts, {data.range.bucket === "week" ? "week by week" : "day by day"}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <MemberTrendChart trend={data.trend} bucket={data.range.bucket} from={data.range.from} to={data.range.to} />
+                </CardContent>
+              </Card>
+
+              {atRisk.length > 0 && (
+                <Card className="min-w-0 border-terracotta/25 bg-terracotta/5 shadow-none">
+                  <CardHeader>
+                    <CardTitle role="heading" aria-level={2} className={`${TITLE} flex items-center gap-2`}>
+                      <AlertTriangle className="h-5 w-5 text-terracotta" aria-hidden />
+                      At risk
+                    </CardTitle>
+                    <CardDescription className={DESC}>
+                      {plural(atRisk.length, "member")} who stopped coming, or whose pass ends within {EXPIRY_WARNING_DAYS} days
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+                      {shownRisk.map((m) => (
+                        <li key={m.userId}>
+                          <Link
+                            href={memberHref(m.userId)}
+                            className="flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-terracotta/25 bg-white-warm px-3 py-2 font-body text-sm text-charcoal transition-colors duration-150 hover:border-terracotta/60 active:bg-terracotta/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+                          >
+                            <span className="min-w-0 space-y-1">
+                              <span className="block font-medium">{m.name}</span>
+                              <span className="flex flex-wrap gap-1">
+                                {m.reasons.map((r) => (
+                                  <Pill key={r} tone="warning" noIcon className="font-body tabular-nums">{r}</Pill>
+                                ))}
+                              </span>
+                            </span>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-charcoal/50" aria-hidden />
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    {atRisk.length > AT_RISK_PREVIEW && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-expanded={showAllRisk}
+                        onClick={() => setShowAllRisk((v) => !v)}
+                        className="font-body mt-3 text-charcoal hover:bg-terracotta/10 hover:text-charcoal"
+                      >
+                        {showAllRisk ? "Show fewer" : `Show all ${atRisk.length}`}
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Under md the table becomes a stack of cards, so this card drops its own frame to avoid cards inside a card. */}
+            <Card className={`${CARD} max-md:border-0 max-md:bg-transparent`}>
+              <CardHeader className="max-md:px-0">
+                <CardTitle role="heading" aria-level={2} className={TITLE}>Members</CardTitle>
+                <CardDescription className={DESC}>Select a member to open their profile</CardDescription>
+              </CardHeader>
+              <CardContent className="max-md:px-0 max-md:pb-0">
+                <MemberTable members={data.members} />
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        <Card className={CARD}>
           <CardHeader>
-            <CardTitle className="font-body font-semibold text-xl text-charcoal">Member Growth</CardTitle>
-            <CardDescription className="font-body text-charcoal/60">New member signups over time</CardDescription>
+            <CardTitle role="heading" aria-level={2} className={TITLE}>Passes right now</CardTitle>
+            <CardDescription className={DESC}>Live counts, not affected by the date range</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{ growth: { label: "New members", color: chartColors.sage } }} className="h-[240px] w-full">
-              <BarChart data={memberStats.memberGrowth} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E5E0" />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6B6B6B" }} />
-                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6B6B6B" }} width={32} />
-                <ChartTooltip cursor={{ fill: "rgba(143,151,121,0.05)" }} content={<ChartTooltipContent />} />
-                <Bar dataKey="growth" fill="var(--color-growth)" radius={[6, 6, 0, 0]} maxBarSize={24} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="border-sage/20 bg-white-warm">
-          <CardHeader>
-            <CardTitle className="font-body font-semibold text-xl text-charcoal">Member Activity Status</CardTitle>
-            <CardDescription className="font-body text-charcoal/60">Active vs inactive members</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={{ Active: { label: "Active", color: chartColors.sage }, Inactive: { label: "Inactive", color: "#D1D5DB" } }} className="mx-auto aspect-square max-h-[200px]">
-              <RechartsPieChart>
-                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                <Pie data={activeInactivePieData.data} dataKey="value" nameKey="name" innerRadius={55} outerRadius={80} strokeWidth={2} stroke={chartColors.cream}>
-                  <Cell fill={chartColors.sage} />
-                  <Cell fill="#D1D5DB" />
-                  <RechartsLabel
-                    position="center"
-                    content={({ viewBox }) => {
-                      if (!viewBox || !("cx" in viewBox)) return null;
-                      const cx = viewBox.cx ?? 0;
-                      const cy = viewBox.cy ?? 0;
-                      return (
-                        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle">
-                          <tspan x={cx} y={cy - 4} fill={chartColors.charcoal} fontSize="22" fontWeight="600">{activeInactivePieData.activePct}%</tspan>
-                          <tspan x={cx} y={cy + 16} fill="#6B6B6B" fontSize="10">Active</tspan>
-                        </text>
-                      );
-                    }}
-                  />
-                </Pie>
-              </RechartsPieChart>
-            </ChartContainer>
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <div className="p-3 rounded-lg bg-sage/5 border border-sage/20">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-sage" />
-                  <span className="font-body text-xs text-charcoal/60">Active</span>
-                </div>
-                <div className="font-body text-2xl text-sage tabular-nums">{activeInactivePieData.active}</div>
-              </div>
-              <div className="p-3 rounded-lg bg-charcoal/5 border border-charcoal/20">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-charcoal/40" />
-                  <span className="font-body text-xs text-charcoal/60">Inactive</span>
-                </div>
-                <div className="font-body text-2xl text-charcoal tabular-nums">{activeInactivePieData.inactive}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-sage/20 bg-white-warm lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-body font-semibold text-xl text-charcoal">Streak Distribution</CardTitle>
-            <CardDescription className="font-body text-charcoal/60">Members by current streak length (days)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={{ count: { label: "Members", color: chartColors.sage } }} className="h-[220px] w-full">
-              <BarChart data={memberStats.streakDistribution} layout="vertical" margin={{ top: 8, right: 24, left: 16, bottom: 0 }}>
-                <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="#E5E5E0" />
-                <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6B6B6B" }} />
-                <YAxis dataKey="range" type="category" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#6B6B6B" }} width={70} />
-                <ChartTooltip cursor={{ fill: "rgba(143,151,121,0.05)" }} content={<ChartTooltipContent />} />
-                <Bar dataKey="count" fill="var(--color-count)" radius={[0, 6, 6, 0]} maxBarSize={28} />
-              </BarChart>
-            </ChartContainer>
+            <dl className="grid grid-cols-2 gap-3 md:grid-cols-5">
+              <PassCount label="Studio pass holders" value={memberStats.studioPassActive} />
+              <PassCount label="Class pass holders" value={memberStats.classPassActive} />
+              <PassCount label="Ending within 7 days" value={memberStats.expiring7Days} />
+              <PassCount label="Ending within 15 days" value={memberStats.expiring15Days} />
+              <PassCount label="Ending within 30 days" value={memberStats.expiring30Days} />
+            </dl>
           </CardContent>
         </Card>
       </div>
-
-      <Card className="border-sage/20 bg-white-warm">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="font-body font-semibold text-2xl text-charcoal flex items-center gap-2">
-                <Trophy className="h-6 w-6 text-terracotta" />
-                Member of the Month
-              </CardTitle>
-              <CardDescription className="font-body text-charcoal/60 mt-1">Top performer this month</CardDescription>
-            </div>
-            <Award className="h-12 w-12 text-sage/20" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-center gap-6">
-            <div className="h-20 w-20 rounded-full bg-sage/10 flex items-center justify-center">
-              <Star className="h-10 w-10 text-sage" />
-            </div>
-            <div className="flex-1 min-w-[180px]">
-              <div className="font-body font-semibold text-3xl text-charcoal mb-2">{memberStats.memberOfMonth.name}</div>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-charcoal/60">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span className="font-body">{memberStats.memberOfMonth.classes} classes</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-terracotta" />
-                  <span className="font-body">{memberStats.memberOfMonth.streak} day streak</span>
-                </div>
-              </div>
-            </div>
-            <Button variant="sage" className="transition-transform active:scale-[0.96]">View Profile</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-sage/20 bg-white-warm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="font-body text-sm text-charcoal/60 font-medium">Expiring in 7 Days</CardTitle>
-              <AlertTriangle className="h-5 w-5 text-terracotta" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="font-display tabular-nums text-5xl text-charcoal leading-none mb-3">{memberStats.expiring7Days}</div>
-            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta font-body transition-[transform,background-color,color] hover:bg-terracotta/10 hover:text-terracotta! active:scale-[0.96]">Add to CRM</Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-sage/20 bg-white-warm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="font-body text-sm text-charcoal/60 font-medium">Expiring in 15 Days</CardTitle>
-              <Clock className="h-5 w-5 text-terracotta" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="font-display tabular-nums text-5xl text-charcoal leading-none mb-3">{memberStats.expiring15Days}</div>
-            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta font-body transition-[transform,background-color,color] hover:bg-terracotta/10 hover:text-terracotta! active:scale-[0.96]">Add to CRM</Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-sage/20 bg-white-warm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="font-body text-sm text-charcoal/60 font-medium">Expiring in 30 Days</CardTitle>
-              <Calendar className="h-5 w-5 text-terracotta" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="font-display tabular-nums text-5xl text-charcoal leading-none mb-3">{memberStats.expiring30Days}</div>
-            <Button variant="outline" size="sm" className="w-full border-terracotta/20 text-terracotta font-body transition-[transform,background-color,color] hover:bg-terracotta/10 hover:text-terracotta! active:scale-[0.96]">View List</Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="border-sage/20 bg-white-warm">
-        <CardHeader>
-          <CardTitle className="font-body font-semibold text-2xl text-charcoal">Active Members by Pass Type</CardTitle>
-          <CardDescription className="font-body text-charcoal/60">Distribution across membership tiers</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Pill {...passTypePill("studio")} icon={<InfinityIcon className="h-3 w-3" />}>Studio Pass</Pill>
-                  <span className="font-body text-charcoal/60">{displayedMemberStats.studioPassActive} members</span>
-                </div>
-                <span className="font-body font-medium text-charcoal">
-                  {activeMemberTierTotal > 0
-                    ? ((displayedMemberStats.studioPassActive / activeMemberTierTotal) * 100).toFixed(0)
-                    : "0"}
-                  %
-                </span>
-              </div>
-              <Progress
-                value={activeMemberTierTotal > 0 ? (displayedMemberStats.studioPassActive / activeMemberTierTotal) * 100 : 0}
-                className="h-3 bg-sage/10"
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Pill {...passTypePill("class")}>Class Pass</Pill>
-                  <span className="font-body text-charcoal/60">{displayedMemberStats.classPassActive} members</span>
-                </div>
-                <span className="font-body font-medium text-charcoal">
-                  {activeMemberTierTotal > 0
-                    ? ((displayedMemberStats.classPassActive / activeMemberTierTotal) * 100).toFixed(0)
-                    : "0"}
-                  %
-                </span>
-              </div>
-              <Progress
-                value={activeMemberTierTotal > 0 ? (displayedMemberStats.classPassActive / activeMemberTierTotal) * 100 : 0}
-                className="h-3 bg-terracotta/10"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-sage/20 bg-white-warm">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="font-body font-semibold text-2xl text-charcoal">Member Performance</CardTitle>
-              <CardDescription className="font-body text-charcoal/60">Detailed check-in and attendance stats</CardDescription>
-            </div>
-            <Select value={selectedMember} onValueChange={onSelectMember}>
-              <SelectTrigger className="w-48 border-sage/20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Users</SelectItem>
-                <SelectItem value="studio">Studio Pass</SelectItem>
-                <SelectItem value="class">Class Pass</SelectItem>
-                <SelectItem value="active">Active Only</SelectItem>
-                <SelectItem value="inactive">Inactive Only</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-xl border border-sage/15 bg-white-warm overflow-hidden">
-            <ResponsiveTable stack>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>
-                      <button type="button" onClick={() => togglePerfSort("name")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                        Member {perfSortIcon("name")}
-                      </button>
-                    </TableHead>
-                    <TableHead className="w-[160px]">Package</TableHead>
-                    <TableHead className="w-[80px]">
-                      <button type="button" onClick={() => togglePerfSort("streak")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                        Streak {perfSortIcon("streak")}
-                      </button>
-                    </TableHead>
-                    <TableHead className="w-[80px]">
-                      <button type="button" onClick={() => togglePerfSort("onTime")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                        On Time {perfSortIcon("onTime")}
-                      </button>
-                    </TableHead>
-                    <TableHead className="w-[70px]">
-                      <button type="button" onClick={() => togglePerfSort("late")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                        Late {perfSortIcon("late")}
-                      </button>
-                    </TableHead>
-                    <TableHead className="w-[90px]">
-                      <button type="button" onClick={() => togglePerfSort("noShow")} className="inline-flex items-center gap-1 uppercase hover:text-charcoal transition-colors">
-                        No-Show {perfSortIcon("noShow")}
-                      </button>
-                    </TableHead>
-                    <TableHead className="w-[80px] text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {membersPg.pageItems.map((member) => {
-                    const m = member as Record<string, unknown>;
-                    return (
-                      <TableRow key={`${(m.profileId as string) ?? "p"}-${m.id}`}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <ListAvatar name={String(m.name ?? "?")} src={(m.avatarUrl as string) ?? null} size="sm" ringClassName="ring-sage/20" />
-                            <div className="min-w-0">
-                              <div className="font-body font-medium text-charcoal truncate">{m.name as string}</div>
-                              <div className="font-body text-xs text-charcoal/50">{m.isUnlimited ? "∞ Unlimited" : `${m.credits} credits`}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {(() => {
-                            const studio = isStudioPkg(String(m.package ?? "").toLowerCase());
-                            return (
-                              <Pill
-                                {...passTypePill(studio ? "studio" : "class")}
-                                icon={studio ? <InfinityIcon className="h-3 w-3" /> : undefined}
-                                className="font-body whitespace-nowrap"
-                              >
-                                {studio ? "Studio Pass" : "Class Pass"}
-                              </Pill>
-                            );
-                          })()}
-                        </TableCell>
-                        <TableCell className="font-body text-base text-sage tabular-nums">{m.streak as number}</TableCell>
-                        <TableCell className="font-body text-base text-charcoal tabular-nums">{m.onTime as number}</TableCell>
-                        <TableCell className="font-body text-base text-terracotta tabular-nums">{m.late as number}</TableCell>
-                        <TableCell className="font-body text-base text-destructive tabular-nums">{m.noShow as number}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="sage-outline" size="sm" onClick={() => onViewProfile(m)} className="h-8">View</Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </ResponsiveTable>
-          </div>
-          <Pagination page={membersPg.page} total={membersPg.total} onChange={membersPg.setPage} />
-        </CardContent>
-      </Card>
     </>
   );
 }
