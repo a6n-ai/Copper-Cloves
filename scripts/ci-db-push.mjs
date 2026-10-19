@@ -6,6 +6,7 @@
  */
 import { spawnSync } from "node:child_process";
 import process from "node:process";
+import { readFileSync } from "node:fs";
 import pg from "pg";
 
 function resolveDatabaseUrl(env = process.env) {
@@ -135,6 +136,24 @@ async function main() {
     process.exit(code);
   }
   console.log("Prisma db push completed — database schema matches prisma/schema.prisma");
+
+  await applyRawSql(forPrisma);
+}
+
+/** Objects `prisma db push` cannot manage (triggers/functions). Each file must be idempotent. */
+const RAW_SQL_FILES = ["prisma/sql/partner-webhooks.sql"];
+
+async function applyRawSql(connectionString) {
+  const client = new pg.Client({ connectionString });
+  await client.connect();
+  try {
+    for (const file of RAW_SQL_FILES) {
+      await client.query(readFileSync(file, "utf8"));
+      console.log(`ci-db-push: applied ${file}`);
+    }
+  } finally {
+    await client.end();
+  }
 }
 
 main().catch((e) => {

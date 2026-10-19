@@ -3,6 +3,7 @@
 # idempotent and interval-based, so UTC vs IST does not matter here.
 #
 # Cadences match .llm/deploy.md. Keep them in sync if you change either.
+*    * * * * /cron/run.sh partner-webhooks
 */5  * * * * /cron/run.sh class-emails
 */15 * * * * /cron/run.sh reconcile-no-shows
 */15 * * * * /cron/run.sh lifecycle-bookings

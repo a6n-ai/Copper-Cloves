@@ -357,8 +357,51 @@ model Partner {
   classes ClassModel[]
   members PartnerMember[]
   api_keys PartnerApiKey[]
+  webhook  PartnerWebhook?
+  webhook_events PartnerWebhookEvent[]
 
   @@map("partners")
+}
+
+/// Where a partner receives booking events. One endpoint per partner.
+/// `secret` signs deliveries (HMAC-SHA256); it is shown to the partner once.
+model PartnerWebhook {
+  id         String   @id @default(uuid())
+  partner_id String   @unique
+  url        String
+  secret     String
+  events     String[]
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  partner Partner @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+
+  @@map("partner_webhooks")
+}
+
+/// Outbox of partner webhook deliveries. Rows are written by the Postgres trigger in
+/// prisma/sql/partner-webhooks.sql (same transaction as the booking change) and sent
+/// by /api/cron/partner-webhooks. No FK to bookings: an event outlives its booking.
+model PartnerWebhookEvent {
+  id              String    @id @default(uuid())
+  partner_id      String
+  type            String
+  booking_id      String?
+  data            Json
+  attempts        Int       @default(0)
+  next_attempt_at DateTime  @default(now())
+  delivered_at    DateTime?
+  failed_at       DateTime?
+  last_status     Int?
+  last_error      String?
+  created_at      DateTime  @default(now())
+
+  partner Partner @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+
+  @@index([delivered_at, failed_at, next_attempt_at])
+  @@index([partner_id, created_at])
+  @@map("partner_webhook_events")
 }
 
 /// Server-to-server credential for a partner. Only the sha256 of the key is stored;

@@ -108,6 +108,19 @@ export type ClassModel = Prisma.ClassModelModel
  */
 export type Partner = Prisma.PartnerModel
 /**
+ * Model PartnerWebhook
+ * Where a partner receives booking events. One endpoint per partner.
+ * `secret` signs deliveries (HMAC-SHA256); it is shown to the partner once.
+ */
+export type PartnerWebhook = Prisma.PartnerWebhookModel
+/**
+ * Model PartnerWebhookEvent
+ * Outbox of partner webhook deliveries. Rows are written by the Postgres trigger in
+ * prisma/sql/partner-webhooks.sql (same transaction as the booking change) and sent
+ * by /api/cron/partner-webhooks. No FK to bookings: an event outlives its booking.
+ */
+export type PartnerWebhookEvent = Prisma.PartnerWebhookEventModel
+/**
  * Model PartnerApiKey
  * Server-to-server credential for a partner. Only the sha256 of the key is stored;
  * the plaintext is shown once at creation (scripts/partner-api-key.ts).

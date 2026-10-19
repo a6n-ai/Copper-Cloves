@@ -409,6 +409,8 @@ export const ModelName = {
   Instructor: 'Instructor',
   ClassModel: 'ClassModel',
   Partner: 'Partner',
+  PartnerWebhook: 'PartnerWebhook',
+  PartnerWebhookEvent: 'PartnerWebhookEvent',
   PartnerApiKey: 'PartnerApiKey',
   PartnerMember: 'PartnerMember',
   ClassSchedule: 'ClassSchedule',
@@ -463,7 +465,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "user" | "session" | "account" | "verification" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerApiKey" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "sharedCredit" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "cronRun" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
+    modelProps: "profile" | "user" | "session" | "account" | "verification" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerWebhook" | "partnerWebhookEvent" | "partnerApiKey" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "sharedCredit" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "cronRun" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1352,6 +1354,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PartnerCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PartnerCountAggregateOutputType> | number
+        }
+      }
+    }
+    PartnerWebhook: {
+      payload: Prisma.$PartnerWebhookPayload<ExtArgs>
+      fields: Prisma.PartnerWebhookFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PartnerWebhookFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PartnerWebhookFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookPayload>
+        }
+        findFirst: {
+          args: Prisma.PartnerWebhookFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PartnerWebhookFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookPayload>
+        }
+        findMany: {
+          args: Prisma.PartnerWebhookFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookPayload>[]
+        }
+        create: {
+          args: Prisma.PartnerWebhookCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookPayload>
+        }
+        createMany: {
+          args: Prisma.PartnerWebhookCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PartnerWebhookCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookPayload>[]
+        }
+        delete: {
+          args: Prisma.PartnerWebhookDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookPayload>
+        }
+        update: {
+          args: Prisma.PartnerWebhookUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookPayload>
+        }
+        deleteMany: {
+          args: Prisma.PartnerWebhookDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PartnerWebhookUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PartnerWebhookUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookPayload>[]
+        }
+        upsert: {
+          args: Prisma.PartnerWebhookUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookPayload>
+        }
+        aggregate: {
+          args: Prisma.PartnerWebhookAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePartnerWebhook>
+        }
+        groupBy: {
+          args: Prisma.PartnerWebhookGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerWebhookGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PartnerWebhookCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerWebhookCountAggregateOutputType> | number
+        }
+      }
+    }
+    PartnerWebhookEvent: {
+      payload: Prisma.$PartnerWebhookEventPayload<ExtArgs>
+      fields: Prisma.PartnerWebhookEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PartnerWebhookEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PartnerWebhookEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookEventPayload>
+        }
+        findFirst: {
+          args: Prisma.PartnerWebhookEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PartnerWebhookEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookEventPayload>
+        }
+        findMany: {
+          args: Prisma.PartnerWebhookEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookEventPayload>[]
+        }
+        create: {
+          args: Prisma.PartnerWebhookEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookEventPayload>
+        }
+        createMany: {
+          args: Prisma.PartnerWebhookEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PartnerWebhookEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookEventPayload>[]
+        }
+        delete: {
+          args: Prisma.PartnerWebhookEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookEventPayload>
+        }
+        update: {
+          args: Prisma.PartnerWebhookEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.PartnerWebhookEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PartnerWebhookEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PartnerWebhookEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.PartnerWebhookEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerWebhookEventPayload>
+        }
+        aggregate: {
+          args: Prisma.PartnerWebhookEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePartnerWebhookEvent>
+        }
+        groupBy: {
+          args: Prisma.PartnerWebhookEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerWebhookEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PartnerWebhookEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerWebhookEventCountAggregateOutputType> | number
         }
       }
     }
@@ -4520,6 +4670,38 @@ export const PartnerScalarFieldEnum = {
 export type PartnerScalarFieldEnum = (typeof PartnerScalarFieldEnum)[keyof typeof PartnerScalarFieldEnum]
 
 
+export const PartnerWebhookScalarFieldEnum = {
+  id: 'id',
+  partner_id: 'partner_id',
+  url: 'url',
+  secret: 'secret',
+  events: 'events',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PartnerWebhookScalarFieldEnum = (typeof PartnerWebhookScalarFieldEnum)[keyof typeof PartnerWebhookScalarFieldEnum]
+
+
+export const PartnerWebhookEventScalarFieldEnum = {
+  id: 'id',
+  partner_id: 'partner_id',
+  type: 'type',
+  booking_id: 'booking_id',
+  data: 'data',
+  attempts: 'attempts',
+  next_attempt_at: 'next_attempt_at',
+  delivered_at: 'delivered_at',
+  failed_at: 'failed_at',
+  last_status: 'last_status',
+  last_error: 'last_error',
+  created_at: 'created_at'
+} as const
+
+export type PartnerWebhookEventScalarFieldEnum = (typeof PartnerWebhookEventScalarFieldEnum)[keyof typeof PartnerWebhookEventScalarFieldEnum]
+
+
 export const PartnerApiKeyScalarFieldEnum = {
   id: 'id',
   partner_id: 'partner_id',
@@ -5621,6 +5803,8 @@ export type GlobalOmitConfig = {
   instructor?: Prisma.InstructorOmit
   classModel?: Prisma.ClassModelOmit
   partner?: Prisma.PartnerOmit
+  partnerWebhook?: Prisma.PartnerWebhookOmit
+  partnerWebhookEvent?: Prisma.PartnerWebhookEventOmit
   partnerApiKey?: Prisma.PartnerApiKeyOmit
   partnerMember?: Prisma.PartnerMemberOmit
   classSchedule?: Prisma.ClassScheduleOmit

@@ -209,6 +209,8 @@ export type PartnerWhereInput = {
   classes?: Prisma.ClassModelListRelationFilter
   members?: Prisma.PartnerMemberListRelationFilter
   api_keys?: Prisma.PartnerApiKeyListRelationFilter
+  webhook?: Prisma.XOR<Prisma.PartnerWebhookNullableScalarRelationFilter, Prisma.PartnerWebhookWhereInput> | null
+  webhook_events?: Prisma.PartnerWebhookEventListRelationFilter
 }
 
 export type PartnerOrderByWithRelationInput = {
@@ -223,6 +225,8 @@ export type PartnerOrderByWithRelationInput = {
   classes?: Prisma.ClassModelOrderByRelationAggregateInput
   members?: Prisma.PartnerMemberOrderByRelationAggregateInput
   api_keys?: Prisma.PartnerApiKeyOrderByRelationAggregateInput
+  webhook?: Prisma.PartnerWebhookOrderByWithRelationInput
+  webhook_events?: Prisma.PartnerWebhookEventOrderByRelationAggregateInput
 }
 
 export type PartnerWhereUniqueInput = Prisma.AtLeast<{
@@ -240,6 +244,8 @@ export type PartnerWhereUniqueInput = Prisma.AtLeast<{
   classes?: Prisma.ClassModelListRelationFilter
   members?: Prisma.PartnerMemberListRelationFilter
   api_keys?: Prisma.PartnerApiKeyListRelationFilter
+  webhook?: Prisma.XOR<Prisma.PartnerWebhookNullableScalarRelationFilter, Prisma.PartnerWebhookWhereInput> | null
+  webhook_events?: Prisma.PartnerWebhookEventListRelationFilter
 }, "id" | "slug">
 
 export type PartnerOrderByWithAggregationInput = {
@@ -282,6 +288,8 @@ export type PartnerCreateInput = {
   classes?: Prisma.ClassModelCreateNestedManyWithoutPartnerInput
   members?: Prisma.PartnerMemberCreateNestedManyWithoutPartnerInput
   api_keys?: Prisma.PartnerApiKeyCreateNestedManyWithoutPartnerInput
+  webhook?: Prisma.PartnerWebhookCreateNestedOneWithoutPartnerInput
+  webhook_events?: Prisma.PartnerWebhookEventCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateInput = {
@@ -296,6 +304,8 @@ export type PartnerUncheckedCreateInput = {
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutPartnerInput
   members?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutPartnerInput
   api_keys?: Prisma.PartnerApiKeyUncheckedCreateNestedManyWithoutPartnerInput
+  webhook?: Prisma.PartnerWebhookUncheckedCreateNestedOneWithoutPartnerInput
+  webhook_events?: Prisma.PartnerWebhookEventUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUpdateInput = {
@@ -310,6 +320,8 @@ export type PartnerUpdateInput = {
   classes?: Prisma.ClassModelUpdateManyWithoutPartnerNestedInput
   members?: Prisma.PartnerMemberUpdateManyWithoutPartnerNestedInput
   api_keys?: Prisma.PartnerApiKeyUpdateManyWithoutPartnerNestedInput
+  webhook?: Prisma.PartnerWebhookUpdateOneWithoutPartnerNestedInput
+  webhook_events?: Prisma.PartnerWebhookEventUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateInput = {
@@ -324,6 +336,8 @@ export type PartnerUncheckedUpdateInput = {
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutPartnerNestedInput
   members?: Prisma.PartnerMemberUncheckedUpdateManyWithoutPartnerNestedInput
   api_keys?: Prisma.PartnerApiKeyUncheckedUpdateManyWithoutPartnerNestedInput
+  webhook?: Prisma.PartnerWebhookUncheckedUpdateOneWithoutPartnerNestedInput
+  webhook_events?: Prisma.PartnerWebhookEventUncheckedUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerCreateManyInput = {
@@ -418,6 +432,34 @@ export type PartnerUpdateOneWithoutClassesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PartnerUpdateToOneWithWhereWithoutClassesInput, Prisma.PartnerUpdateWithoutClassesInput>, Prisma.PartnerUncheckedUpdateWithoutClassesInput>
 }
 
+export type PartnerCreateNestedOneWithoutWebhookInput = {
+  create?: Prisma.XOR<Prisma.PartnerCreateWithoutWebhookInput, Prisma.PartnerUncheckedCreateWithoutWebhookInput>
+  connectOrCreate?: Prisma.PartnerCreateOrConnectWithoutWebhookInput
+  connect?: Prisma.PartnerWhereUniqueInput
+}
+
+export type PartnerUpdateOneRequiredWithoutWebhookNestedInput = {
+  create?: Prisma.XOR<Prisma.PartnerCreateWithoutWebhookInput, Prisma.PartnerUncheckedCreateWithoutWebhookInput>
+  connectOrCreate?: Prisma.PartnerCreateOrConnectWithoutWebhookInput
+  upsert?: Prisma.PartnerUpsertWithoutWebhookInput
+  connect?: Prisma.PartnerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PartnerUpdateToOneWithWhereWithoutWebhookInput, Prisma.PartnerUpdateWithoutWebhookInput>, Prisma.PartnerUncheckedUpdateWithoutWebhookInput>
+}
+
+export type PartnerCreateNestedOneWithoutWebhook_eventsInput = {
+  create?: Prisma.XOR<Prisma.PartnerCreateWithoutWebhook_eventsInput, Prisma.PartnerUncheckedCreateWithoutWebhook_eventsInput>
+  connectOrCreate?: Prisma.PartnerCreateOrConnectWithoutWebhook_eventsInput
+  connect?: Prisma.PartnerWhereUniqueInput
+}
+
+export type PartnerUpdateOneRequiredWithoutWebhook_eventsNestedInput = {
+  create?: Prisma.XOR<Prisma.PartnerCreateWithoutWebhook_eventsInput, Prisma.PartnerUncheckedCreateWithoutWebhook_eventsInput>
+  connectOrCreate?: Prisma.PartnerCreateOrConnectWithoutWebhook_eventsInput
+  upsert?: Prisma.PartnerUpsertWithoutWebhook_eventsInput
+  connect?: Prisma.PartnerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PartnerUpdateToOneWithWhereWithoutWebhook_eventsInput, Prisma.PartnerUpdateWithoutWebhook_eventsInput>, Prisma.PartnerUncheckedUpdateWithoutWebhook_eventsInput>
+}
+
 export type PartnerCreateNestedOneWithoutApi_keysInput = {
   create?: Prisma.XOR<Prisma.PartnerCreateWithoutApi_keysInput, Prisma.PartnerUncheckedCreateWithoutApi_keysInput>
   connectOrCreate?: Prisma.PartnerCreateOrConnectWithoutApi_keysInput
@@ -457,6 +499,8 @@ export type PartnerCreateWithoutClassesInput = {
   updated_at?: Date | string
   members?: Prisma.PartnerMemberCreateNestedManyWithoutPartnerInput
   api_keys?: Prisma.PartnerApiKeyCreateNestedManyWithoutPartnerInput
+  webhook?: Prisma.PartnerWebhookCreateNestedOneWithoutPartnerInput
+  webhook_events?: Prisma.PartnerWebhookEventCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateWithoutClassesInput = {
@@ -470,6 +514,8 @@ export type PartnerUncheckedCreateWithoutClassesInput = {
   updated_at?: Date | string
   members?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutPartnerInput
   api_keys?: Prisma.PartnerApiKeyUncheckedCreateNestedManyWithoutPartnerInput
+  webhook?: Prisma.PartnerWebhookUncheckedCreateNestedOneWithoutPartnerInput
+  webhook_events?: Prisma.PartnerWebhookEventUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerCreateOrConnectWithoutClassesInput = {
@@ -499,6 +545,8 @@ export type PartnerUpdateWithoutClassesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.PartnerMemberUpdateManyWithoutPartnerNestedInput
   api_keys?: Prisma.PartnerApiKeyUpdateManyWithoutPartnerNestedInput
+  webhook?: Prisma.PartnerWebhookUpdateOneWithoutPartnerNestedInput
+  webhook_events?: Prisma.PartnerWebhookEventUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateWithoutClassesInput = {
@@ -512,6 +560,160 @@ export type PartnerUncheckedUpdateWithoutClassesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.PartnerMemberUncheckedUpdateManyWithoutPartnerNestedInput
   api_keys?: Prisma.PartnerApiKeyUncheckedUpdateManyWithoutPartnerNestedInput
+  webhook?: Prisma.PartnerWebhookUncheckedUpdateOneWithoutPartnerNestedInput
+  webhook_events?: Prisma.PartnerWebhookEventUncheckedUpdateManyWithoutPartnerNestedInput
+}
+
+export type PartnerCreateWithoutWebhookInput = {
+  id?: string
+  name: string
+  slug: string
+  logo_url?: string | null
+  description?: string | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  classes?: Prisma.ClassModelCreateNestedManyWithoutPartnerInput
+  members?: Prisma.PartnerMemberCreateNestedManyWithoutPartnerInput
+  api_keys?: Prisma.PartnerApiKeyCreateNestedManyWithoutPartnerInput
+  webhook_events?: Prisma.PartnerWebhookEventCreateNestedManyWithoutPartnerInput
+}
+
+export type PartnerUncheckedCreateWithoutWebhookInput = {
+  id?: string
+  name: string
+  slug: string
+  logo_url?: string | null
+  description?: string | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutPartnerInput
+  members?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutPartnerInput
+  api_keys?: Prisma.PartnerApiKeyUncheckedCreateNestedManyWithoutPartnerInput
+  webhook_events?: Prisma.PartnerWebhookEventUncheckedCreateNestedManyWithoutPartnerInput
+}
+
+export type PartnerCreateOrConnectWithoutWebhookInput = {
+  where: Prisma.PartnerWhereUniqueInput
+  create: Prisma.XOR<Prisma.PartnerCreateWithoutWebhookInput, Prisma.PartnerUncheckedCreateWithoutWebhookInput>
+}
+
+export type PartnerUpsertWithoutWebhookInput = {
+  update: Prisma.XOR<Prisma.PartnerUpdateWithoutWebhookInput, Prisma.PartnerUncheckedUpdateWithoutWebhookInput>
+  create: Prisma.XOR<Prisma.PartnerCreateWithoutWebhookInput, Prisma.PartnerUncheckedCreateWithoutWebhookInput>
+  where?: Prisma.PartnerWhereInput
+}
+
+export type PartnerUpdateToOneWithWhereWithoutWebhookInput = {
+  where?: Prisma.PartnerWhereInput
+  data: Prisma.XOR<Prisma.PartnerUpdateWithoutWebhookInput, Prisma.PartnerUncheckedUpdateWithoutWebhookInput>
+}
+
+export type PartnerUpdateWithoutWebhookInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classes?: Prisma.ClassModelUpdateManyWithoutPartnerNestedInput
+  members?: Prisma.PartnerMemberUpdateManyWithoutPartnerNestedInput
+  api_keys?: Prisma.PartnerApiKeyUpdateManyWithoutPartnerNestedInput
+  webhook_events?: Prisma.PartnerWebhookEventUpdateManyWithoutPartnerNestedInput
+}
+
+export type PartnerUncheckedUpdateWithoutWebhookInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classes?: Prisma.ClassModelUncheckedUpdateManyWithoutPartnerNestedInput
+  members?: Prisma.PartnerMemberUncheckedUpdateManyWithoutPartnerNestedInput
+  api_keys?: Prisma.PartnerApiKeyUncheckedUpdateManyWithoutPartnerNestedInput
+  webhook_events?: Prisma.PartnerWebhookEventUncheckedUpdateManyWithoutPartnerNestedInput
+}
+
+export type PartnerCreateWithoutWebhook_eventsInput = {
+  id?: string
+  name: string
+  slug: string
+  logo_url?: string | null
+  description?: string | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  classes?: Prisma.ClassModelCreateNestedManyWithoutPartnerInput
+  members?: Prisma.PartnerMemberCreateNestedManyWithoutPartnerInput
+  api_keys?: Prisma.PartnerApiKeyCreateNestedManyWithoutPartnerInput
+  webhook?: Prisma.PartnerWebhookCreateNestedOneWithoutPartnerInput
+}
+
+export type PartnerUncheckedCreateWithoutWebhook_eventsInput = {
+  id?: string
+  name: string
+  slug: string
+  logo_url?: string | null
+  description?: string | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutPartnerInput
+  members?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutPartnerInput
+  api_keys?: Prisma.PartnerApiKeyUncheckedCreateNestedManyWithoutPartnerInput
+  webhook?: Prisma.PartnerWebhookUncheckedCreateNestedOneWithoutPartnerInput
+}
+
+export type PartnerCreateOrConnectWithoutWebhook_eventsInput = {
+  where: Prisma.PartnerWhereUniqueInput
+  create: Prisma.XOR<Prisma.PartnerCreateWithoutWebhook_eventsInput, Prisma.PartnerUncheckedCreateWithoutWebhook_eventsInput>
+}
+
+export type PartnerUpsertWithoutWebhook_eventsInput = {
+  update: Prisma.XOR<Prisma.PartnerUpdateWithoutWebhook_eventsInput, Prisma.PartnerUncheckedUpdateWithoutWebhook_eventsInput>
+  create: Prisma.XOR<Prisma.PartnerCreateWithoutWebhook_eventsInput, Prisma.PartnerUncheckedCreateWithoutWebhook_eventsInput>
+  where?: Prisma.PartnerWhereInput
+}
+
+export type PartnerUpdateToOneWithWhereWithoutWebhook_eventsInput = {
+  where?: Prisma.PartnerWhereInput
+  data: Prisma.XOR<Prisma.PartnerUpdateWithoutWebhook_eventsInput, Prisma.PartnerUncheckedUpdateWithoutWebhook_eventsInput>
+}
+
+export type PartnerUpdateWithoutWebhook_eventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classes?: Prisma.ClassModelUpdateManyWithoutPartnerNestedInput
+  members?: Prisma.PartnerMemberUpdateManyWithoutPartnerNestedInput
+  api_keys?: Prisma.PartnerApiKeyUpdateManyWithoutPartnerNestedInput
+  webhook?: Prisma.PartnerWebhookUpdateOneWithoutPartnerNestedInput
+}
+
+export type PartnerUncheckedUpdateWithoutWebhook_eventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classes?: Prisma.ClassModelUncheckedUpdateManyWithoutPartnerNestedInput
+  members?: Prisma.PartnerMemberUncheckedUpdateManyWithoutPartnerNestedInput
+  api_keys?: Prisma.PartnerApiKeyUncheckedUpdateManyWithoutPartnerNestedInput
+  webhook?: Prisma.PartnerWebhookUncheckedUpdateOneWithoutPartnerNestedInput
 }
 
 export type PartnerCreateWithoutApi_keysInput = {
@@ -525,6 +727,8 @@ export type PartnerCreateWithoutApi_keysInput = {
   updated_at?: Date | string
   classes?: Prisma.ClassModelCreateNestedManyWithoutPartnerInput
   members?: Prisma.PartnerMemberCreateNestedManyWithoutPartnerInput
+  webhook?: Prisma.PartnerWebhookCreateNestedOneWithoutPartnerInput
+  webhook_events?: Prisma.PartnerWebhookEventCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateWithoutApi_keysInput = {
@@ -538,6 +742,8 @@ export type PartnerUncheckedCreateWithoutApi_keysInput = {
   updated_at?: Date | string
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutPartnerInput
   members?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutPartnerInput
+  webhook?: Prisma.PartnerWebhookUncheckedCreateNestedOneWithoutPartnerInput
+  webhook_events?: Prisma.PartnerWebhookEventUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerCreateOrConnectWithoutApi_keysInput = {
@@ -567,6 +773,8 @@ export type PartnerUpdateWithoutApi_keysInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUpdateManyWithoutPartnerNestedInput
   members?: Prisma.PartnerMemberUpdateManyWithoutPartnerNestedInput
+  webhook?: Prisma.PartnerWebhookUpdateOneWithoutPartnerNestedInput
+  webhook_events?: Prisma.PartnerWebhookEventUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateWithoutApi_keysInput = {
@@ -580,6 +788,8 @@ export type PartnerUncheckedUpdateWithoutApi_keysInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutPartnerNestedInput
   members?: Prisma.PartnerMemberUncheckedUpdateManyWithoutPartnerNestedInput
+  webhook?: Prisma.PartnerWebhookUncheckedUpdateOneWithoutPartnerNestedInput
+  webhook_events?: Prisma.PartnerWebhookEventUncheckedUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerCreateWithoutMembersInput = {
@@ -593,6 +803,8 @@ export type PartnerCreateWithoutMembersInput = {
   updated_at?: Date | string
   classes?: Prisma.ClassModelCreateNestedManyWithoutPartnerInput
   api_keys?: Prisma.PartnerApiKeyCreateNestedManyWithoutPartnerInput
+  webhook?: Prisma.PartnerWebhookCreateNestedOneWithoutPartnerInput
+  webhook_events?: Prisma.PartnerWebhookEventCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateWithoutMembersInput = {
@@ -606,6 +818,8 @@ export type PartnerUncheckedCreateWithoutMembersInput = {
   updated_at?: Date | string
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutPartnerInput
   api_keys?: Prisma.PartnerApiKeyUncheckedCreateNestedManyWithoutPartnerInput
+  webhook?: Prisma.PartnerWebhookUncheckedCreateNestedOneWithoutPartnerInput
+  webhook_events?: Prisma.PartnerWebhookEventUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerCreateOrConnectWithoutMembersInput = {
@@ -635,6 +849,8 @@ export type PartnerUpdateWithoutMembersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUpdateManyWithoutPartnerNestedInput
   api_keys?: Prisma.PartnerApiKeyUpdateManyWithoutPartnerNestedInput
+  webhook?: Prisma.PartnerWebhookUpdateOneWithoutPartnerNestedInput
+  webhook_events?: Prisma.PartnerWebhookEventUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateWithoutMembersInput = {
@@ -648,6 +864,8 @@ export type PartnerUncheckedUpdateWithoutMembersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutPartnerNestedInput
   api_keys?: Prisma.PartnerApiKeyUncheckedUpdateManyWithoutPartnerNestedInput
+  webhook?: Prisma.PartnerWebhookUncheckedUpdateOneWithoutPartnerNestedInput
+  webhook_events?: Prisma.PartnerWebhookEventUncheckedUpdateManyWithoutPartnerNestedInput
 }
 
 
@@ -659,12 +877,14 @@ export type PartnerCountOutputType = {
   classes: number
   members: number
   api_keys: number
+  webhook_events: number
 }
 
 export type PartnerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   classes?: boolean | PartnerCountOutputTypeCountClassesArgs
   members?: boolean | PartnerCountOutputTypeCountMembersArgs
   api_keys?: boolean | PartnerCountOutputTypeCountApi_keysArgs
+  webhook_events?: boolean | PartnerCountOutputTypeCountWebhook_eventsArgs
 }
 
 /**
@@ -698,6 +918,13 @@ export type PartnerCountOutputTypeCountApi_keysArgs<ExtArgs extends runtime.Type
   where?: Prisma.PartnerApiKeyWhereInput
 }
 
+/**
+ * PartnerCountOutputType without action
+ */
+export type PartnerCountOutputTypeCountWebhook_eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PartnerWebhookEventWhereInput
+}
+
 
 export type PartnerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -711,6 +938,8 @@ export type PartnerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   classes?: boolean | Prisma.Partner$classesArgs<ExtArgs>
   members?: boolean | Prisma.Partner$membersArgs<ExtArgs>
   api_keys?: boolean | Prisma.Partner$api_keysArgs<ExtArgs>
+  webhook?: boolean | Prisma.Partner$webhookArgs<ExtArgs>
+  webhook_events?: boolean | Prisma.Partner$webhook_eventsArgs<ExtArgs>
   _count?: boolean | Prisma.PartnerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["partner"]>
 
@@ -752,6 +981,8 @@ export type PartnerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   classes?: boolean | Prisma.Partner$classesArgs<ExtArgs>
   members?: boolean | Prisma.Partner$membersArgs<ExtArgs>
   api_keys?: boolean | Prisma.Partner$api_keysArgs<ExtArgs>
+  webhook?: boolean | Prisma.Partner$webhookArgs<ExtArgs>
+  webhook_events?: boolean | Prisma.Partner$webhook_eventsArgs<ExtArgs>
   _count?: boolean | Prisma.PartnerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PartnerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -763,6 +994,8 @@ export type $PartnerPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     classes: Prisma.$ClassModelPayload<ExtArgs>[]
     members: Prisma.$PartnerMemberPayload<ExtArgs>[]
     api_keys: Prisma.$PartnerApiKeyPayload<ExtArgs>[]
+    webhook: Prisma.$PartnerWebhookPayload<ExtArgs> | null
+    webhook_events: Prisma.$PartnerWebhookEventPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1170,6 +1403,8 @@ export interface Prisma__PartnerClient<T, Null = never, ExtArgs extends runtime.
   classes<T extends Prisma.Partner$classesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$classesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassModelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   members<T extends Prisma.Partner$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PartnerMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   api_keys<T extends Prisma.Partner$api_keysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$api_keysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PartnerApiKeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  webhook<T extends Prisma.Partner$webhookArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$webhookArgs<ExtArgs>>): Prisma.Prisma__PartnerWebhookClient<runtime.Types.Result.GetResult<Prisma.$PartnerWebhookPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  webhook_events<T extends Prisma.Partner$webhook_eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$webhook_eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PartnerWebhookEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1669,6 +1904,49 @@ export type Partner$api_keysArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.PartnerApiKeyScalarFieldEnum | Prisma.PartnerApiKeyScalarFieldEnum[]
+}
+
+/**
+ * Partner.webhook
+ */
+export type Partner$webhookArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PartnerWebhook
+   */
+  select?: Prisma.PartnerWebhookSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PartnerWebhook
+   */
+  omit?: Prisma.PartnerWebhookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PartnerWebhookInclude<ExtArgs> | null
+  where?: Prisma.PartnerWebhookWhereInput
+}
+
+/**
+ * Partner.webhook_events
+ */
+export type Partner$webhook_eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PartnerWebhookEvent
+   */
+  select?: Prisma.PartnerWebhookEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PartnerWebhookEvent
+   */
+  omit?: Prisma.PartnerWebhookEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PartnerWebhookEventInclude<ExtArgs> | null
+  where?: Prisma.PartnerWebhookEventWhereInput
+  orderBy?: Prisma.PartnerWebhookEventOrderByWithRelationInput | Prisma.PartnerWebhookEventOrderByWithRelationInput[]
+  cursor?: Prisma.PartnerWebhookEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PartnerWebhookEventScalarFieldEnum | Prisma.PartnerWebhookEventScalarFieldEnum[]
 }
 
 /**

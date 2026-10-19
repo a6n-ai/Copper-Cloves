@@ -1,12 +1,21 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.1.0",
   "info": {
     "title": "The Studio by Copper + Cloves — Partner API",
     "version": "1.0.0",
-    "description": "Server-to-server API for studio partners. Every call is scoped to the partner that owns the API key: you only ever see and act on bookings for your own classes.\n\n**Auth:** send `Authorization: Bearer ccp_...`. Keys are issued by the studio; keep them on your server, never in a browser or mobile app.\n\n**Rate limit:** 120 requests per minute per key. Over the limit returns `429` with `Retry-After` (seconds).\n\n**Times** are ISO 8601 UTC. The studio operates in IST (UTC+05:30)."
+    "description": "Server-to-server API for studio partners. Every call is scoped to the partner that owns the API key: you only ever see and act on bookings for your own classes.\n\n**Auth:** send `Authorization: Bearer ccp_...`. Keys are issued by the studio; keep them on your server, never in a browser or mobile app.\n\n**Rate limit:** 120 requests per minute per key. Over the limit returns `429` with `Retry-After` (seconds).\n\n**Times** are ISO 8601 UTC. The studio operates in IST (UTC+05:30).\n\n**Webhooks:** register one HTTPS endpoint with `PUT /api/partner/webhook` and we POST booking events for your classes to it (see *Webhooks* below). Each delivery is JSON with headers `X-CC-Event` (type), `X-CC-Delivery` (event id, stable across retries: use it to ignore duplicates) and `X-CC-Signature: t=<unix seconds>,v1=<hex>`.\n\n**Verifying a delivery:** compute `HMAC-SHA256(secret, \"<t>.<raw request body>\")` as hex and compare it to `v1` with a constant-time compare; reject if `t` is more than 5 minutes old. Use the raw body bytes, not re-serialized JSON.\n\n**Delivery:** respond with any 2xx within 5 seconds; do slow work after responding. Redirects are not followed. Failed deliveries retry after 1m, 5m, 30m, 2h and 12h, then stop. Events for one partner are sent oldest first, but a retry can arrive after a newer event, so order by `createdAt`.\n\n```js\n// Node.js (Express): app.post(\"/webhooks/copper-cloves\", express.raw({ type: \"application/json\" }), handler)\nconst crypto = require(\"crypto\");\nfunction verify(rawBody, header, secret) {\n  const { t, v1 } = Object.fromEntries(header.split(\",\").map((p) => p.split(\"=\")));\n  if (Math.abs(Date.now() / 1000 - Number(t)) > 300) return false;\n  const expected = crypto.createHmac(\"sha256\", secret).update(`${t}.${rawBody}`).digest(\"hex\");\n  return v1.length === expected.length && crypto.timingSafeEqual(Buffer.from(v1), Buffer.from(expected));\n}\n```"
   },
-  "servers": [{ "url": "/", "description": "This host (production: the studio website domain)" }],
-  "security": [{ "partnerKey": [] }],
+  "servers": [
+    {
+      "url": "/",
+      "description": "This host (production: the studio website domain)"
+    }
+  ],
+  "security": [
+    {
+      "partnerKey": []
+    }
+  ],
   "paths": {
     "/api/partner/classes": {
       "get": {
@@ -14,14 +23,48 @@
         "description": "Your scheduled classes in a date range, each with its roster (confirmed bookings and unpaid seat holds). Cancelled classes are excluded. Range is capped at 100 days. Defaults to the current Monday-to-Sunday week when `from` or `to` is missing.",
         "operationId": "listClasses",
         "parameters": [
-          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date-time" }, "example": "2026-10-19T00:00:00+05:30" },
-          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date-time" }, "example": "2026-10-25T23:59:59+05:30" }
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2026-10-19T00:00:00+05:30"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2026-10-25T23:59:59+05:30"
+          }
         ],
         "responses": {
-          "200": { "description": "Classes ordered by start time", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Class" } } } } },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/RateLimited" }
+          "200": {
+            "description": "Classes ordered by start time",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Class"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
         }
       }
     },
@@ -31,9 +74,25 @@
         "description": "Distinct members checked in to at least one of your classes, all time, most recent first.",
         "operationId": "listMembers",
         "responses": {
-          "200": { "description": "Members", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Member" } } } } },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/RateLimited" }
+          "200": {
+            "description": "Members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Member"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
         }
       }
     },
@@ -44,95 +103,1058 @@
         "operationId": "bookingAction",
         "requestBody": {
           "required": true,
-          "content": { "application/json": { "schema": {
-            "type": "object",
-            "required": ["bookingId", "action"],
-            "properties": {
-              "bookingId": { "type": "string", "format": "uuid", "description": "`bookings[].id` from GET /api/partner/classes" },
-              "action": { "type": "string", "enum": ["confirm", "reject"] }
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "bookingId",
+                  "action"
+                ],
+                "properties": {
+                  "bookingId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "`bookings[].id` from GET /api/partner/classes"
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "confirm",
+                      "reject"
+                    ]
+                  }
+                }
+              }
             }
-          } } }
+          }
         },
         "responses": {
-          "200": { "description": "Done", "content": { "application/json": { "schema": {
-            "type": "object",
-            "properties": {
-              "ok": { "type": "boolean" },
-              "status": { "type": "string", "nullable": true, "description": "`confirmed` or `rejected`; when `already` is true, the booking's current confirmation status" },
-              "already": { "type": "boolean", "description": "Present and true when the booking was not pending" }
+          "200": {
+            "description": "Done",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "`confirmed` or `rejected`; when `already` is true, the booking's current confirmation status"
+                    },
+                    "already": {
+                      "type": "boolean",
+                      "description": "Present and true when the booking was not pending"
+                    }
+                  }
+                }
+              }
             }
-          } } } },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "description": "Booking is not for one of your classes", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "404": { "description": "Booking not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "429": { "$ref": "#/components/responses/RateLimited" }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "Booking is not for one of your classes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Booking not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api/partner/webhook": {
+      "get": {
+        "summary": "Get your webhook",
+        "operationId": "getWebhook",
+        "description": "Current endpoint (or null) and your 20 most recent events with delivery status.",
+        "responses": {
+          "200": {
+            "description": "Webhook config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "webhook": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/Webhook"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "availableEvents": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WebhookEventType"
+                      }
+                    },
+                    "recentDeliveries": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WebhookDelivery"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      },
+      "put": {
+        "summary": "Set your webhook",
+        "operationId": "setWebhook",
+        "description": "Creates or replaces your endpoint. `url` must be public HTTPS. `events` defaults to all. The signing `secret` is returned only when the webhook is first created or when `rotateSecret` is true; store it, it is not shown again. Rotation takes effect immediately for every later delivery, including retries.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "url"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://partner.example.com/webhooks/copper-cloves"
+                  },
+                  "events": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/WebhookEventType"
+                    }
+                  },
+                  "rotateSecret": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "webhook": {
+                      "$ref": "#/components/schemas/Webhook"
+                    },
+                    "secret": {
+                      "type": "string",
+                      "description": "Only when created or rotated",
+                      "example": "whsec_..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created (includes `secret`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "webhook": {
+                      "$ref": "#/components/schemas/Webhook"
+                    },
+                    "secret": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove your webhook",
+        "operationId": "deleteWebhook",
+        "description": "Stops all deliveries. Events not yet delivered are dropped.",
+        "responses": {
+          "204": {
+            "description": "Removed"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api/partner/webhook/test": {
+      "post": {
+        "summary": "Send a test event",
+        "operationId": "testWebhook",
+        "description": "Immediately POSTs a signed `ping` event (`data: {}`) to your endpoint and reports the result. Not retried.",
+        "responses": {
+          "200": {
+            "description": "Result of the attempt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deliveryId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "responseStatus": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "error": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "durationMs": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No webhook configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
         }
       }
     }
   },
   "components": {
     "securitySchemes": {
-      "partnerKey": { "type": "http", "scheme": "bearer", "description": "Partner API key, starts with `ccp_`" }
+      "partnerKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Partner API key, starts with `ccp_`"
+      }
     },
     "responses": {
-      "BadRequest": { "description": "Invalid input", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-      "Unauthorized": { "description": "Missing, invalid or revoked key", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "BadRequest": {
+        "description": "Invalid input",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing, invalid or revoked key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
       "RateLimited": {
         "description": "Too many requests",
-        "headers": { "Retry-After": { "schema": { "type": "integer" }, "description": "Seconds to wait" } },
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+        "headers": {
+          "Retry-After": {
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Seconds to wait"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
       }
     },
     "schemas": {
-      "Error": { "type": "object", "properties": { "error": { "type": "string" } } },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
       "Class": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "className": { "type": "string" },
-          "category": { "type": "string" },
-          "instructorName": { "type": "string" },
-          "startTime": { "type": "string", "format": "date-time" },
-          "endTime": { "type": "string", "format": "date-time" },
-          "capacity": { "type": "integer" },
-          "signups": { "type": "integer", "description": "Seats taken, including extra guests" },
-          "openSpots": { "type": "integer" },
-          "checkedInCount": { "type": "integer" },
-          "status": { "type": "string", "enum": ["available", "started", "completed", "abandoned", "inactive"] },
-          "bookings": { "type": "array", "items": { "$ref": "#/components/schemas/Booking" } }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "className": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "instructorName": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "capacity": {
+            "type": "integer"
+          },
+          "signups": {
+            "type": "integer",
+            "description": "Seats taken, including extra guests"
+          },
+          "openSpots": {
+            "type": "integer"
+          },
+          "checkedInCount": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "started",
+              "completed",
+              "abandoned",
+              "inactive"
+            ]
+          },
+          "bookings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Booking"
+            }
+          }
         }
       },
       "Booking": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "userId": { "type": "string", "format": "uuid" },
-          "memberName": { "type": "string" },
-          "email": { "type": "string" },
-          "phone": { "type": "string", "nullable": true },
-          "avatarUrl": { "type": "string", "nullable": true },
-          "status": { "type": "string", "enum": ["confirmed", "payment_pending"], "description": "`payment_pending` = seat held, member has not paid yet" },
-          "confirmationStatus": { "type": "string", "nullable": true, "enum": ["pending", "confirmed", null], "description": "`pending` = awaiting your confirm/reject" },
-          "checkedIn": { "type": "boolean" },
-          "checkInOutcome": { "type": "string", "nullable": true },
-          "extraGuests": { "type": "integer" },
-          "hasWaiver": { "type": "boolean" },
-          "refundStatus": { "type": "string", "nullable": true },
-          "holdExpiresAt": { "type": "string", "format": "date-time", "nullable": true, "description": "When an unpaid hold is released" },
-          "invitedByUserId": { "type": "string", "format": "uuid", "nullable": true, "description": "Set when another member booked this seat for them" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "memberName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "avatarUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "payment_pending"
+            ],
+            "description": "`payment_pending` = seat held, member has not paid yet"
+          },
+          "confirmationStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "pending",
+              "confirmed",
+              null
+            ],
+            "description": "`pending` = awaiting your confirm/reject"
+          },
+          "checkedIn": {
+            "type": "boolean"
+          },
+          "checkInOutcome": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "extraGuests": {
+            "type": "integer"
+          },
+          "hasWaiver": {
+            "type": "boolean"
+          },
+          "refundStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "holdExpiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When an unpaid hold is released"
+          },
+          "invitedByUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Set when another member booked this seat for them"
+          }
         }
       },
       "Member": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "email": { "type": "string" },
-          "phone": { "type": "string", "nullable": true },
-          "sessions": { "type": "integer", "description": "Classes of yours they checked in to" },
-          "lastSession": { "type": "string", "format": "date-time", "nullable": true },
-          "hasWaiver": { "type": "boolean" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sessions": {
+            "type": "integer",
+            "description": "Classes of yours they checked in to"
+          },
+          "lastSession": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "hasWaiver": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WebhookEventType": {
+        "type": "string",
+        "enum": [
+          "booking.created",
+          "booking.pending_confirmation",
+          "booking.confirmed",
+          "booking.cancelled",
+          "booking.checked_in",
+          "booking.no_show"
+        ]
+      },
+      "Webhook": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            }
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WebhookEvent": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "createdAt",
+          "data"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Event id. Same value in `X-CC-Delivery`; stable across retries."
+          },
+          "type": {
+            "$ref": "#/components/schemas/WebhookEventType"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the booking changed"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "booking": {
+                "type": "object",
+                "description": "State of the booking at the moment of the change, plus the member.",
+                "properties": {
+                  "bookingId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "classScheduleId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "confirmed",
+                      "payment_pending",
+                      "cancelled",
+                      "expired"
+                    ]
+                  },
+                  "confirmationStatus": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "pending",
+                      "confirmed",
+                      null
+                    ]
+                  },
+                  "checkedIn": {
+                    "type": "boolean"
+                  },
+                  "checkInOutcome": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "extraGuests": {
+                    "type": "integer"
+                  },
+                  "member": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "phone": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "class": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "WebhookDelivery": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/WebhookEventType"
+          },
+          "bookingId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "delivered",
+              "failed"
+            ]
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "nextAttemptAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "lastResponseStatus": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "lastError": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {
+    "booking.created": {
+      "post": {
+        "summary": "booking.created",
+        "description": "A member booked one of your classes (including an unpaid seat hold: check `status`).",
+        "operationId": "webhook_booking_created",
+        "security": [],
+        "parameters": [
+          {
+            "name": "X-CC-Event",
+            "in": "header",
+            "schema": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Delivery",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Signature",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "example": "t=1760000000,v1=5257a869e7..."
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Return any 2xx within 5 seconds to acknowledge"
+          }
+        }
+      }
+    },
+    "booking.pending_confirmation": {
+      "post": {
+        "summary": "booking.pending_confirmation",
+        "description": "A booking is waiting for you to confirm or reject it (POST /api/partner/booking-action).",
+        "operationId": "webhook_booking_pending_confirmation",
+        "security": [],
+        "parameters": [
+          {
+            "name": "X-CC-Event",
+            "in": "header",
+            "schema": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Delivery",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Signature",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "example": "t=1760000000,v1=5257a869e7..."
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Return any 2xx within 5 seconds to acknowledge"
+          }
+        }
+      }
+    },
+    "booking.confirmed": {
+      "post": {
+        "summary": "booking.confirmed",
+        "description": "The booking is paid and not awaiting your confirmation: the member is coming. Sent once when it reaches that state, including at creation for pass bookings.",
+        "operationId": "webhook_booking_confirmed",
+        "security": [],
+        "parameters": [
+          {
+            "name": "X-CC-Event",
+            "in": "header",
+            "schema": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Delivery",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Signature",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "example": "t=1760000000,v1=5257a869e7..."
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Return any 2xx within 5 seconds to acknowledge"
+          }
+        }
+      }
+    },
+    "booking.cancelled": {
+      "post": {
+        "summary": "booking.cancelled",
+        "description": "Cancelled by the member, the studio or you, or an unpaid hold expired (`status: expired`).",
+        "operationId": "webhook_booking_cancelled",
+        "security": [],
+        "parameters": [
+          {
+            "name": "X-CC-Event",
+            "in": "header",
+            "schema": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Delivery",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Signature",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "example": "t=1760000000,v1=5257a869e7..."
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Return any 2xx within 5 seconds to acknowledge"
+          }
+        }
+      }
+    },
+    "booking.checked_in": {
+      "post": {
+        "summary": "booking.checked_in",
+        "description": "The member was checked in.",
+        "operationId": "webhook_booking_checked_in",
+        "security": [],
+        "parameters": [
+          {
+            "name": "X-CC-Event",
+            "in": "header",
+            "schema": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Delivery",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Signature",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "example": "t=1760000000,v1=5257a869e7..."
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Return any 2xx within 5 seconds to acknowledge"
+          }
+        }
+      }
+    },
+    "booking.no_show": {
+      "post": {
+        "summary": "booking.no_show",
+        "description": "The member was marked as a no-show.",
+        "operationId": "webhook_booking_no_show",
+        "security": [],
+        "parameters": [
+          {
+            "name": "X-CC-Event",
+            "in": "header",
+            "schema": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Delivery",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "name": "X-CC-Signature",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "example": "t=1760000000,v1=5257a869e7..."
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Return any 2xx within 5 seconds to acknowledge"
+          }
         }
       }
     }

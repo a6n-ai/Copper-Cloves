@@ -63,6 +63,8 @@ export const ModelName = {
   Instructor: 'Instructor',
   ClassModel: 'ClassModel',
   Partner: 'Partner',
+  PartnerWebhook: 'PartnerWebhook',
+  PartnerWebhookEvent: 'PartnerWebhookEvent',
   PartnerApiKey: 'PartnerApiKey',
   PartnerMember: 'PartnerMember',
   ClassSchedule: 'ClassSchedule',
@@ -358,6 +360,38 @@ export const PartnerScalarFieldEnum = {
 } as const
 
 export type PartnerScalarFieldEnum = (typeof PartnerScalarFieldEnum)[keyof typeof PartnerScalarFieldEnum]
+
+
+export const PartnerWebhookScalarFieldEnum = {
+  id: 'id',
+  partner_id: 'partner_id',
+  url: 'url',
+  secret: 'secret',
+  events: 'events',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PartnerWebhookScalarFieldEnum = (typeof PartnerWebhookScalarFieldEnum)[keyof typeof PartnerWebhookScalarFieldEnum]
+
+
+export const PartnerWebhookEventScalarFieldEnum = {
+  id: 'id',
+  partner_id: 'partner_id',
+  type: 'type',
+  booking_id: 'booking_id',
+  data: 'data',
+  attempts: 'attempts',
+  next_attempt_at: 'next_attempt_at',
+  delivered_at: 'delivered_at',
+  failed_at: 'failed_at',
+  last_status: 'last_status',
+  last_error: 'last_error',
+  created_at: 'created_at'
+} as const
+
+export type PartnerWebhookEventScalarFieldEnum = (typeof PartnerWebhookEventScalarFieldEnum)[keyof typeof PartnerWebhookEventScalarFieldEnum]
 
 
 export const PartnerApiKeyScalarFieldEnum = {
