@@ -12,7 +12,7 @@ import {
 import { parseFinanceSnapshot } from "@/lib/financeBookingCheckout";
 import { ROSTER_STATUSES } from "@/lib/bookingStatus";
 import { deriveScheduleState } from "@/lib/scheduleStatus";
-import { getDynamicStats, getDynamicStatsForUsers, getStreakLeaderboardAndDistribution } from "@/lib/attendanceStats";
+import { getDynamicStats, getStreakLeaderboardAndDistribution } from "@/lib/attendanceStats";
 
 import { passCategoryForPackageType } from "@/lib/couponHelpers";
 function dt(d: Date) {
@@ -385,62 +385,6 @@ export async function getMemberStats(db: Db = prisma) {
     memberGrowth,
     streakDistribution,
   };
-}
-
-export async function getMemberList(db: Db = prisma) {
-  const recent = await db.userPackage.findMany({
-    take: 40,
-    orderBy: { purchase_date: "desc" },
-    select: {
-      user_id: true,
-      credits_remaining: true,
-      expiration_date: true,
-      pass_type: true,
-      profile: { select: { full_name: true, email: true, phone: true, avatar_url: true } },
-      package_type: { select: { name: true, is_unlimited: true, type: true } },
-    },
-  });
-  const top = recent.slice(0, 24);
-  const userIds = top.map((up) => up.user_id);
-
-  const [statsByUser, bookingRows] = await Promise.all([
-    getDynamicStatsForUsers(userIds),
-    db.booking.findMany({
-      where: { user_id: { in: userIds } },
-      select: { user_id: true, checked_in: true, check_in_outcome: true },
-    }),
-  ]);
-
-  const perf = new Map<string, { onTime: number; late: number; noShow: number }>();
-  for (const b of bookingRows) {
-    const p = perf.get(b.user_id) ?? { onTime: 0, late: 0, noShow: 0 };
-    if (b.check_in_outcome === "no_show") p.noShow += 1;
-    else if (b.checked_in) {
-      if (b.check_in_outcome === "late") p.late += 1;
-      else p.onTime += 1;
-    }
-    perf.set(b.user_id, p);
-  }
-
-  return top.map((up, idx) => {
-    const pf = perf.get(up.user_id) ?? { onTime: 0, late: 0, noShow: 0 };
-    const isUnlimited = passCategoryForPackageType(up.package_type) === "studio_pass";
-    return {
-      id: idx + 1,
-      profileId: up.user_id,
-      name: up.profile.full_name || up.profile.email || "Member",
-      email: up.profile.email ?? "",
-      avatarUrl: up.profile.avatar_url ?? null,
-      package: up.package_type.name,
-      isUnlimited,
-      credits: up.credits_remaining ?? 0,
-      expiry: dt(up.expiration_date),
-      streak: statsByUser.get(up.user_id)?.current_streak ?? 0,
-      onTime: pf.onTime,
-      late: pf.late,
-      noShow: pf.noShow,
-    };
-  });
 }
 
 export async function getTransactions(db: Db = prisma, opts: { includeFinanceDemo?: boolean } = {}) {
