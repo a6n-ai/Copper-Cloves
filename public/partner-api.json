@@ -1,0 +1,140 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "The Studio by Copper + Cloves — Partner API",
+    "version": "1.0.0",
+    "description": "Server-to-server API for studio partners. Every call is scoped to the partner that owns the API key: you only ever see and act on bookings for your own classes.\n\n**Auth:** send `Authorization: Bearer ccp_...`. Keys are issued by the studio; keep them on your server, never in a browser or mobile app.\n\n**Rate limit:** 120 requests per minute per key. Over the limit returns `429` with `Retry-After` (seconds).\n\n**Times** are ISO 8601 UTC. The studio operates in IST (UTC+05:30)."
+  },
+  "servers": [{ "url": "/", "description": "This host (production: the studio website domain)" }],
+  "security": [{ "partnerKey": [] }],
+  "paths": {
+    "/api/partner/classes": {
+      "get": {
+        "summary": "List your classes with rosters",
+        "description": "Your scheduled classes in a date range, each with its roster (confirmed bookings and unpaid seat holds). Cancelled classes are excluded. Range is capped at 100 days. Defaults to the current Monday-to-Sunday week when `from` or `to` is missing.",
+        "operationId": "listClasses",
+        "parameters": [
+          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date-time" }, "example": "2026-10-19T00:00:00+05:30" },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date-time" }, "example": "2026-10-25T23:59:59+05:30" }
+        ],
+        "responses": {
+          "200": { "description": "Classes ordered by start time", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Class" } } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/partner/members": {
+      "get": {
+        "summary": "List members who attended your classes",
+        "description": "Distinct members checked in to at least one of your classes, all time, most recent first.",
+        "operationId": "listMembers",
+        "responses": {
+          "200": { "description": "Members", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Member" } } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/partner/booking-action": {
+      "post": {
+        "summary": "Confirm or reject a pending booking",
+        "description": "Acts on a booking whose `confirmationStatus` is `pending`. `confirm` emails the member a confirmation. `reject` cancels the booking, returns the class credit to the member's pass and frees the seat. Idempotent: acting on a booking that is no longer pending returns `already: true` and changes nothing.",
+        "operationId": "bookingAction",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object",
+            "required": ["bookingId", "action"],
+            "properties": {
+              "bookingId": { "type": "string", "format": "uuid", "description": "`bookings[].id` from GET /api/partner/classes" },
+              "action": { "type": "string", "enum": ["confirm", "reject"] }
+            }
+          } } }
+        },
+        "responses": {
+          "200": { "description": "Done", "content": { "application/json": { "schema": {
+            "type": "object",
+            "properties": {
+              "ok": { "type": "boolean" },
+              "status": { "type": "string", "nullable": true, "description": "`confirmed` or `rejected`; when `already` is true, the booking's current confirmation status" },
+              "already": { "type": "boolean", "description": "Present and true when the booking was not pending" }
+            }
+          } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "description": "Booking is not for one of your classes", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "404": { "description": "Booking not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "partnerKey": { "type": "http", "scheme": "bearer", "description": "Partner API key, starts with `ccp_`" }
+    },
+    "responses": {
+      "BadRequest": { "description": "Invalid input", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Unauthorized": { "description": "Missing, invalid or revoked key", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "RateLimited": {
+        "description": "Too many requests",
+        "headers": { "Retry-After": { "schema": { "type": "integer" }, "description": "Seconds to wait" } },
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      }
+    },
+    "schemas": {
+      "Error": { "type": "object", "properties": { "error": { "type": "string" } } },
+      "Class": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "className": { "type": "string" },
+          "category": { "type": "string" },
+          "instructorName": { "type": "string" },
+          "startTime": { "type": "string", "format": "date-time" },
+          "endTime": { "type": "string", "format": "date-time" },
+          "capacity": { "type": "integer" },
+          "signups": { "type": "integer", "description": "Seats taken, including extra guests" },
+          "openSpots": { "type": "integer" },
+          "checkedInCount": { "type": "integer" },
+          "status": { "type": "string", "enum": ["available", "started", "completed", "abandoned", "inactive"] },
+          "bookings": { "type": "array", "items": { "$ref": "#/components/schemas/Booking" } }
+        }
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "userId": { "type": "string", "format": "uuid" },
+          "memberName": { "type": "string" },
+          "email": { "type": "string" },
+          "phone": { "type": "string", "nullable": true },
+          "avatarUrl": { "type": "string", "nullable": true },
+          "status": { "type": "string", "enum": ["confirmed", "payment_pending"], "description": "`payment_pending` = seat held, member has not paid yet" },
+          "confirmationStatus": { "type": "string", "nullable": true, "enum": ["pending", "confirmed", null], "description": "`pending` = awaiting your confirm/reject" },
+          "checkedIn": { "type": "boolean" },
+          "checkInOutcome": { "type": "string", "nullable": true },
+          "extraGuests": { "type": "integer" },
+          "hasWaiver": { "type": "boolean" },
+          "refundStatus": { "type": "string", "nullable": true },
+          "holdExpiresAt": { "type": "string", "format": "date-time", "nullable": true, "description": "When an unpaid hold is released" },
+          "invitedByUserId": { "type": "string", "format": "uuid", "nullable": true, "description": "Set when another member booked this seat for them" }
+        }
+      },
+      "Member": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "phone": { "type": "string", "nullable": true },
+          "sessions": { "type": "integer", "description": "Classes of yours they checked in to" },
+          "lastSession": { "type": "string", "format": "date-time", "nullable": true },
+          "hasWaiver": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

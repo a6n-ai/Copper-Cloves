@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { hasRole, primaryRole } from "@/lib/auth/roles";
 import { createStudioLogin, LoginEmailTakenError } from "@/lib/auth/createStudioLogin";
+import { generatePartnerKey, hashPartnerKey } from "@/lib/partnerAuth";
 
 function slugify(s: string): string {
   return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(?:^-+)|(?:-+$)/g, "");
@@ -19,6 +20,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       include: {
         classes: { select: { id: true, name: true } },
         members: { include: { profile: { select: { id: true, email: true, full_name: true } } } },
+        // Never key_hash: the admin UI only needs to tell keys apart.
+        api_keys: {
+          where: { revoked_at: null },
+          orderBy: { created_at: "desc" },
+          select: { id: true, name: true, prefix: true, created_at: true, last_used_at: true },
+        },
       },
     });
     // Flatten members → managers for the UI.
@@ -128,6 +135,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (e instanceof LoginEmailTakenError) return res.status(409).json({ error: e.message });
         throw e;
       }
+      return res.json({ ok: true });
+    }
+
+    if (action === "create_api_key") {
+      const keyName = String(req.body?.name ?? "").trim();
+      if (!keyName) return res.status(400).json({ error: "key name required" });
+      const key = generatePartnerKey();
+      await prisma.partnerApiKey.create({
+        data: { partner_id: id, name: keyName.slice(0, 80), prefix: key.slice(0, 12), key_hash: hashPartnerKey(key) },
+      });
+      // The only time the plaintext leaves the server — never let a cache keep it.
+      res.setHeader("Cache-Control", "no-store");
+      return res.status(201).json({ ok: true, key });
+    }
+
+    if (action === "revoke_api_key") {
+      const keyId = String(req.body?.keyId ?? "");
+      const { count } = await prisma.partnerApiKey.updateMany({
+        where: { id: keyId, partner_id: id, revoked_at: null },
+        data: { revoked_at: new Date() },
+      });
+      if (count === 0) return res.status(404).json({ error: "API key not found" });
       return res.json({ ok: true });
     }
 

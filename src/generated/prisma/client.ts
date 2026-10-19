@@ -108,6 +108,12 @@ export type ClassModel = Prisma.ClassModelModel
  */
 export type Partner = Prisma.PartnerModel
 /**
+ * Model PartnerApiKey
+ * Server-to-server credential for a partner. Only the sha256 of the key is stored;
+ * the plaintext is shown once at creation (scripts/partner-api-key.ts).
+ */
+export type PartnerApiKey = Prisma.PartnerApiKeyModel
+/**
  * Model PartnerMember
  * Links a user (Profile) to a Partner they manage — a partner can have many users,
  * and a user could belong to multiple partners. `role`: manager today, instructor later.

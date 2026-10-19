@@ -356,8 +356,28 @@ model Partner {
 
   classes ClassModel[]
   members PartnerMember[]
+  api_keys PartnerApiKey[]
 
   @@map("partners")
+}
+
+/// Server-to-server credential for a partner. Only the sha256 of the key is stored;
+/// the plaintext is shown once at creation (scripts/partner-api-key.ts).
+model PartnerApiKey {
+  id           String    @id @default(uuid())
+  partner_id   String
+  name         String
+  /// First chars of the key, for telling keys apart in listings.
+  prefix       String
+  key_hash     String    @unique
+  last_used_at DateTime?
+  revoked_at   DateTime?
+  created_at   DateTime  @default(now())
+
+  partner Partner @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+
+  @@index([partner_id])
+  @@map("partner_api_keys")
 }
 
 /// Links a user (Profile) to a Partner they manage — a partner can have many users,

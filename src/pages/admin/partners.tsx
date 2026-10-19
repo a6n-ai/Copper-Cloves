@@ -11,13 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Plus, X } from "lucide-react";
+import { Building2, Copy, KeyRound, Plus, X } from "lucide-react";
 import { Spinner, PageLoader } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { hasRole } from "@/lib/auth/roles";
 
 interface PartnerClass { id: string; name: string }
 interface PartnerManager { id: string; email: string; full_name: string | null }
+interface PartnerApiKey { id: string; name: string; prefix: string; created_at: string; last_used_at: string | null }
 interface Partner {
   id: string;
   name: string;
@@ -25,6 +26,11 @@ interface Partner {
   is_active: boolean;
   classes: PartnerClass[];
   managers: PartnerManager[];
+  api_keys: PartnerApiKey[];
+}
+
+function formatWhen(iso: string | null): string {
+  return iso ? new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "never";
 }
 interface ClassOption { id: string; name: string }
 
@@ -42,6 +48,10 @@ export default function AdminPartners() {
   const [slug, setSlug] = useState("");
   const [managerEmail, setManagerEmail] = useState("");
   const [managerPassword, setManagerPassword] = useState("");
+
+  // API keys: draft name per partner, and the one freshly created plaintext key
+  const [keyNames, setKeyNames] = useState<Record<string, string>>({});
+  const [newKey, setNewKey] = useState<{ partnerId: string; key: string } | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -112,6 +122,41 @@ export default function AdminPartners() {
       await load();
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function createApiKey(partnerId: string) {
+    const keyName = (keyNames[partnerId] ?? "").trim();
+    if (!keyName) { toast.error("Name the key first, e.g. the partner's system"); return; }
+    setBusy(true);
+    try {
+      const res = await fetch("/api/admin/partners", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id: partnerId, action: "create_api_key", name: keyName }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { toast.error(d.error ?? "Could not create key"); return; }
+      setNewKey({ partnerId, key: d.key });
+      setKeyNames((prev) => ({ ...prev, [partnerId]: "" }));
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function revokeApiKey(partnerId: string, k: PartnerApiKey) {
+    if (!window.confirm(`Revoke "${k.name}"? Anything using this key stops working immediately.`)) return;
+    await patch({ id: partnerId, action: "revoke_api_key", keyId: k.id });
+  }
+
+  async function copyKey(key: string) {
+    try {
+      await navigator.clipboard.writeText(key);
+      toast.success("Key copied");
+    } catch {
+      toast.error("Copy failed — select the key and copy it manually");
     }
   }
 
@@ -223,6 +268,63 @@ export default function AdminPartners() {
                       {p.managers.map((m) => (
                         <span key={m.id} className="px-2.5 py-1 rounded-full bg-cream/60 border border-sage/15 font-body text-xs text-charcoal/70">{m.email}</span>
                       ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-body text-xs uppercase tracking-wide text-charcoal/50 mb-2">
+                      API keys ({p.api_keys.length}) ·{" "}
+                      <a href="/partner-api.html" target="_blank" rel="noreferrer" className="normal-case tracking-normal text-sage underline-offset-2 hover:underline">
+                        API docs
+                      </a>
+                    </p>
+                    {newKey?.partnerId === p.id && (
+                      <div className="mb-3 rounded-lg border border-terracotta/30 bg-terracotta/5 p-3 space-y-2">
+                        <p className="font-body text-sm text-charcoal">
+                          Copy this key now and send it to the partner securely. It is not shown again.
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 min-w-0 break-all rounded-md bg-white-warm border border-sage/15 px-2 py-1.5 font-mono text-xs text-charcoal">
+                            {newKey.key}
+                          </code>
+                          <Button type="button" variant="sage" size="sm" onClick={() => copyKey(newKey.key)}>
+                            <Copy className="h-3.5 w-3.5" /> Copy
+                          </Button>
+                          <Button type="button" variant="ghost" size="icon-sm" aria-label="Dismiss" onClick={() => setNewKey(null)}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-1.5 mb-2">
+                      {p.api_keys.map((k) => (
+                        <div key={k.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-sage/15 bg-cream/40 px-3 py-2">
+                          <div className="min-w-0 font-body text-sm">
+                            <span className="text-charcoal flex items-center gap-1.5">
+                              <KeyRound className="h-3.5 w-3.5 text-sage shrink-0" /> {k.name}
+                              <code className="font-mono text-xs text-charcoal/50">{k.prefix}…</code>
+                            </span>
+                            <span className="text-xs text-charcoal/50">
+                              Created {formatWhen(k.created_at)} · Last used {formatWhen(k.last_used_at)}
+                            </span>
+                          </div>
+                          <Button type="button" variant="terracotta-ghost" size="sm" disabled={busy} onClick={() => revokeApiKey(p.id, k)}>
+                            Revoke
+                          </Button>
+                        </div>
+                      ))}
+                      {p.api_keys.length === 0 && <span className="font-body text-sm text-charcoal/40">No API keys.</span>}
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Input
+                        value={keyNames[p.id] ?? ""}
+                        onChange={(e) => setKeyNames((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                        placeholder="Key name, e.g. Physique 57 booking sync"
+                        maxLength={80}
+                        className="h-9 w-full sm:w-72 border-sage/20 font-body text-sm"
+                      />
+                      <Button type="button" variant="sage" disabled={busy || !p.is_active} onClick={() => createApiKey(p.id)}>
+                        Create key
+                      </Button>
                     </div>
                   </div>
                 </CardContent>

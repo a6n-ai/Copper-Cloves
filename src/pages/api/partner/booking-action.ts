@@ -1,12 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
-import { getStudioServerSession } from "@/lib/getStudioServerSession";
+import { requirePartner } from "@/lib/partnerAuth";
 import { sendBookingConfirmationEmail } from "@/lib/notifications/sendBookingEmail";
 import { sendStudioEmail } from "@/lib/notifications/email";
 import logger from "@/lib/logger";
 import { logActivity } from "@/lib/activityLog";
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
-import { hasRole } from "@/lib/auth/roles";
 
 const CONFIRMATION_CONFIRMED = "confirmed" as const;
 const CONFIRMATION_PENDING = "pending" as const;
@@ -19,12 +18,9 @@ const CONFIRMATION_PENDING = "pending" as const;
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const sess = await getStudioServerSession(req, res);
-  const user = sess?.user as { role?: string; partner_id?: string | null } | undefined;
-  if (!user || !hasRole(user.role, "partner") || !user.partner_id) {
-    return res.status(401).json({ error: "Not authenticated" });
-  }
-  const partnerId = user.partner_id;
+  const auth = await requirePartner(req, res);
+  if (!auth) return;
+  const partnerId = auth.partnerId;
 
   const { bookingId, action } = req.body ?? {};
   if (typeof bookingId !== "string" || !bookingId.trim()) {
@@ -57,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: { confirmation_status: CONFIRMATION_CONFIRMED },
     });
     await sendBookingConfirmationEmail(booking.id).catch((e) => logger.error({ err: e }, "[partner confirm email]"));
-    await logActivity({ req, action: "partner.booking_confirmed", entity: { type: "booking", id: booking.id } });
+    await logActivity({ req, actor: auth.actor, action: "partner.booking_confirmed", entity: { type: "booking", id: booking.id } });
     return res.json({ ok: true, status: CONFIRMATION_CONFIRMED });
   }
 
@@ -107,6 +103,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     userId: booking.user_id,
     data: { bookingId: booking.id, creditsCount: "1" },
   }).catch((e) => logger.error({ err: e }, "[partner reject CRM]"));
-  await logActivity({ req, action: "partner.booking_rejected", entity: { type: "booking", id: booking.id } });
+  await logActivity({ req, actor: auth.actor, action: "partner.booking_rejected", entity: { type: "booking", id: booking.id } });
   return res.json({ ok: true, status: "rejected" });
 }

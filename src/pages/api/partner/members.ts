@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
-import { getStudioServerSession } from "@/lib/getStudioServerSession";
-import { hasRole } from "@/lib/auth/roles";
+import { requirePartner } from "@/lib/partnerAuth";
 
 /**
  * Distinct members who have ATTENDED (checked in to) at least one of this partner's
@@ -10,12 +9,9 @@ import { hasRole } from "@/lib/auth/roles";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).end();
 
-  const sess = await getStudioServerSession(req, res);
-  const user = sess?.user as { role?: string; partner_id?: string | null } | undefined;
-  if (!user || !hasRole(user.role, "partner") || !user.partner_id) {
-    return res.status(401).json({ error: "Not authenticated" });
-  }
-  const partnerId = user.partner_id;
+  const auth = await requirePartner(req, res);
+  if (!auth) return;
+  const partnerId = auth.partnerId;
 
   const bookings = await prisma.booking.findMany({
     where: {

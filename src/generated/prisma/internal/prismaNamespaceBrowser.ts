@@ -63,6 +63,7 @@ export const ModelName = {
   Instructor: 'Instructor',
   ClassModel: 'ClassModel',
   Partner: 'Partner',
+  PartnerApiKey: 'PartnerApiKey',
   PartnerMember: 'PartnerMember',
   ClassSchedule: 'ClassSchedule',
   PackageType: 'PackageType',
@@ -357,6 +358,20 @@ export const PartnerScalarFieldEnum = {
 } as const
 
 export type PartnerScalarFieldEnum = (typeof PartnerScalarFieldEnum)[keyof typeof PartnerScalarFieldEnum]
+
+
+export const PartnerApiKeyScalarFieldEnum = {
+  id: 'id',
+  partner_id: 'partner_id',
+  name: 'name',
+  prefix: 'prefix',
+  key_hash: 'key_hash',
+  last_used_at: 'last_used_at',
+  revoked_at: 'revoked_at',
+  created_at: 'created_at'
+} as const
+
+export type PartnerApiKeyScalarFieldEnum = (typeof PartnerApiKeyScalarFieldEnum)[keyof typeof PartnerApiKeyScalarFieldEnum]
 
 
 export const PartnerMemberScalarFieldEnum = {

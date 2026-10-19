@@ -409,6 +409,7 @@ export const ModelName = {
   Instructor: 'Instructor',
   ClassModel: 'ClassModel',
   Partner: 'Partner',
+  PartnerApiKey: 'PartnerApiKey',
   PartnerMember: 'PartnerMember',
   ClassSchedule: 'ClassSchedule',
   PackageType: 'PackageType',
@@ -462,7 +463,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "user" | "session" | "account" | "verification" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "sharedCredit" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "cronRun" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
+    modelProps: "profile" | "user" | "session" | "account" | "verification" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerApiKey" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "sharedCredit" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "cronRun" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1351,6 +1352,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PartnerCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PartnerCountAggregateOutputType> | number
+        }
+      }
+    }
+    PartnerApiKey: {
+      payload: Prisma.$PartnerApiKeyPayload<ExtArgs>
+      fields: Prisma.PartnerApiKeyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PartnerApiKeyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerApiKeyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PartnerApiKeyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerApiKeyPayload>
+        }
+        findFirst: {
+          args: Prisma.PartnerApiKeyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerApiKeyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PartnerApiKeyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerApiKeyPayload>
+        }
+        findMany: {
+          args: Prisma.PartnerApiKeyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerApiKeyPayload>[]
+        }
+        create: {
+          args: Prisma.PartnerApiKeyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerApiKeyPayload>
+        }
+        createMany: {
+          args: Prisma.PartnerApiKeyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PartnerApiKeyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerApiKeyPayload>[]
+        }
+        delete: {
+          args: Prisma.PartnerApiKeyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerApiKeyPayload>
+        }
+        update: {
+          args: Prisma.PartnerApiKeyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerApiKeyPayload>
+        }
+        deleteMany: {
+          args: Prisma.PartnerApiKeyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PartnerApiKeyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PartnerApiKeyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerApiKeyPayload>[]
+        }
+        upsert: {
+          args: Prisma.PartnerApiKeyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnerApiKeyPayload>
+        }
+        aggregate: {
+          args: Prisma.PartnerApiKeyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePartnerApiKey>
+        }
+        groupBy: {
+          args: Prisma.PartnerApiKeyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerApiKeyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PartnerApiKeyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnerApiKeyCountAggregateOutputType> | number
         }
       }
     }
@@ -4445,6 +4520,20 @@ export const PartnerScalarFieldEnum = {
 export type PartnerScalarFieldEnum = (typeof PartnerScalarFieldEnum)[keyof typeof PartnerScalarFieldEnum]
 
 
+export const PartnerApiKeyScalarFieldEnum = {
+  id: 'id',
+  partner_id: 'partner_id',
+  name: 'name',
+  prefix: 'prefix',
+  key_hash: 'key_hash',
+  last_used_at: 'last_used_at',
+  revoked_at: 'revoked_at',
+  created_at: 'created_at'
+} as const
+
+export type PartnerApiKeyScalarFieldEnum = (typeof PartnerApiKeyScalarFieldEnum)[keyof typeof PartnerApiKeyScalarFieldEnum]
+
+
 export const PartnerMemberScalarFieldEnum = {
   id: 'id',
   partner_id: 'partner_id',
@@ -5532,6 +5621,7 @@ export type GlobalOmitConfig = {
   instructor?: Prisma.InstructorOmit
   classModel?: Prisma.ClassModelOmit
   partner?: Prisma.PartnerOmit
+  partnerApiKey?: Prisma.PartnerApiKeyOmit
   partnerMember?: Prisma.PartnerMemberOmit
   classSchedule?: Prisma.ClassScheduleOmit
   packageType?: Prisma.PackageTypeOmit

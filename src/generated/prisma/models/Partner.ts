@@ -208,6 +208,7 @@ export type PartnerWhereInput = {
   updated_at?: Prisma.DateTimeFilter<"Partner"> | Date | string
   classes?: Prisma.ClassModelListRelationFilter
   members?: Prisma.PartnerMemberListRelationFilter
+  api_keys?: Prisma.PartnerApiKeyListRelationFilter
 }
 
 export type PartnerOrderByWithRelationInput = {
@@ -221,6 +222,7 @@ export type PartnerOrderByWithRelationInput = {
   updated_at?: Prisma.SortOrder
   classes?: Prisma.ClassModelOrderByRelationAggregateInput
   members?: Prisma.PartnerMemberOrderByRelationAggregateInput
+  api_keys?: Prisma.PartnerApiKeyOrderByRelationAggregateInput
 }
 
 export type PartnerWhereUniqueInput = Prisma.AtLeast<{
@@ -237,6 +239,7 @@ export type PartnerWhereUniqueInput = Prisma.AtLeast<{
   updated_at?: Prisma.DateTimeFilter<"Partner"> | Date | string
   classes?: Prisma.ClassModelListRelationFilter
   members?: Prisma.PartnerMemberListRelationFilter
+  api_keys?: Prisma.PartnerApiKeyListRelationFilter
 }, "id" | "slug">
 
 export type PartnerOrderByWithAggregationInput = {
@@ -278,6 +281,7 @@ export type PartnerCreateInput = {
   updated_at?: Date | string
   classes?: Prisma.ClassModelCreateNestedManyWithoutPartnerInput
   members?: Prisma.PartnerMemberCreateNestedManyWithoutPartnerInput
+  api_keys?: Prisma.PartnerApiKeyCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateInput = {
@@ -291,6 +295,7 @@ export type PartnerUncheckedCreateInput = {
   updated_at?: Date | string
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutPartnerInput
   members?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutPartnerInput
+  api_keys?: Prisma.PartnerApiKeyUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUpdateInput = {
@@ -304,6 +309,7 @@ export type PartnerUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUpdateManyWithoutPartnerNestedInput
   members?: Prisma.PartnerMemberUpdateManyWithoutPartnerNestedInput
+  api_keys?: Prisma.PartnerApiKeyUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateInput = {
@@ -317,6 +323,7 @@ export type PartnerUncheckedUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutPartnerNestedInput
   members?: Prisma.PartnerMemberUncheckedUpdateManyWithoutPartnerNestedInput
+  api_keys?: Prisma.PartnerApiKeyUncheckedUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerCreateManyInput = {
@@ -411,6 +418,20 @@ export type PartnerUpdateOneWithoutClassesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PartnerUpdateToOneWithWhereWithoutClassesInput, Prisma.PartnerUpdateWithoutClassesInput>, Prisma.PartnerUncheckedUpdateWithoutClassesInput>
 }
 
+export type PartnerCreateNestedOneWithoutApi_keysInput = {
+  create?: Prisma.XOR<Prisma.PartnerCreateWithoutApi_keysInput, Prisma.PartnerUncheckedCreateWithoutApi_keysInput>
+  connectOrCreate?: Prisma.PartnerCreateOrConnectWithoutApi_keysInput
+  connect?: Prisma.PartnerWhereUniqueInput
+}
+
+export type PartnerUpdateOneRequiredWithoutApi_keysNestedInput = {
+  create?: Prisma.XOR<Prisma.PartnerCreateWithoutApi_keysInput, Prisma.PartnerUncheckedCreateWithoutApi_keysInput>
+  connectOrCreate?: Prisma.PartnerCreateOrConnectWithoutApi_keysInput
+  upsert?: Prisma.PartnerUpsertWithoutApi_keysInput
+  connect?: Prisma.PartnerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PartnerUpdateToOneWithWhereWithoutApi_keysInput, Prisma.PartnerUpdateWithoutApi_keysInput>, Prisma.PartnerUncheckedUpdateWithoutApi_keysInput>
+}
+
 export type PartnerCreateNestedOneWithoutMembersInput = {
   create?: Prisma.XOR<Prisma.PartnerCreateWithoutMembersInput, Prisma.PartnerUncheckedCreateWithoutMembersInput>
   connectOrCreate?: Prisma.PartnerCreateOrConnectWithoutMembersInput
@@ -435,6 +456,7 @@ export type PartnerCreateWithoutClassesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   members?: Prisma.PartnerMemberCreateNestedManyWithoutPartnerInput
+  api_keys?: Prisma.PartnerApiKeyCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateWithoutClassesInput = {
@@ -447,6 +469,7 @@ export type PartnerUncheckedCreateWithoutClassesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   members?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutPartnerInput
+  api_keys?: Prisma.PartnerApiKeyUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerCreateOrConnectWithoutClassesInput = {
@@ -475,6 +498,7 @@ export type PartnerUpdateWithoutClassesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.PartnerMemberUpdateManyWithoutPartnerNestedInput
+  api_keys?: Prisma.PartnerApiKeyUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateWithoutClassesInput = {
@@ -486,6 +510,75 @@ export type PartnerUncheckedUpdateWithoutClassesInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.PartnerMemberUncheckedUpdateManyWithoutPartnerNestedInput
+  api_keys?: Prisma.PartnerApiKeyUncheckedUpdateManyWithoutPartnerNestedInput
+}
+
+export type PartnerCreateWithoutApi_keysInput = {
+  id?: string
+  name: string
+  slug: string
+  logo_url?: string | null
+  description?: string | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  classes?: Prisma.ClassModelCreateNestedManyWithoutPartnerInput
+  members?: Prisma.PartnerMemberCreateNestedManyWithoutPartnerInput
+}
+
+export type PartnerUncheckedCreateWithoutApi_keysInput = {
+  id?: string
+  name: string
+  slug: string
+  logo_url?: string | null
+  description?: string | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutPartnerInput
+  members?: Prisma.PartnerMemberUncheckedCreateNestedManyWithoutPartnerInput
+}
+
+export type PartnerCreateOrConnectWithoutApi_keysInput = {
+  where: Prisma.PartnerWhereUniqueInput
+  create: Prisma.XOR<Prisma.PartnerCreateWithoutApi_keysInput, Prisma.PartnerUncheckedCreateWithoutApi_keysInput>
+}
+
+export type PartnerUpsertWithoutApi_keysInput = {
+  update: Prisma.XOR<Prisma.PartnerUpdateWithoutApi_keysInput, Prisma.PartnerUncheckedUpdateWithoutApi_keysInput>
+  create: Prisma.XOR<Prisma.PartnerCreateWithoutApi_keysInput, Prisma.PartnerUncheckedCreateWithoutApi_keysInput>
+  where?: Prisma.PartnerWhereInput
+}
+
+export type PartnerUpdateToOneWithWhereWithoutApi_keysInput = {
+  where?: Prisma.PartnerWhereInput
+  data: Prisma.XOR<Prisma.PartnerUpdateWithoutApi_keysInput, Prisma.PartnerUncheckedUpdateWithoutApi_keysInput>
+}
+
+export type PartnerUpdateWithoutApi_keysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classes?: Prisma.ClassModelUpdateManyWithoutPartnerNestedInput
+  members?: Prisma.PartnerMemberUpdateManyWithoutPartnerNestedInput
+}
+
+export type PartnerUncheckedUpdateWithoutApi_keysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classes?: Prisma.ClassModelUncheckedUpdateManyWithoutPartnerNestedInput
   members?: Prisma.PartnerMemberUncheckedUpdateManyWithoutPartnerNestedInput
 }
 
@@ -499,6 +592,7 @@ export type PartnerCreateWithoutMembersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   classes?: Prisma.ClassModelCreateNestedManyWithoutPartnerInput
+  api_keys?: Prisma.PartnerApiKeyCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerUncheckedCreateWithoutMembersInput = {
@@ -511,6 +605,7 @@ export type PartnerUncheckedCreateWithoutMembersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   classes?: Prisma.ClassModelUncheckedCreateNestedManyWithoutPartnerInput
+  api_keys?: Prisma.PartnerApiKeyUncheckedCreateNestedManyWithoutPartnerInput
 }
 
 export type PartnerCreateOrConnectWithoutMembersInput = {
@@ -539,6 +634,7 @@ export type PartnerUpdateWithoutMembersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUpdateManyWithoutPartnerNestedInput
+  api_keys?: Prisma.PartnerApiKeyUpdateManyWithoutPartnerNestedInput
 }
 
 export type PartnerUncheckedUpdateWithoutMembersInput = {
@@ -551,6 +647,7 @@ export type PartnerUncheckedUpdateWithoutMembersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classes?: Prisma.ClassModelUncheckedUpdateManyWithoutPartnerNestedInput
+  api_keys?: Prisma.PartnerApiKeyUncheckedUpdateManyWithoutPartnerNestedInput
 }
 
 
@@ -561,11 +658,13 @@ export type PartnerUncheckedUpdateWithoutMembersInput = {
 export type PartnerCountOutputType = {
   classes: number
   members: number
+  api_keys: number
 }
 
 export type PartnerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   classes?: boolean | PartnerCountOutputTypeCountClassesArgs
   members?: boolean | PartnerCountOutputTypeCountMembersArgs
+  api_keys?: boolean | PartnerCountOutputTypeCountApi_keysArgs
 }
 
 /**
@@ -592,6 +691,13 @@ export type PartnerCountOutputTypeCountMembersArgs<ExtArgs extends runtime.Types
   where?: Prisma.PartnerMemberWhereInput
 }
 
+/**
+ * PartnerCountOutputType without action
+ */
+export type PartnerCountOutputTypeCountApi_keysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PartnerApiKeyWhereInput
+}
+
 
 export type PartnerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -604,6 +710,7 @@ export type PartnerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   updated_at?: boolean
   classes?: boolean | Prisma.Partner$classesArgs<ExtArgs>
   members?: boolean | Prisma.Partner$membersArgs<ExtArgs>
+  api_keys?: boolean | Prisma.Partner$api_keysArgs<ExtArgs>
   _count?: boolean | Prisma.PartnerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["partner"]>
 
@@ -644,6 +751,7 @@ export type PartnerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type PartnerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   classes?: boolean | Prisma.Partner$classesArgs<ExtArgs>
   members?: boolean | Prisma.Partner$membersArgs<ExtArgs>
+  api_keys?: boolean | Prisma.Partner$api_keysArgs<ExtArgs>
   _count?: boolean | Prisma.PartnerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PartnerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -654,6 +762,7 @@ export type $PartnerPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     classes: Prisma.$ClassModelPayload<ExtArgs>[]
     members: Prisma.$PartnerMemberPayload<ExtArgs>[]
+    api_keys: Prisma.$PartnerApiKeyPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1060,6 +1169,7 @@ export interface Prisma__PartnerClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   classes<T extends Prisma.Partner$classesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$classesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassModelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   members<T extends Prisma.Partner$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PartnerMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  api_keys<T extends Prisma.Partner$api_keysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partner$api_keysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PartnerApiKeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1535,6 +1645,30 @@ export type Partner$membersArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.PartnerMemberScalarFieldEnum | Prisma.PartnerMemberScalarFieldEnum[]
+}
+
+/**
+ * Partner.api_keys
+ */
+export type Partner$api_keysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PartnerApiKey
+   */
+  select?: Prisma.PartnerApiKeySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PartnerApiKey
+   */
+  omit?: Prisma.PartnerApiKeyOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PartnerApiKeyInclude<ExtArgs> | null
+  where?: Prisma.PartnerApiKeyWhereInput
+  orderBy?: Prisma.PartnerApiKeyOrderByWithRelationInput | Prisma.PartnerApiKeyOrderByWithRelationInput[]
+  cursor?: Prisma.PartnerApiKeyWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PartnerApiKeyScalarFieldEnum | Prisma.PartnerApiKeyScalarFieldEnum[]
 }
 
 /**
