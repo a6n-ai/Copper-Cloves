@@ -4,6 +4,7 @@ import { getStudioServerSession } from "@/lib/getStudioServerSession";
 import { hasRole, primaryRole } from "@/lib/auth/roles";
 import { createStudioLogin, LoginEmailTakenError } from "@/lib/auth/createStudioLogin";
 import { generatePartnerKey, hashPartnerKey } from "@/lib/partnerAuth";
+import { pingPayload, postWebhook } from "@/lib/partnerWebhooks";
 
 function slugify(s: string): string {
   return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(?:^-+)|(?:-+$)/g, "");
@@ -158,6 +159,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // The only time the plaintext leaves the server — never let a cache keep it.
       res.setHeader("Cache-Control", "no-store");
       return res.status(201).json({ ok: true, key });
+    }
+
+    if (action === "test_webhook") {
+      const hook = await prisma.partnerWebhook.findUnique({ where: { partner_id: id }, select: { url: true, secret: true } });
+      if (!hook) return res.status(404).json({ error: "No webhook configured" });
+      // Same signed ping the partner's own POST /api/partner/webhook/test sends; not queued or retried.
+      const r = await postWebhook(hook.url, hook.secret, pingPayload());
+      return res.json({ ok: r.ok, responseStatus: r.status, error: r.error, durationMs: r.durationMs });
     }
 
     if (action === "revoke_api_key") {

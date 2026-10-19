@@ -175,6 +175,24 @@ export default function AdminPartners() {
     await patch({ id: partnerId, action: "revoke_api_key", keyId: k.id });
   }
 
+  async function testWebhook(partnerId: string) {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/admin/partners", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id: partnerId, action: "test_webhook" }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { toast.error(d.error ?? "Test failed"); return; }
+      if (d.ok) toast.success(`Ping delivered: HTTP ${d.responseStatus} in ${d.durationMs}ms`);
+      else toast.error(`Ping failed: ${d.error ?? `HTTP ${d.responseStatus}`}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function copyKey(key: string) {
     try {
       await navigator.clipboard.writeText(key);
@@ -362,6 +380,9 @@ export default function AdminPartners() {
                             <Pill size="sm" tone={p.webhook.is_active && p.is_active ? "success" : "neutral"}>
                               {p.webhook.is_active && p.is_active ? "Active" : "Paused"}
                             </Pill>
+                            <Button type="button" variant="sage-outline" size="sm" className="ml-auto" disabled={busy} onClick={() => testWebhook(p.id)}>
+                              Send test
+                            </Button>
                           </div>
                           <div className="flex flex-wrap gap-1.5">
                             {p.webhook.events.map((e) => (
