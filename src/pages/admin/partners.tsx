@@ -46,6 +46,7 @@ interface Partner {
   api_keys: PartnerApiKey[];
   webhook: PartnerWebhook | null;
   webhook_events: WebhookDelivery[];
+  failed_webhook_count: number;
 }
 
 function deliveryStatus(d: WebhookDelivery): "delivered" | "pending" | "failed" {
@@ -188,6 +189,24 @@ export default function AdminPartners() {
       if (!res.ok) { toast.error(d.error ?? "Test failed"); return; }
       if (d.ok) toast.success(`Ping delivered: HTTP ${d.responseStatus} in ${d.durationMs}ms`);
       else toast.error(`Ping failed: ${d.error ?? `HTTP ${d.responseStatus}`}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function retryDeliveries(partnerId: string, eventId?: string) {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/admin/partners", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id: partnerId, action: "retry_webhook_deliveries", eventId }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { toast.error(d.error ?? "Retry failed"); return; }
+      toast.success(`${d.requeued} ${d.requeued === 1 ? "delivery" : "deliveries"} queued; sending within a minute`);
+      await load();
     } finally {
       setBusy(false);
     }
@@ -391,6 +410,16 @@ export default function AdminPartners() {
                           </div>
                           <p className="font-body text-xs text-charcoal/50">Set by the partner · updated {formatWhen(p.webhook.updated_at)}</p>
                         </div>
+                        {p.failed_webhook_count > 0 && (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-body text-sm text-charcoal/70">
+                              {p.failed_webhook_count} failed {p.failed_webhook_count === 1 ? "delivery" : "deliveries"}
+                            </span>
+                            <Button type="button" variant="terracotta-ghost" size="sm" disabled={busy || !p.webhook.is_active || !p.is_active} onClick={() => retryDeliveries(p.id)}>
+                              Retry all failed ({p.failed_webhook_count})
+                            </Button>
+                          </div>
+                        )}
                         {p.webhook_events.length === 0 ? (
                           <span className="font-body text-sm text-charcoal/40">No deliveries yet.</span>
                         ) : (
@@ -403,6 +432,7 @@ export default function AdminPartners() {
                                   <TableHead>Status</TableHead>
                                   <TableHead className="text-right">Attempts</TableHead>
                                   <TableHead>Last response</TableHead>
+                                  <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -422,6 +452,13 @@ export default function AdminPartners() {
                                         {d.last_status ? `HTTP ${d.last_status}` : ""}
                                         {d.last_error && d.last_error !== `HTTP ${d.last_status}` ? `${d.last_status ? " · " : ""}${d.last_error}` : ""}
                                         {!d.last_status && !d.last_error ? "—" : ""}
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        {st === "failed" && (
+                                          <Button type="button" variant="terracotta-ghost" size="sm" disabled={busy || !p.webhook?.is_active || !p.is_active} onClick={() => retryDeliveries(p.id, d.id)}>
+                                            Retry
+                                          </Button>
+                                        )}
                                       </TableCell>
                                     </TableRow>
                                   );

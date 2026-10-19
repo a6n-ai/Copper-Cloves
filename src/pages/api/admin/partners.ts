@@ -29,6 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         // Explicit select: `secret` must never reach the browser.
         webhook: { select: { url: true, events: true, is_active: true, updated_at: true } },
+        _count: { select: { webhook_events: { where: { failed_at: { not: null } } } } },
         webhook_events: {
           orderBy: { created_at: "desc" },
           take: 20,
@@ -44,6 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       partners.map((p) => ({
         ...p,
         managers: p.members.map((m) => m.profile),
+        failed_webhook_count: p._count.webhook_events,
       })),
     );
   }
@@ -167,6 +169,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Same signed ping the partner's own POST /api/partner/webhook/test sends; not queued or retried.
       const r = await postWebhook(hook.url, hook.secret, pingPayload());
       return res.json({ ok: r.ok, responseStatus: r.status, error: r.error, durationMs: r.durationMs });
+    }
+
+    if (action === "retry_webhook_deliveries") {
+      const hook = await prisma.partnerWebhook.findUnique({ where: { partner_id: id }, select: { is_active: true } });
+      if (!hook?.is_active || !partner.is_active) {
+        return res.status(400).json({ error: "Webhook or partner is inactive; a retry would fail again" });
+      }
+      // One event (eventId) or every failed event for this partner. Fresh retry schedule; the
+      // partner-webhooks cron sends them within a minute.
+      const eventId = typeof req.body?.eventId === "string" ? req.body.eventId : undefined;
+      const { count } = await prisma.partnerWebhookEvent.updateMany({
+        where: { partner_id: id, failed_at: { not: null }, ...(eventId ? { id: eventId } : {}) },
+        data: { failed_at: null, attempts: 0, next_attempt_at: new Date() },
+      });
+      if (eventId && count === 0) return res.status(404).json({ error: "Failed delivery not found" });
+      return res.json({ ok: true, requeued: count });
     }
 
     if (action === "revoke_api_key") {
