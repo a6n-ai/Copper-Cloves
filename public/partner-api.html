@@ -5,14 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
   <title>Partner API · The Studio by Copper + Cloves</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui.min.css" integrity="sha384-+R8fx41ke61Yq4+j30C8Uh8fbNUEGy8Le9lzVmeMfiUNd+H3q8gN7qW9LM3rbesj" crossorigin="anonymous" />
   <style>body { margin: 0; background: #fafaf8; }</style>
 </head>
 <body>
-  <div id="swagger-ui"></div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui-bundle.min.js" integrity="sha384-5zikP7B6JemcHcJalIiFMnUirmSVBr3lZ85ClVPXO7mamWuqUixgyCMUPcKKfZLk" crossorigin="anonymous"></script>
+  <div id="app"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.72.1/dist/browser/standalone.js" integrity="sha384-U11tb2XnKvmwt8RlTvnwUnYgrN+ur4Xyh9htLhjajWNR/Oyl5AX5DEz00qRmlrmK" crossorigin="anonymous"></script>
   <script>
-    window.ui = SwaggerUIBundle({ url: "/partner-api.json", dom_id: "#swagger-ui", deepLinking: true });
+    Scalar.createApiReference("#app", {
+      url: "/partner-api.json",
+      // Same-origin calls need no CORS proxy; the default proxy.scalar.com would
+      // see every partner's Bearer key.
+      proxyUrl: "",
+      telemetry: false,
+      agent: { disabled: true },
+      showDeveloperTools: "never",
+      persistAuth: false,
+      customCss: ".light-mode { --scalar-color-accent: #8f9779; --scalar-background-1: #fafaf8; }",
+    });
   </script>
 </body>
 </html>
