@@ -334,3 +334,14 @@ export function paymentMethodPill(method: string): PillSpec & { label: string } 
       return { tone: "neutral", label: method }
   }
 }
+
+export function webhookDeliveryPill(status: "delivered" | "pending" | "failed"): PillSpec {
+  switch (status) {
+    case "delivered":
+      return { tone: "success" }
+    case "failed":
+      return { tone: "danger" }
+    default:
+      return { tone: "warning" }
+  }
+}

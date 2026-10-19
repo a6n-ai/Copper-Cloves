@@ -26,6 +26,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           orderBy: { created_at: "desc" },
           select: { id: true, name: true, prefix: true, created_at: true, last_used_at: true },
         },
+        // Explicit select: `secret` must never reach the browser.
+        webhook: { select: { url: true, events: true, is_active: true, updated_at: true } },
+        webhook_events: {
+          orderBy: { created_at: "desc" },
+          take: 20,
+          select: {
+            id: true, type: true, booking_id: true, attempts: true, created_at: true,
+            delivered_at: true, failed_at: true, next_attempt_at: true, last_status: true, last_error: true,
+          },
+        },
       },
     });
     // Flatten members → managers for the UI.

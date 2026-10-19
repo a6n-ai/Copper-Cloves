@@ -11,7 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Copy, KeyRound, Plus, X } from "lucide-react";
+import { Building2, Copy, KeyRound, Plus, Webhook, X } from "lucide-react";
+import { Pill } from "@/components/ui/pill";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
+import { webhookDeliveryPill } from "@/lib/pillMaps";
 import { Spinner, PageLoader } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { hasRole } from "@/lib/auth/roles";
@@ -19,6 +23,19 @@ import { hasRole } from "@/lib/auth/roles";
 interface PartnerClass { id: string; name: string }
 interface PartnerManager { id: string; email: string; full_name: string | null }
 interface PartnerApiKey { id: string; name: string; prefix: string; created_at: string; last_used_at: string | null }
+interface PartnerWebhook { url: string; events: string[]; is_active: boolean; updated_at: string }
+interface WebhookDelivery {
+  id: string;
+  type: string;
+  booking_id: string | null;
+  attempts: number;
+  created_at: string;
+  delivered_at: string | null;
+  failed_at: string | null;
+  next_attempt_at: string;
+  last_status: number | null;
+  last_error: string | null;
+}
 interface Partner {
   id: string;
   name: string;
@@ -27,6 +44,13 @@ interface Partner {
   classes: PartnerClass[];
   managers: PartnerManager[];
   api_keys: PartnerApiKey[];
+  webhook: PartnerWebhook | null;
+  webhook_events: WebhookDelivery[];
+}
+
+function deliveryStatus(d: WebhookDelivery): "delivered" | "pending" | "failed" {
+  if (d.delivered_at) return "delivered";
+  return d.failed_at ? "failed" : "pending";
 }
 
 function formatWhen(iso: string | null): string {
@@ -326,6 +350,71 @@ export default function AdminPartners() {
                         Create key
                       </Button>
                     </div>
+                  </div>
+                  <div>
+                    <p className="font-body text-xs uppercase tracking-wide text-charcoal/50 mb-2">Webhook</p>
+                    {p.webhook ? (
+                      <div className="space-y-3">
+                        <div className="rounded-md border border-sage/15 bg-cream/40 px-3 py-2 space-y-1.5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Webhook className="h-3.5 w-3.5 text-sage shrink-0" />
+                            <code className="min-w-0 break-all font-mono text-xs text-charcoal">{p.webhook.url}</code>
+                            <Pill size="sm" tone={p.webhook.is_active && p.is_active ? "success" : "neutral"}>
+                              {p.webhook.is_active && p.is_active ? "Active" : "Paused"}
+                            </Pill>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {p.webhook.events.map((e) => (
+                              <Pill key={e} size="sm" tone="neutral" noIcon>{e}</Pill>
+                            ))}
+                          </div>
+                          <p className="font-body text-xs text-charcoal/50">Set by the partner · updated {formatWhen(p.webhook.updated_at)}</p>
+                        </div>
+                        {p.webhook_events.length === 0 ? (
+                          <span className="font-body text-sm text-charcoal/40">No deliveries yet.</span>
+                        ) : (
+                          <ResponsiveTable stack>
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-sage/5">
+                                  <TableHead>Event</TableHead>
+                                  <TableHead>When</TableHead>
+                                  <TableHead>Status</TableHead>
+                                  <TableHead className="text-right">Attempts</TableHead>
+                                  <TableHead>Last response</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {p.webhook_events.map((d) => {
+                                  const st = deliveryStatus(d);
+                                  return (
+                                    <TableRow key={d.id}>
+                                      <TableCell className="font-mono text-xs">{d.type}</TableCell>
+                                      <TableCell className="text-xs text-charcoal/70 whitespace-nowrap">{formatWhen(d.created_at)}</TableCell>
+                                      <TableCell>
+                                        <Pill size="sm" className="capitalize" {...webhookDeliveryPill(st)}>
+                                          {st === "pending" && d.attempts > 0 ? `Retry ${formatWhen(d.next_attempt_at)}` : st}
+                                        </Pill>
+                                      </TableCell>
+                                      <TableCell className="text-right tabular-nums text-xs">{d.attempts}</TableCell>
+                                      <TableCell className="text-xs text-charcoal/70 max-w-xs break-words">
+                                        {d.last_status ? `HTTP ${d.last_status}` : ""}
+                                        {d.last_error && d.last_error !== `HTTP ${d.last_status}` ? `${d.last_status ? " · " : ""}${d.last_error}` : ""}
+                                        {!d.last_status && !d.last_error ? "—" : ""}
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          </ResponsiveTable>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="font-body text-sm text-charcoal/40">
+                        Not set. The partner sets it with <code className="font-mono text-xs">PUT /api/partner/webhook</code>.
+                      </span>
+                    )}
                   </div>
                 </CardContent>
               </Card>
