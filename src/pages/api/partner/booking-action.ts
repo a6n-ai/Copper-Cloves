@@ -48,20 +48,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (action === "confirm") {
-    await prisma.booking.update({
-      where: { id: booking.id },
+    // Conditional write: two concurrent confirms must not both send the email.
+    const { count } = await prisma.booking.updateMany({
+      where: { id: booking.id, confirmation_status: CONFIRMATION_PENDING },
       data: { confirmation_status: CONFIRMATION_CONFIRMED },
     });
+    if (count === 0) return res.json({ ok: true, already: true });
     await sendBookingConfirmationEmail(booking.id).catch((e) => logger.error({ err: e }, "[partner confirm email]"));
     await logActivity({ req, actor: auth.actor, action: "partner.booking_confirmed", entity: { type: "booking", id: booking.id } });
     return res.json({ ok: true, status: CONFIRMATION_CONFIRMED });
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.booking.update({
-      where: { id: booking.id },
+  // Conditional write: of two concurrent rejects only one flips the row, so the
+  // credit is refunded once. The loser sees count 0 and changes nothing.
+  const rejected = await prisma.$transaction(async (tx) => {
+    const { count } = await tx.booking.updateMany({
+      where: { id: booking.id, confirmation_status: CONFIRMATION_PENDING },
       data: { status: "cancelled", cancellation_date: new Date(), confirmation_status: null },
     });
+    if (count === 0) return false;
 
     if (
       booking.user_package_id &&
@@ -97,7 +102,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     }
+    return true;
   });
+  if (!rejected) return res.json({ ok: true, already: true });
 
   await sendStudioEmail("booking_cancelled", {
     userId: booking.user_id,
