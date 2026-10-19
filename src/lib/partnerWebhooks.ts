@@ -19,6 +19,11 @@ const TIMEOUT_MS = 5_000;
 /** Wait after attempt N fails; after the last one the event is marked failed (~14.6h total). */
 const RETRY_DELAYS_S = [60, 300, 1_800, 7_200, 43_200];
 const BATCH = 100;
+/** Per run: at most this many sends per partner, and stop starting new sends after the deadline.
+ *  10 x 5s hard timeout = 50s per partner, well inside the 5-minute claim lease, so a run can
+ *  never outlive its lease and let the next run re-send the same events. */
+const PER_PARTNER = 10;
+const RUN_DEADLINE_MS = 120_000;
 
 export function generateWebhookSecret(): string {
   return "whsec_" + randomBytes(32).toString("base64url");
@@ -101,8 +106,13 @@ export function postWebhook(url: string, secret: string, payload: { id: string; 
   const u = new URL(url);
   const host = u.hostname.replace(/^\[|\]$/g, "");
   return new Promise((resolve) => {
-    const done = (status: number | null, error: string | null) =>
+    let settled = false;
+    const done = (status: number | null, error: string | null) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(hard);
       resolve({ ok: status !== null && status >= 200 && status < 300, status, error, durationMs: Date.now() - started });
+    };
 
     const req = https.request(
       {
@@ -122,11 +132,18 @@ export function postWebhook(url: string, secret: string, payload: { id: string; 
         },
       },
       (res) => {
-        res.resume();
         const status = res.statusCode ?? null;
         done(status, status !== null && status >= 200 && status < 300 ? null : `HTTP ${status}`);
+        // Status is all we need; don't let a slow body keep the socket open.
+        res.destroy();
       },
     );
+    // `timeout` above only fires on an IDLE socket; a server trickling bytes defeats it.
+    // This is the wall-clock cap.
+    const hard = setTimeout(() => {
+      req.destroy();
+      done(null, `timed out after ${TIMEOUT_MS}ms`);
+    }, TIMEOUT_MS);
     req.on("timeout", () => req.destroy(new Error(`timed out after ${TIMEOUT_MS}ms`)));
     req.on("error", (e) => done(null, e.message.slice(0, 300)));
     req.end(body);
@@ -200,8 +217,10 @@ export async function processDueWebhookEvents() {
     )
     RETURNING id, partner_id, type, booking_id, data, attempts, created_at`;
 
+  const runStarted = Date.now();
   const hooks = await prisma.partnerWebhook.findMany({
-    where: { partner_id: { in: [...new Set(claimed.map((e) => e.partner_id))] }, is_active: true },
+    // A deactivated partner gets nothing, even for events queued before the switch-off.
+    where: { partner_id: { in: [...new Set(claimed.map((e) => e.partner_id))] }, is_active: true, partner: { is_active: true } },
     select: { partner_id: true, url: true, secret: true, events: true },
   });
   const hookFor = new Map(hooks.map((h) => [h.partner_id, h]));
@@ -214,11 +233,18 @@ export async function processDueWebhookEvents() {
   let delivered = 0;
   let retrying = 0;
   let failed = 0;
+  const released: string[] = [];
   // Partners in parallel; each partner's events in order.
   await Promise.all(
-    [...byPartner.entries()].map(async ([partnerId, events]) => {
+    [...byPartner.entries()].map(async ([partnerId, all]) => {
       const hook = hookFor.get(partnerId);
-      for (const e of events) {
+      released.push(...all.slice(PER_PARTNER).map((e) => e.id));
+      const events = all.slice(0, PER_PARTNER);
+      for (const [i, e] of events.entries()) {
+        if (Date.now() - runStarted > RUN_DEADLINE_MS) {
+          released.push(...events.slice(i).map((x) => x.id));
+          break;
+        }
         if (!hook || !hook.events.includes(e.type)) {
           await prisma.partnerWebhookEvent.update({
             where: { id: e.id },
@@ -256,5 +282,10 @@ export async function processDueWebhookEvents() {
     }),
   );
 
-  return { claimed: claimed.length, delivered, retrying, failed };
+  // Unsent claims go straight back to the queue instead of waiting out the lease.
+  if (released.length) {
+    await prisma.partnerWebhookEvent.updateMany({ where: { id: { in: released } }, data: { next_attempt_at: new Date() } });
+  }
+
+  return { claimed: claimed.length, delivered, retrying, failed, deferred: released.length };
 }

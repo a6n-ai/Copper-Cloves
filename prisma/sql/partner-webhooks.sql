@@ -69,8 +69,8 @@ BEGIN
          now(), now()
   FROM unnest(types) AS t
   WHERE EXISTS (
-    SELECT 1 FROM partner_webhooks w
-    WHERE w.partner_id = pid AND w.is_active AND t = ANY (w.events)
+    SELECT 1 FROM partner_webhooks w JOIN partners p ON p.id = w.partner_id
+    WHERE w.partner_id = pid AND w.is_active AND p.is_active AND t = ANY (w.events)
   );
   RETURN NULL;
 EXCEPTION WHEN OTHERS THEN
