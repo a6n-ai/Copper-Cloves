@@ -3,7 +3,7 @@
   "info": {
     "title": "The Studio by Copper + Cloves — Partner API",
     "version": "1.0.0",
-    "description": "Server-to-server API for studio partners. Every call is scoped to the partner that owns the API key: you only ever see and act on bookings for your own classes.\n\n**Auth:** send `Authorization: Bearer ccp_...`. Keys are issued by the studio; keep them on your server, never in a browser or mobile app.\n\n**Rate limit:** 120 requests per minute per key. Over the limit returns `429` with `Retry-After` (seconds).\n\n**Times** are ISO 8601 UTC. The studio operates in IST (UTC+05:30).\n\n**Webhooks:** register one HTTPS endpoint with `PUT /api/partner/webhook` and we POST booking events for your classes to it (see *Webhooks* below). Each delivery is JSON with headers `X-CC-Event` (type), `X-CC-Delivery` (event id, stable across retries: use it to ignore duplicates) and `X-CC-Signature: t=<unix seconds>,v1=<hex>`.\n\n**Verifying a delivery:** compute `HMAC-SHA256(secret, \"<t>.<raw request body>\")` as hex and compare it to `v1` with a constant-time compare; reject if `t` is more than 5 minutes old. Use the raw body bytes, not re-serialized JSON.\n\n**Delivery:** respond with any 2xx within 5 seconds; do slow work after responding. Redirects are not followed. Failed deliveries retry after 1m, 5m, 30m, 2h and 12h, then stop. Events for one partner are sent oldest first, but a retry can arrive after a newer event, so order by `createdAt`.\n\n```js\n// Node.js (Express): app.post(\"/webhooks/copper-cloves\", express.raw({ type: \"application/json\" }), handler)\nconst crypto = require(\"crypto\");\nfunction verify(rawBody, header, secret) {\n  const { t, v1 } = Object.fromEntries(header.split(\",\").map((p) => p.split(\"=\")));\n  if (Math.abs(Date.now() / 1000 - Number(t)) > 300) return false;\n  const expected = crypto.createHmac(\"sha256\", secret).update(`${t}.${rawBody}`).digest(\"hex\");\n  return v1.length === expected.length && crypto.timingSafeEqual(Buffer.from(v1), Buffer.from(expected));\n}\n```"
+    "description": "Server-to-server API for studio partners. Every call is scoped to the partner that owns the API key, so you only see and act on bookings for your own classes."
   },
   "servers": [
     {
@@ -14,6 +14,44 @@
   "security": [
     {
       "partnerKey": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Quick start",
+      "description": "1. **Get an API key** from the studio admin. It starts with `ccp_` and is shown only once, so store it straight away.\n2. **Send it on every request** as `Authorization: Bearer ccp_...`.\n3. **List your classes:** `GET /api/partner/classes?from=...&to=...` returns each class with its roster.\n4. **Act on pending bookings:** `POST /api/partner/booking-action` with `confirm` or `reject`.\n5. **(Optional) Get pushed events:** register a webhook with `PUT /api/partner/webhook`, then `POST /api/partner/webhook/test` to check it.\n\n```bash\ncurl \"https://www.thestudiobycopperandcloves.in/api/partner/classes\" \\\n  -H \"Authorization: Bearer ccp_YOUR_API_KEY\"\n```"
+    },
+    {
+      "name": "Authentication",
+      "description": "- **Code samples** show `YOUR_SECRET_TOKEN`: replace it with your `ccp_...` API key. To use **Test Request** here, paste your key into the Authentication box at the top.\n- **Header:** `Authorization: Bearer ccp_...` on every call.\n- **Key per partner:** a key acts for its partner, not for a person. The studio can issue several keys and revoke any of them.\n- **Server only:** keep the key on your backend. Never ship it in a browser or mobile app.\n- **Failures:** a missing, wrong or revoked key, or a deactivated partner, returns `401`.\n- **Lost or leaked key:** ask the studio to revoke it and issue a new one. Keys cannot be shown again."
+    },
+    {
+      "name": "Rate limits",
+      "description": "- **120 requests per minute** per key.\n- Over the limit returns `429` with a `Retry-After` header (seconds). Wait that long, then retry.\n- For a near-live roster, prefer webhooks over polling `/classes`."
+    },
+    {
+      "name": "Conventions",
+      "description": "- **Times** are ISO 8601. Responses are in UTC. The studio runs on IST (UTC+05:30), so you can pass `from`/`to` with a `+05:30` offset. URL-encode `+` as `%2B`.\n- **IDs** are UUIDs.\n- **Errors** are JSON: `{ \"error\": \"message\" }`.\n\n| Status | Meaning |\n|---|---|\n| `400` | Invalid input (the message says what) |\n| `401` | Missing, invalid or revoked key |\n| `403` | The booking belongs to another partner's class |\n| `404` | Booking not found, or no webhook configured |\n| `429` | Rate limited, see `Retry-After` |"
+    },
+    {
+      "name": "Receiving webhooks",
+      "description": "We POST booking events for your classes to one HTTPS endpoint you register. The event types and payloads are listed under **Webhooks** in the sidebar.\n\n### Setup\n\n1. **Register:** `PUT /api/partner/webhook` with `{ \"url\": \"https://...\" }`. Optionally pass `events` to subscribe to a subset (default: all).\n2. **Save the `secret`** from the response. It is returned only on create or when you pass `rotateSecret: true`.\n3. **Test:** `POST /api/partner/webhook/test` sends a signed `ping` right away and reports the result.\n4. **Monitor:** `GET /api/partner/webhook` shows your 20 latest events and their delivery status.\n\n### Request headers\n\n- `X-CC-Event`: the event type, e.g. `booking.confirmed`.\n- `X-CC-Delivery`: the event id. It stays the same across retries, so use it to skip duplicates.\n- `X-CC-Signature`: `t=<unix seconds>,v1=<hex>`.\n\n### Verifying the signature\n\n1. Split `X-CC-Signature` into `t` and `v1`.\n2. Reject the request if `t` is more than 5 minutes from now (replay protection).\n3. Compute `HMAC-SHA256(secret, \"<t>.<raw request body>\")` as hex. Use the raw body bytes, not re-serialized JSON.\n4. Compare with `v1` using a constant-time compare. Reject on mismatch.\n\n```js\n// Node.js (Express): app.post(\"/webhooks/copper-cloves\", express.raw({ type: \"application/json\" }), handler)\nconst crypto = require(\"crypto\");\nfunction verify(rawBody, header, secret) {\n  const { t, v1 } = Object.fromEntries(header.split(\",\").map((p) => p.split(\"=\")));\n  if (Math.abs(Date.now() / 1000 - Number(t)) > 300) return false;\n  const expected = crypto.createHmac(\"sha256\", secret).update(`${t}.${rawBody}`).digest(\"hex\");\n  return v1.length === expected.length && crypto.timingSafeEqual(Buffer.from(v1), Buffer.from(expected));\n}\n```\n\n### Responding, retries and ordering\n\n- **Reply with any 2xx within 5 seconds.** Do slow work after you respond.\n- **Redirects are not followed.** Register the final URL.\n- **Retries:** a failed delivery is retried after 1m, 5m, 30m, 2h and 12h, then dropped.\n- **Ordering:** events are sent oldest first, but a retry can land after a newer event. Order by `createdAt`.\n- **Secret rotation** applies immediately to every later delivery, including pending retries."
+    },
+    {
+      "name": "Classes",
+      "description": "Your scheduled classes and their rosters."
+    },
+    {
+      "name": "Bookings",
+      "description": "Confirm or reject bookings that wait on you."
+    },
+    {
+      "name": "Members",
+      "description": "Members who have attended your classes."
+    },
+    {
+      "name": "Webhook setup",
+      "description": "Register, test and inspect your webhook endpoint. See *Receiving webhooks* in the guide for signing and retries."
     }
   ],
   "paths": {
@@ -30,7 +68,8 @@
               "type": "string",
               "format": "date-time"
             },
-            "example": "2026-10-19T00:00:00+05:30"
+            "example": "2026-10-19T00:00:00+05:30",
+            "description": "Range start (inclusive), ISO 8601 with offset. Defaults to this Monday. Encode `+` as `%2B` in the URL."
           },
           {
             "name": "to",
@@ -39,7 +78,8 @@
               "type": "string",
               "format": "date-time"
             },
-            "example": "2026-10-25T23:59:59+05:30"
+            "example": "2026-10-25T23:59:59+05:30",
+            "description": "Range end (inclusive), ISO 8601 with offset. Max 100 days after `from`. Defaults to this Sunday."
           }
         ],
         "responses": {
@@ -65,7 +105,10 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "tags": [
+          "Classes"
+        ]
       }
     },
     "/api/partner/members": {
@@ -93,7 +136,10 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "tags": [
+          "Members"
+        ]
       }
     },
     "/api/partner/booking-action": {
@@ -185,7 +231,10 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/partner/webhook": {
@@ -234,7 +283,10 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "tags": [
+          "Webhook setup"
+        ]
       },
       "put": {
         "summary": "Set your webhook",
@@ -318,7 +370,10 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "tags": [
+          "Webhook setup"
+        ]
       },
       "delete": {
         "summary": "Remove your webhook",
@@ -334,7 +389,10 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "tags": [
+          "Webhook setup"
+        ]
       }
     },
     "/api/partner/webhook/test": {
@@ -377,6 +435,9 @@
               }
             }
           },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
           "404": {
             "description": "No webhook configured",
             "content": {
@@ -387,13 +448,13 @@
               }
             }
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "tags": [
+          "Webhook setup"
+        ]
       }
     }
   },
@@ -402,7 +463,8 @@
       "partnerKey": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Partner API key, starts with `ccp_`"
+        "description": "Partner API key (starts with `ccp_`), sent as `Authorization: Bearer ccp_...`. Issued by the studio admin and shown only once.",
+        "bearerFormat": "ccp_ API key"
       }
     },
     "responses": {
@@ -1158,5 +1220,26 @@
         }
       }
     }
-  }
+  },
+  "x-tagGroups": [
+    {
+      "name": "Guide",
+      "tags": [
+        "Quick start",
+        "Authentication",
+        "Rate limits",
+        "Conventions",
+        "Receiving webhooks"
+      ]
+    },
+    {
+      "name": "Endpoints",
+      "tags": [
+        "Classes",
+        "Bookings",
+        "Members",
+        "Webhook setup"
+      ]
+    }
+  ]
 }
