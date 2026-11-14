@@ -6,6 +6,7 @@ import { sendStudioEmail } from "@/lib/notifications/email";
 import logger from "@/lib/logger";
 import { logActivity } from "@/lib/activityLog";
 import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
+import { cancelPendingCafeOrdersTx, issuePendingCafeRefunds } from "@/lib/foodCredit";
 
 const CONFIRMATION_CONFIRMED = "confirmed" as const;
 const CONFIRMATION_PENDING = "pending" as const;
@@ -61,6 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Conditional write: of two concurrent rejects only one flips the row, so the
   // credit is refunded once. The loser sees count 0 and changes nothing.
+  let cafeRefundDue = false;
   const rejected = await prisma.$transaction(async (tx) => {
     const { count } = await tx.booking.updateMany({
       where: { id: booking.id, confirmation_status: CONFIRMATION_PENDING },
@@ -102,9 +104,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     }
+    cafeRefundDue = await cancelPendingCafeOrdersTx(tx, [booking.id]);
     return true;
   });
   if (!rejected) return res.json({ ok: true, already: true });
+  if (cafeRefundDue) {
+    await issuePendingCafeRefunds([booking.id]).catch((e) => logger.error({ err: e }, "[partner reject café refund]"));
+  }
 
   await sendStudioEmail("booking_cancelled", {
     userId: booking.user_id,

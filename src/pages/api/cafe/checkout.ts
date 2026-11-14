@@ -12,7 +12,7 @@ import {
 } from "@/lib/couponHelpers";
 
 type ItemIn = { cafe_item_id?: string; quantity?: number };
-type OrderLine = { cafe_item_id: string; quantity: number; lineSubtotal: number };
+type OrderLine = { cafe_item_id: string; quantity: number; unitPrice: number; lineSubtotal: number };
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 // Fetch every ordered item in one round trip, then validate from a Map
@@ -33,7 +33,7 @@ async function buildOrderLines(
       throw new Error(`UNAVAILABLE:${row.cafe_item_id}`);
     }
     const price = Number(item.price);
-    lines.push({ ...row, lineSubtotal: price * row.quantity });
+    lines.push({ ...row, unitPrice: price, lineSubtotal: price * row.quantity });
   }
   return lines;
 }
@@ -77,6 +77,7 @@ async function createOrderRows(
           coupon_id: ctx.couponId,
           discount_inr: discounts[i] ?? 0,
           batch_id: ctx.batchId,
+          unit_price_inr: line.unitPrice,
         },
       }),
     ),
@@ -126,10 +127,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "items required" });
   }
 
-  const paymentMethod = body.payment_method != null ? String(body.payment_method) : "online";
-  if (!paymentMethod.trim()) {
-    return res.status(400).json({ error: "payment_method required" });
-  }
+  // The menu cart never collects money in-app: it is always pay at counter.
+  const paymentMethod = "counter";
 
   try {
     const result = await prisma.$transaction(async (tx) => {

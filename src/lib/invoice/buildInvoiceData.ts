@@ -4,7 +4,14 @@ import type { InvoiceData, InvoiceLine } from "./types";
 
 export class InvoiceNotPayableError extends Error {}
 
-type SnapshotTotals = { classFeeInr: number; foodFeeInr: number; taxInr: number } | null;
+type SnapshotTotals = {
+  classFeeInr: number;
+  foodFeeInr: number;
+  taxInr: number;
+  foodDiscountInr?: number;
+  couponDiscountInr?: number;
+  foodCreditInr?: number;
+} | null;
 
 /** Rupee amounts tolerate ±2 paise rounding when reconciling to the payment total. */
 function readSnapshot(snap: unknown): SnapshotTotals {
@@ -15,7 +22,14 @@ function readSnapshot(snap: unknown): SnapshotTotals {
   const foodFeeInr = num(s.foodFeeInr);
   const taxInr = num(s.taxInr);
   if (classFeeInr === 0 && foodFeeInr === 0 && taxInr === 0) return null;
-  return { classFeeInr, foodFeeInr, taxInr };
+  return {
+    classFeeInr,
+    foodFeeInr,
+    taxInr,
+    foodDiscountInr: num(s.foodDiscountInr),
+    couponDiscountInr: num(s.couponDiscountInr),
+    foodCreditInr: num(s.foodCreditInr),
+  };
 }
 
 /**
@@ -27,7 +41,7 @@ function readSnapshot(snap: unknown): SnapshotTotals {
 export function reconcileLines(
   snap: SnapshotTotals,
   totalPaise: number,
-): { lines: InvoiceLine[]; subtotalPaise: number; taxPaise: number } {
+): { lines: InvoiceLine[]; subtotalPaise: number; taxPaise: number; taxIncludedPaise?: number } {
   if (snap) {
     const classP = Math.round(snap.classFeeInr * 100);
     const foodP = Math.round(snap.foodFeeInr * 100);
@@ -36,6 +50,22 @@ export function reconcileLines(
       const lines: InvoiceLine[] = [{ label: "Class booking", amountPaise: classP }];
       if (foodP > 0) lines.push({ label: "Café order", amountPaise: foodP });
       return { lines, subtotalPaise: classP + foodP, taxPaise: taxP };
+    }
+    // Tax-inclusive snapshots: prices already carry GST, reductions are negative lines.
+    const lines: InvoiceLine[] = [{ label: "Class booking", amountPaise: classP }];
+    if (foodP > 0) lines.push({ label: "Café order", amountPaise: foodP });
+    const reductions: [string, number | undefined][] = [
+      ["Pass café discount", snap.foodDiscountInr],
+      ["Coupon", snap.couponDiscountInr],
+      ["Food credit", snap.foodCreditInr],
+    ];
+    for (const [label, inr] of reductions) {
+      const p = Math.round((inr ?? 0) * 100);
+      if (p > 0) lines.push({ label, amountPaise: -p });
+    }
+    const sum = lines.reduce((a, l) => a + l.amountPaise, 0);
+    if (Math.abs(sum - totalPaise) <= 2) {
+      return { lines, subtotalPaise: totalPaise, taxPaise: 0, taxIncludedPaise: taxP };
     }
   }
   return {
@@ -92,7 +122,10 @@ export async function buildInvoiceData(bookingId: string): Promise<InvoiceData> 
   if (paid.length === 0) throw new InvoiceNotPayableError("Booking has no completed payment");
 
   const totalPaise = paid.reduce((s, p) => s + (p.amount_paise ?? 0), 0);
-  const { lines, subtotalPaise, taxPaise } = reconcileLines(readSnapshot(booking.finance_snapshot), totalPaise);
+  const { lines, subtotalPaise, taxPaise, taxIncludedPaise } = reconcileLines(
+    readSnapshot(booking.finance_snapshot),
+    totalPaise,
+  );
 
   const settings = await getStudioSettings();
   const invoiceNumber = await ensureInvoiceNumber(bookingId);
@@ -122,6 +155,7 @@ export async function buildInvoiceData(bookingId: string): Promise<InvoiceData> 
     lines,
     subtotalPaise,
     taxPaise,
+    ...(taxIncludedPaise ? { taxIncludedPaise } : {}),
     totalPaise,
     payment: {
       method: first?.method ?? null,

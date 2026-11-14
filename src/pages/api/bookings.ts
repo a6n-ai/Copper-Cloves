@@ -24,6 +24,7 @@ import {
   type RefundGrant,
 } from "@/lib/classCancellation";
 import { releaseCouponRedemption } from "@/lib/couponHelpers";
+import { cancelPendingCafeOrdersTx, issuePendingCafeRefunds } from "@/lib/foodCredit";
 import { validateCreditsToDeduct } from "@/lib/bookingCredits";
 
 type BookingsLog = ReturnType<typeof requestLogger>;
@@ -693,6 +694,8 @@ async function handlePatch(
   let groupMemberUserIds: string[] = [];
   // Same reason: the refund audit runs after commit, never inside the tx.
   let refundGrants: RefundGrant[] = [];
+  let cancelledBookingIds: string[] = [];
+  let cafeRefundDue = false;
 
   const booking = await prisma.$transaction(async (tx) => {
     const updated = await tx.booking.update({ where: { id }, data });
@@ -764,6 +767,9 @@ async function handlePatch(
       // Reverse any coupon used on this booking so its redemption count + per-user
       // limit free up. Only the booker's row carries the coupon; group rows have none.
       await releaseCouponRedemption(tx, { bookingId: id });
+      // Pending café orders on these seats: cancel, re-credit credit part, queue Razorpay refund.
+      cancelledBookingIds = refundRows.map((r) => r.id);
+      cafeRefundDue = await cancelPendingCafeOrdersTx(tx, cancelledBookingIds);
     }
 
     return updated;
@@ -782,6 +788,11 @@ async function handlePatch(
     await logActivity({ req, action: "booking.cancelled", entity: { type: "booking", id: booking.id }, metadata: { class_name: booking.class_name ?? undefined } });
     // Audit each member's credit refund on their own timeline (post-commit).
     await logRefundGrants(refundGrants);
+    if (cafeRefundDue) {
+      await issuePendingCafeRefunds(cancelledBookingIds).catch((e) =>
+        log.error({ err: e }, "café refund after cancel failed"),
+      );
+    }
     // Reconcile-on-cancel: a paid-online seat with no pass behind it (legacy rows —
     // new drop-ins provision one) has no credit to return, so surface the order as a
     // refund/void candidate for an admin. Seats already refunded as credit are skipped

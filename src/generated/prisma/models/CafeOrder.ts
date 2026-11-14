@@ -29,11 +29,17 @@ export type AggregateCafeOrder = {
 export type CafeOrderAvgAggregateOutputType = {
   quantity: number | null
   discount_inr: runtime.Decimal | null
+  unit_price_inr: runtime.Decimal | null
+  credit_applied_paise: number | null
+  refund_amount_paise: number | null
 }
 
 export type CafeOrderSumAggregateOutputType = {
   quantity: number | null
   discount_inr: runtime.Decimal | null
+  unit_price_inr: runtime.Decimal | null
+  credit_applied_paise: number | null
+  refund_amount_paise: number | null
 }
 
 export type CafeOrderMinAggregateOutputType = {
@@ -50,6 +56,11 @@ export type CafeOrderMinAggregateOutputType = {
   coupon_id: string | null
   discount_inr: runtime.Decimal | null
   batch_id: string | null
+  unit_price_inr: runtime.Decimal | null
+  credit_applied_paise: number | null
+  refund_status: string | null
+  refund_amount_paise: number | null
+  razorpay_refund_id: string | null
 }
 
 export type CafeOrderMaxAggregateOutputType = {
@@ -66,6 +77,11 @@ export type CafeOrderMaxAggregateOutputType = {
   coupon_id: string | null
   discount_inr: runtime.Decimal | null
   batch_id: string | null
+  unit_price_inr: runtime.Decimal | null
+  credit_applied_paise: number | null
+  refund_status: string | null
+  refund_amount_paise: number | null
+  razorpay_refund_id: string | null
 }
 
 export type CafeOrderCountAggregateOutputType = {
@@ -82,6 +98,11 @@ export type CafeOrderCountAggregateOutputType = {
   coupon_id: number
   discount_inr: number
   batch_id: number
+  unit_price_inr: number
+  credit_applied_paise: number
+  refund_status: number
+  refund_amount_paise: number
+  razorpay_refund_id: number
   _all: number
 }
 
@@ -89,11 +110,17 @@ export type CafeOrderCountAggregateOutputType = {
 export type CafeOrderAvgAggregateInputType = {
   quantity?: true
   discount_inr?: true
+  unit_price_inr?: true
+  credit_applied_paise?: true
+  refund_amount_paise?: true
 }
 
 export type CafeOrderSumAggregateInputType = {
   quantity?: true
   discount_inr?: true
+  unit_price_inr?: true
+  credit_applied_paise?: true
+  refund_amount_paise?: true
 }
 
 export type CafeOrderMinAggregateInputType = {
@@ -110,6 +137,11 @@ export type CafeOrderMinAggregateInputType = {
   coupon_id?: true
   discount_inr?: true
   batch_id?: true
+  unit_price_inr?: true
+  credit_applied_paise?: true
+  refund_status?: true
+  refund_amount_paise?: true
+  razorpay_refund_id?: true
 }
 
 export type CafeOrderMaxAggregateInputType = {
@@ -126,6 +158,11 @@ export type CafeOrderMaxAggregateInputType = {
   coupon_id?: true
   discount_inr?: true
   batch_id?: true
+  unit_price_inr?: true
+  credit_applied_paise?: true
+  refund_status?: true
+  refund_amount_paise?: true
+  razorpay_refund_id?: true
 }
 
 export type CafeOrderCountAggregateInputType = {
@@ -142,6 +179,11 @@ export type CafeOrderCountAggregateInputType = {
   coupon_id?: true
   discount_inr?: true
   batch_id?: true
+  unit_price_inr?: true
+  credit_applied_paise?: true
+  refund_status?: true
+  refund_amount_paise?: true
+  razorpay_refund_id?: true
   _all?: true
 }
 
@@ -245,6 +287,11 @@ export type CafeOrderGroupByOutputType = {
   coupon_id: string | null
   discount_inr: runtime.Decimal
   batch_id: string | null
+  unit_price_inr: runtime.Decimal | null
+  credit_applied_paise: number
+  refund_status: string | null
+  refund_amount_paise: number
+  razorpay_refund_id: string | null
   _count: CafeOrderCountAggregateOutputType | null
   _avg: CafeOrderAvgAggregateOutputType | null
   _sum: CafeOrderSumAggregateOutputType | null
@@ -284,6 +331,11 @@ export type CafeOrderWhereInput = {
   coupon_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
   discount_inr?: Prisma.DecimalFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
+  unit_price_inr?: Prisma.DecimalNullableFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFilter<"CafeOrder"> | number
+  refund_status?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
+  refund_amount_paise?: Prisma.IntFilter<"CafeOrder"> | number
+  razorpay_refund_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   cafe_item?: Prisma.XOR<Prisma.CafeItemNullableScalarRelationFilter, Prisma.CafeItemWhereInput> | null
   booking?: Prisma.XOR<Prisma.BookingNullableScalarRelationFilter, Prisma.BookingWhereInput> | null
@@ -304,6 +356,11 @@ export type CafeOrderOrderByWithRelationInput = {
   coupon_id?: Prisma.SortOrderInput | Prisma.SortOrder
   discount_inr?: Prisma.SortOrder
   batch_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  unit_price_inr?: Prisma.SortOrderInput | Prisma.SortOrder
+  credit_applied_paise?: Prisma.SortOrder
+  refund_status?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
+  razorpay_refund_id?: Prisma.SortOrderInput | Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
   cafe_item?: Prisma.CafeItemOrderByWithRelationInput
   booking?: Prisma.BookingOrderByWithRelationInput
@@ -327,6 +384,11 @@ export type CafeOrderWhereUniqueInput = Prisma.AtLeast<{
   coupon_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
   discount_inr?: Prisma.DecimalFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
+  unit_price_inr?: Prisma.DecimalNullableFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFilter<"CafeOrder"> | number
+  refund_status?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
+  refund_amount_paise?: Prisma.IntFilter<"CafeOrder"> | number
+  razorpay_refund_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
   profile?: Prisma.XOR<Prisma.ProfileScalarRelationFilter, Prisma.ProfileWhereInput>
   cafe_item?: Prisma.XOR<Prisma.CafeItemNullableScalarRelationFilter, Prisma.CafeItemWhereInput> | null
   booking?: Prisma.XOR<Prisma.BookingNullableScalarRelationFilter, Prisma.BookingWhereInput> | null
@@ -347,6 +409,11 @@ export type CafeOrderOrderByWithAggregationInput = {
   coupon_id?: Prisma.SortOrderInput | Prisma.SortOrder
   discount_inr?: Prisma.SortOrder
   batch_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  unit_price_inr?: Prisma.SortOrderInput | Prisma.SortOrder
+  credit_applied_paise?: Prisma.SortOrder
+  refund_status?: Prisma.SortOrderInput | Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
+  razorpay_refund_id?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.CafeOrderCountOrderByAggregateInput
   _avg?: Prisma.CafeOrderAvgOrderByAggregateInput
   _max?: Prisma.CafeOrderMaxOrderByAggregateInput
@@ -371,6 +438,11 @@ export type CafeOrderScalarWhereWithAggregatesInput = {
   coupon_id?: Prisma.StringNullableWithAggregatesFilter<"CafeOrder"> | string | null
   discount_inr?: Prisma.DecimalWithAggregatesFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.StringNullableWithAggregatesFilter<"CafeOrder"> | string | null
+  unit_price_inr?: Prisma.DecimalNullableWithAggregatesFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntWithAggregatesFilter<"CafeOrder"> | number
+  refund_status?: Prisma.StringNullableWithAggregatesFilter<"CafeOrder"> | string | null
+  refund_amount_paise?: Prisma.IntWithAggregatesFilter<"CafeOrder"> | number
+  razorpay_refund_id?: Prisma.StringNullableWithAggregatesFilter<"CafeOrder"> | string | null
 }
 
 export type CafeOrderCreateInput = {
@@ -383,6 +455,11 @@ export type CafeOrderCreateInput = {
   updated_at?: Date | string
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
   profile: Prisma.ProfileCreateNestedOneWithoutCafe_ordersInput
   cafe_item?: Prisma.CafeItemCreateNestedOneWithoutCafe_ordersInput
   booking?: Prisma.BookingCreateNestedOneWithoutCafe_ordersInput
@@ -403,6 +480,11 @@ export type CafeOrderUncheckedCreateInput = {
   coupon_id?: string | null
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
 }
 
 export type CafeOrderUpdateInput = {
@@ -415,6 +497,11 @@ export type CafeOrderUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile?: Prisma.ProfileUpdateOneRequiredWithoutCafe_ordersNestedInput
   cafe_item?: Prisma.CafeItemUpdateOneWithoutCafe_ordersNestedInput
   booking?: Prisma.BookingUpdateOneWithoutCafe_ordersNestedInput
@@ -435,6 +522,11 @@ export type CafeOrderUncheckedUpdateInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderCreateManyInput = {
@@ -451,6 +543,11 @@ export type CafeOrderCreateManyInput = {
   coupon_id?: string | null
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
 }
 
 export type CafeOrderUpdateManyMutationInput = {
@@ -463,6 +560,11 @@ export type CafeOrderUpdateManyMutationInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderUncheckedUpdateManyInput = {
@@ -479,6 +581,11 @@ export type CafeOrderUncheckedUpdateManyInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderListRelationFilter = {
@@ -505,11 +612,19 @@ export type CafeOrderCountOrderByAggregateInput = {
   coupon_id?: Prisma.SortOrder
   discount_inr?: Prisma.SortOrder
   batch_id?: Prisma.SortOrder
+  unit_price_inr?: Prisma.SortOrder
+  credit_applied_paise?: Prisma.SortOrder
+  refund_status?: Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
+  razorpay_refund_id?: Prisma.SortOrder
 }
 
 export type CafeOrderAvgOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
   discount_inr?: Prisma.SortOrder
+  unit_price_inr?: Prisma.SortOrder
+  credit_applied_paise?: Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
 }
 
 export type CafeOrderMaxOrderByAggregateInput = {
@@ -526,6 +641,11 @@ export type CafeOrderMaxOrderByAggregateInput = {
   coupon_id?: Prisma.SortOrder
   discount_inr?: Prisma.SortOrder
   batch_id?: Prisma.SortOrder
+  unit_price_inr?: Prisma.SortOrder
+  credit_applied_paise?: Prisma.SortOrder
+  refund_status?: Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
+  razorpay_refund_id?: Prisma.SortOrder
 }
 
 export type CafeOrderMinOrderByAggregateInput = {
@@ -542,11 +662,19 @@ export type CafeOrderMinOrderByAggregateInput = {
   coupon_id?: Prisma.SortOrder
   discount_inr?: Prisma.SortOrder
   batch_id?: Prisma.SortOrder
+  unit_price_inr?: Prisma.SortOrder
+  credit_applied_paise?: Prisma.SortOrder
+  refund_status?: Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
+  razorpay_refund_id?: Prisma.SortOrder
 }
 
 export type CafeOrderSumOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
   discount_inr?: Prisma.SortOrder
+  unit_price_inr?: Prisma.SortOrder
+  credit_applied_paise?: Prisma.SortOrder
+  refund_amount_paise?: Prisma.SortOrder
 }
 
 export type CafeOrderCreateNestedManyWithoutProfileInput = {
@@ -727,6 +855,11 @@ export type CafeOrderCreateWithoutProfileInput = {
   updated_at?: Date | string
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
   cafe_item?: Prisma.CafeItemCreateNestedOneWithoutCafe_ordersInput
   booking?: Prisma.BookingCreateNestedOneWithoutCafe_ordersInput
   coupon?: Prisma.CouponCreateNestedOneWithoutCafe_ordersInput
@@ -745,6 +878,11 @@ export type CafeOrderUncheckedCreateWithoutProfileInput = {
   coupon_id?: string | null
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
 }
 
 export type CafeOrderCreateOrConnectWithoutProfileInput = {
@@ -790,6 +928,11 @@ export type CafeOrderScalarWhereInput = {
   coupon_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
   discount_inr?: Prisma.DecimalFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
+  unit_price_inr?: Prisma.DecimalNullableFilter<"CafeOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFilter<"CafeOrder"> | number
+  refund_status?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
+  refund_amount_paise?: Prisma.IntFilter<"CafeOrder"> | number
+  razorpay_refund_id?: Prisma.StringNullableFilter<"CafeOrder"> | string | null
 }
 
 export type CafeOrderCreateWithoutCouponInput = {
@@ -802,6 +945,11 @@ export type CafeOrderCreateWithoutCouponInput = {
   updated_at?: Date | string
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
   profile: Prisma.ProfileCreateNestedOneWithoutCafe_ordersInput
   cafe_item?: Prisma.CafeItemCreateNestedOneWithoutCafe_ordersInput
   booking?: Prisma.BookingCreateNestedOneWithoutCafe_ordersInput
@@ -820,6 +968,11 @@ export type CafeOrderUncheckedCreateWithoutCouponInput = {
   updated_at?: Date | string
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
 }
 
 export type CafeOrderCreateOrConnectWithoutCouponInput = {
@@ -858,6 +1011,11 @@ export type CafeOrderCreateWithoutBookingInput = {
   updated_at?: Date | string
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
   profile: Prisma.ProfileCreateNestedOneWithoutCafe_ordersInput
   cafe_item?: Prisma.CafeItemCreateNestedOneWithoutCafe_ordersInput
   coupon?: Prisma.CouponCreateNestedOneWithoutCafe_ordersInput
@@ -876,6 +1034,11 @@ export type CafeOrderUncheckedCreateWithoutBookingInput = {
   coupon_id?: string | null
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
 }
 
 export type CafeOrderCreateOrConnectWithoutBookingInput = {
@@ -914,6 +1077,11 @@ export type CafeOrderCreateWithoutCafe_itemInput = {
   updated_at?: Date | string
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
   profile: Prisma.ProfileCreateNestedOneWithoutCafe_ordersInput
   booking?: Prisma.BookingCreateNestedOneWithoutCafe_ordersInput
   coupon?: Prisma.CouponCreateNestedOneWithoutCafe_ordersInput
@@ -932,6 +1100,11 @@ export type CafeOrderUncheckedCreateWithoutCafe_itemInput = {
   coupon_id?: string | null
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
 }
 
 export type CafeOrderCreateOrConnectWithoutCafe_itemInput = {
@@ -973,6 +1146,11 @@ export type CafeOrderCreateManyProfileInput = {
   coupon_id?: string | null
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
 }
 
 export type CafeOrderUpdateWithoutProfileInput = {
@@ -985,6 +1163,11 @@ export type CafeOrderUpdateWithoutProfileInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cafe_item?: Prisma.CafeItemUpdateOneWithoutCafe_ordersNestedInput
   booking?: Prisma.BookingUpdateOneWithoutCafe_ordersNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutCafe_ordersNestedInput
@@ -1003,6 +1186,11 @@ export type CafeOrderUncheckedUpdateWithoutProfileInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderUncheckedUpdateManyWithoutProfileInput = {
@@ -1018,6 +1206,11 @@ export type CafeOrderUncheckedUpdateManyWithoutProfileInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderCreateManyCouponInput = {
@@ -1033,6 +1226,11 @@ export type CafeOrderCreateManyCouponInput = {
   updated_at?: Date | string
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
 }
 
 export type CafeOrderUpdateWithoutCouponInput = {
@@ -1045,6 +1243,11 @@ export type CafeOrderUpdateWithoutCouponInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile?: Prisma.ProfileUpdateOneRequiredWithoutCafe_ordersNestedInput
   cafe_item?: Prisma.CafeItemUpdateOneWithoutCafe_ordersNestedInput
   booking?: Prisma.BookingUpdateOneWithoutCafe_ordersNestedInput
@@ -1063,6 +1266,11 @@ export type CafeOrderUncheckedUpdateWithoutCouponInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderUncheckedUpdateManyWithoutCouponInput = {
@@ -1078,6 +1286,11 @@ export type CafeOrderUncheckedUpdateManyWithoutCouponInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderCreateManyBookingInput = {
@@ -1093,6 +1306,11 @@ export type CafeOrderCreateManyBookingInput = {
   coupon_id?: string | null
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
 }
 
 export type CafeOrderUpdateWithoutBookingInput = {
@@ -1105,6 +1323,11 @@ export type CafeOrderUpdateWithoutBookingInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile?: Prisma.ProfileUpdateOneRequiredWithoutCafe_ordersNestedInput
   cafe_item?: Prisma.CafeItemUpdateOneWithoutCafe_ordersNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutCafe_ordersNestedInput
@@ -1123,6 +1346,11 @@ export type CafeOrderUncheckedUpdateWithoutBookingInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderUncheckedUpdateManyWithoutBookingInput = {
@@ -1138,6 +1366,11 @@ export type CafeOrderUncheckedUpdateManyWithoutBookingInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderCreateManyCafe_itemInput = {
@@ -1153,6 +1386,11 @@ export type CafeOrderCreateManyCafe_itemInput = {
   coupon_id?: string | null
   discount_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: string | null
+  unit_price_inr?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: number
+  refund_status?: string | null
+  refund_amount_paise?: number
+  razorpay_refund_id?: string | null
 }
 
 export type CafeOrderUpdateWithoutCafe_itemInput = {
@@ -1165,6 +1403,11 @@ export type CafeOrderUpdateWithoutCafe_itemInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile?: Prisma.ProfileUpdateOneRequiredWithoutCafe_ordersNestedInput
   booking?: Prisma.BookingUpdateOneWithoutCafe_ordersNestedInput
   coupon?: Prisma.CouponUpdateOneWithoutCafe_ordersNestedInput
@@ -1183,6 +1426,11 @@ export type CafeOrderUncheckedUpdateWithoutCafe_itemInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CafeOrderUncheckedUpdateManyWithoutCafe_itemInput = {
@@ -1198,6 +1446,11 @@ export type CafeOrderUncheckedUpdateManyWithoutCafe_itemInput = {
   coupon_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   discount_inr?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   batch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unit_price_inr?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  credit_applied_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  refund_status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refund_amount_paise?: Prisma.IntFieldUpdateOperationsInput | number
+  razorpay_refund_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1216,6 +1469,11 @@ export type CafeOrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   coupon_id?: boolean
   discount_inr?: boolean
   batch_id?: boolean
+  unit_price_inr?: boolean
+  credit_applied_paise?: boolean
+  refund_status?: boolean
+  refund_amount_paise?: boolean
+  razorpay_refund_id?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   cafe_item?: boolean | Prisma.CafeOrder$cafe_itemArgs<ExtArgs>
   booking?: boolean | Prisma.CafeOrder$bookingArgs<ExtArgs>
@@ -1236,6 +1494,11 @@ export type CafeOrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   coupon_id?: boolean
   discount_inr?: boolean
   batch_id?: boolean
+  unit_price_inr?: boolean
+  credit_applied_paise?: boolean
+  refund_status?: boolean
+  refund_amount_paise?: boolean
+  razorpay_refund_id?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   cafe_item?: boolean | Prisma.CafeOrder$cafe_itemArgs<ExtArgs>
   booking?: boolean | Prisma.CafeOrder$bookingArgs<ExtArgs>
@@ -1256,6 +1519,11 @@ export type CafeOrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   coupon_id?: boolean
   discount_inr?: boolean
   batch_id?: boolean
+  unit_price_inr?: boolean
+  credit_applied_paise?: boolean
+  refund_status?: boolean
+  refund_amount_paise?: boolean
+  razorpay_refund_id?: boolean
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   cafe_item?: boolean | Prisma.CafeOrder$cafe_itemArgs<ExtArgs>
   booking?: boolean | Prisma.CafeOrder$bookingArgs<ExtArgs>
@@ -1276,9 +1544,14 @@ export type CafeOrderSelectScalar = {
   coupon_id?: boolean
   discount_inr?: boolean
   batch_id?: boolean
+  unit_price_inr?: boolean
+  credit_applied_paise?: boolean
+  refund_status?: boolean
+  refund_amount_paise?: boolean
+  razorpay_refund_id?: boolean
 }
 
-export type CafeOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "cafe_item_id" | "booking_id" | "quantity" | "payment_method" | "status" | "order_date" | "created_at" | "updated_at" | "coupon_id" | "discount_inr" | "batch_id", ExtArgs["result"]["cafeOrder"]>
+export type CafeOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "cafe_item_id" | "booking_id" | "quantity" | "payment_method" | "status" | "order_date" | "created_at" | "updated_at" | "coupon_id" | "discount_inr" | "batch_id" | "unit_price_inr" | "credit_applied_paise" | "refund_status" | "refund_amount_paise" | "razorpay_refund_id", ExtArgs["result"]["cafeOrder"]>
 export type CafeOrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.ProfileDefaultArgs<ExtArgs>
   cafe_item?: boolean | Prisma.CafeOrder$cafe_itemArgs<ExtArgs>
@@ -1320,6 +1593,20 @@ export type $CafeOrderPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     coupon_id: string | null
     discount_inr: runtime.Decimal
     batch_id: string | null
+    /**
+     * Menu price at order time. Null on legacy rows — readers fall back to cafe_item.price.
+     */
+    unit_price_inr: runtime.Decimal | null
+    /**
+     * Part of this line paid with food credit (paise). Rest = gross − discount − credit.
+     */
+    credit_applied_paise: number
+    /**
+     * Set when a pending order is cancelled with its class: refund_pending | refunded | refund_failed | credited | none
+     */
+    refund_status: string | null
+    refund_amount_paise: number
+    razorpay_refund_id: string | null
   }, ExtArgs["result"]["cafeOrder"]>
   composites: {}
 }
@@ -1760,6 +2047,11 @@ export interface CafeOrderFieldRefs {
   readonly coupon_id: Prisma.FieldRef<"CafeOrder", 'String'>
   readonly discount_inr: Prisma.FieldRef<"CafeOrder", 'Decimal'>
   readonly batch_id: Prisma.FieldRef<"CafeOrder", 'String'>
+  readonly unit_price_inr: Prisma.FieldRef<"CafeOrder", 'Decimal'>
+  readonly credit_applied_paise: Prisma.FieldRef<"CafeOrder", 'Int'>
+  readonly refund_status: Prisma.FieldRef<"CafeOrder", 'String'>
+  readonly refund_amount_paise: Prisma.FieldRef<"CafeOrder", 'Int'>
+  readonly razorpay_refund_id: Prisma.FieldRef<"CafeOrder", 'String'>
 }
     
 

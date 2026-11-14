@@ -52,7 +52,7 @@ export function CartDrawer({
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
-  const paymentMethod = "online" as const;
+  const paymentMethod = "counter" as const;
 
   const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
@@ -375,7 +375,7 @@ export function CartDrawer({
             )}
           </div>
 
-          {/* Payment method (online only) */}
+          {/* Payment method (pay at counter only — the cart never charges in-app) */}
           <div className={sectionBox}>
             <h3 className="mb-4 font-display text-lg text-charcoal">
               Payment Method
@@ -385,9 +385,9 @@ export function CartDrawer({
                 <div className="size-3 rounded-full bg-sage" />
               </div>
               <div>
-                <span className="block font-body">Pay Online</span>
+                <span className="block font-body">Pay at counter</span>
                 <span className="font-body text-xs text-charcoal/60">
-                  UPI / Cards
+                  Pay at the café when you collect your order
                 </span>
               </div>
             </div>

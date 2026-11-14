@@ -16,6 +16,7 @@ import { sendHtmlEmail } from "@/lib/notifications/sendEmail";
 import { welcomeEmail, welcomeSetPasswordEmail } from "@/lib/notifications/emailTemplates";
 import logger from "@/lib/logger";
 import { hasRole } from "@/lib/auth/roles";
+import { foodCreditBalancePaise } from "@/lib/foodCredit";
 import {
   createStudioProfile,
   rollbackStudioProfile,
@@ -170,7 +171,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         paid: paidBookingIds.has(b.id),
         moneyRefundStatus: moneyRefundByBooking.get(b.id) ?? null,
       }));
-      return res.json({ ...profile, bookings: bookingsWithInvoice, user_stats: stats });
+      const food_credit_balance_paise = await foodCreditBalancePaise(prisma, profile.id);
+      return res.json({ ...profile, bookings: bookingsWithInvoice, user_stats: stats, food_credit_balance_paise });
     }
 
     const monthStart = new Date();

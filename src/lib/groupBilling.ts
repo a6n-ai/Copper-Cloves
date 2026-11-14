@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import {
   BOOKING_CHECKOUT_TAX_RATE,
+  snapshotTotals,
   type FinanceSnapshotV1,
 } from "@/lib/financeBookingCheckout";
 
@@ -141,20 +142,12 @@ export function excludeUnlimitedSeatsFromSnapshot(
   const newClassFee = Math.max(0, round2(snap.classFeeInr - perSeat * freeSeats));
 
   // Recompute downstream totals exactly as snapshotTotalsConsistent expects.
-  const foodNet = snap.foodFeeInr - snap.foodDiscountInr;
-  const sub = newClassFee + Math.max(0, foodNet);
-  const totalInr = round2(Math.max(0, sub - snap.couponDiscountInr));
-  const taxInr = round2(
-    (totalInr * BOOKING_CHECKOUT_TAX_RATE) / (1 + BOOKING_CHECKOUT_TAX_RATE),
-  );
-
-  return {
+  const next: FinanceSnapshotV1 = {
     ...snap,
     classFeeInr: newClassFee,
     dayPassEquivalentCount: Math.max(0, chargedSeats - freeSeats),
-    taxInr,
-    totalInr,
   };
+  return { ...next, ...snapshotTotals(next) };
 }
 
 // ---------------------------------------------------------------------------

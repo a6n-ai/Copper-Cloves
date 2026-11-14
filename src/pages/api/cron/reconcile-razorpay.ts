@@ -19,6 +19,7 @@ import { authorizeCron } from "@/lib/cronAuth";
 import { reconcileStuckRazorpayOrders } from "@/lib/razorpayPersistence";
 import { sweepOrphanHeal } from "@/lib/orphanPayments";
 import { sweepRefundStatus } from "@/lib/razorpayRefundSync";
+import { retryFailedCafeRefunds } from "@/lib/foodCredit";
 import { withCronRun } from "@/lib/cronRun";
 import { requestLogger } from "@/lib/logger";
 
@@ -45,7 +46,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { details: _details, ...summary } = r;
       const orphanSweep = await sweepOrphanHeal({ limit });
       const refundSweep = await sweepRefundStatus({ limit });
-      return { ...summary, orphanSweep, refundSweep };
+      // Café orders cancelled with their class whose Razorpay refund failed or stalled.
+      const cafeRefunds = await retryFailedCafeRefunds();
+      return { ...summary, orphanSweep, refundSweep, cafeRefunds };
     });
     const durationMs = Date.now() - startedAt;
     log.info({ durationMs, ...result }, "razorpay reconcile complete");

@@ -177,6 +177,7 @@ interface MemberDetail {
   expiry: string | null;
   activePackageId: string | null;
   activePaused: boolean;
+  foodCreditPaise: number;
   stats: { totalClasses: number; currentStreak: number; longestStreak: number; lastClassDate: string | null };
   packages: PackageRow[];
   bookings: BookingRow[];
@@ -354,6 +355,7 @@ function mapDetail(data: Record<string, unknown>): MemberDetail {
     expiry: activePkg?.expiresAt ?? null,
     activePackageId: activePkg?.isActive ? activePkg.id : null,
     activePaused: !!activePkg?.isPaused,
+    foodCreditPaise: Number(data.food_credit_balance_paise) || 0,
     stats: {
       totalClasses: stats?.total_classes_attended ?? 0,
       currentStreak: stats?.current_streak ?? 0,
@@ -1497,6 +1499,7 @@ function MemberBody({
                 <RailRow icon={UserIcon} label="Gender" value={member.gender} capitalize />
                 <RailRow icon={Calendar} label="Start date" value={member.startDate ? fmtDate(member.startDate) : null} />
                 <RailRow icon={MessageCircle} label="WhatsApp" value={member.whatsappPhone} />
+                <RailRow label="Food credit" value={formatINR(member.foodCreditPaise)} />
               </dl>
             </CardContent>
           </Card>

@@ -20,6 +20,7 @@ export interface InvoiceData {
   lines: InvoiceLine[]; // excludes tax
   subtotalPaise: number; // sum of lines
   taxPaise: number;
+  taxIncludedPaise?: number; // GST already inside the line amounts (tax-inclusive snapshots)
   totalPaise: number; // authoritative — subtotal + tax
   payment: { method: string | null; reference: string | null; paidAt: string | null };
 }

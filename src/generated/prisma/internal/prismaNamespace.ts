@@ -427,6 +427,7 @@ export const ModelName = {
   Payment: 'Payment',
   CafeItem: 'CafeItem',
   CafeOrder: 'CafeOrder',
+  FoodCreditTransaction: 'FoodCreditTransaction',
   MealSubscription: 'MealSubscription',
   MealSubscriptionInquiry: 'MealSubscriptionInquiry',
   RentalInquiry: 'RentalInquiry',
@@ -465,7 +466,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "profile" | "user" | "session" | "account" | "verification" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerWebhook" | "partnerWebhookEvent" | "partnerApiKey" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "sharedCredit" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "cronRun" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
+    modelProps: "profile" | "user" | "session" | "account" | "verification" | "coupon" | "couponRedemption" | "retailProduct" | "retailOrder" | "instructor" | "classModel" | "partner" | "partnerWebhook" | "partnerWebhookEvent" | "partnerApiKey" | "partnerMember" | "classSchedule" | "packageType" | "userPackage" | "sharedCredit" | "booking" | "razorpayOrder" | "razorpayPayment" | "razorpayWebhookLog" | "paymentReconcile" | "cronRun" | "friendship" | "payment" | "cafeItem" | "cafeOrder" | "foodCreditTransaction" | "mealSubscription" | "mealSubscriptionInquiry" | "rentalInquiry" | "signupLead" | "userStats" | "userStreak" | "badgeTemplate" | "userBadge" | "waiver" | "crmTemplate" | "crmMessage" | "crmTrigger" | "userActivitySession" | "userActivityEvent" | "memberTicket" | "passwordResetToken" | "file" | "instructorPayoutAdjustment" | "payoutSettings" | "studioSettings" | "classCancellationRequest" | "qrCode" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2686,6 +2687,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CafeOrderCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CafeOrderCountAggregateOutputType> | number
+        }
+      }
+    }
+    FoodCreditTransaction: {
+      payload: Prisma.$FoodCreditTransactionPayload<ExtArgs>
+      fields: Prisma.FoodCreditTransactionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FoodCreditTransactionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FoodCreditTransactionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FoodCreditTransactionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FoodCreditTransactionPayload>
+        }
+        findFirst: {
+          args: Prisma.FoodCreditTransactionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FoodCreditTransactionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FoodCreditTransactionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FoodCreditTransactionPayload>
+        }
+        findMany: {
+          args: Prisma.FoodCreditTransactionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FoodCreditTransactionPayload>[]
+        }
+        create: {
+          args: Prisma.FoodCreditTransactionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FoodCreditTransactionPayload>
+        }
+        createMany: {
+          args: Prisma.FoodCreditTransactionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FoodCreditTransactionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FoodCreditTransactionPayload>[]
+        }
+        delete: {
+          args: Prisma.FoodCreditTransactionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FoodCreditTransactionPayload>
+        }
+        update: {
+          args: Prisma.FoodCreditTransactionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FoodCreditTransactionPayload>
+        }
+        deleteMany: {
+          args: Prisma.FoodCreditTransactionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FoodCreditTransactionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FoodCreditTransactionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FoodCreditTransactionPayload>[]
+        }
+        upsert: {
+          args: Prisma.FoodCreditTransactionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FoodCreditTransactionPayload>
+        }
+        aggregate: {
+          args: Prisma.FoodCreditTransactionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFoodCreditTransaction>
+        }
+        groupBy: {
+          args: Prisma.FoodCreditTransactionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FoodCreditTransactionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FoodCreditTransactionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FoodCreditTransactionCountAggregateOutputType> | number
         }
       }
     }
@@ -5013,10 +5088,30 @@ export const CafeOrderScalarFieldEnum = {
   updated_at: 'updated_at',
   coupon_id: 'coupon_id',
   discount_inr: 'discount_inr',
-  batch_id: 'batch_id'
+  batch_id: 'batch_id',
+  unit_price_inr: 'unit_price_inr',
+  credit_applied_paise: 'credit_applied_paise',
+  refund_status: 'refund_status',
+  refund_amount_paise: 'refund_amount_paise',
+  razorpay_refund_id: 'razorpay_refund_id'
 } as const
 
 export type CafeOrderScalarFieldEnum = (typeof CafeOrderScalarFieldEnum)[keyof typeof CafeOrderScalarFieldEnum]
+
+
+export const FoodCreditTransactionScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  amount_paise: 'amount_paise',
+  reason: 'reason',
+  cafe_order_id: 'cafe_order_id',
+  booking_id: 'booking_id',
+  idempotency_key: 'idempotency_key',
+  note: 'note',
+  created_at: 'created_at'
+} as const
+
+export type FoodCreditTransactionScalarFieldEnum = (typeof FoodCreditTransactionScalarFieldEnum)[keyof typeof FoodCreditTransactionScalarFieldEnum]
 
 
 export const MealSubscriptionScalarFieldEnum = {
@@ -5821,6 +5916,7 @@ export type GlobalOmitConfig = {
   payment?: Prisma.PaymentOmit
   cafeItem?: Prisma.CafeItemOmit
   cafeOrder?: Prisma.CafeOrderOmit
+  foodCreditTransaction?: Prisma.FoodCreditTransactionOmit
   mealSubscription?: Prisma.MealSubscriptionOmit
   mealSubscriptionInquiry?: Prisma.MealSubscriptionInquiryOmit
   rentalInquiry?: Prisma.RentalInquiryOmit

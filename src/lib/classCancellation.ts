@@ -18,6 +18,7 @@ import { OCCUPYING_STATUSES } from "@/lib/bookingStatus";
 import { reconcileScheduleSeats } from "@/lib/seatCounts";
 import { getStudioSettings } from "@/lib/studioSettings";
 import { sendStudioEmail } from "@/lib/notifications/email";
+import { cancelPendingCafeOrdersTx, issuePendingCafeRefunds } from "@/lib/foodCredit";
 
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
@@ -467,6 +468,8 @@ export async function cancelBookingWithRefund(
   // cascaded group member (the booker drags their whole group along).
   let groupMemberUserIds: string[] = [];
   const refundGrants: RefundGrant[] = [];
+  let cafeRefundDue = false;
+  let cafeBookingIds: string[] = [];
 
   const grantedUserPackageIds = await prisma.$transaction(async (tx) => {
     const granted: string[] = [];
@@ -566,11 +569,16 @@ export async function cancelBookingWithRefund(
       }
     }
 
+    // Pending café orders on these seats: cancel, re-credit credit part, queue Razorpay refund.
+    cafeBookingIds = [existing.id, ...groupRows.map((r) => r.id)];
+    cafeRefundDue = await cancelPendingCafeOrdersTx(tx, cafeBookingIds);
+
     return granted;
   });
 
   // Member-timeline audit of what each person got back (post-commit, see helper).
   await logRefundGrants(refundGrants);
+  if (cafeRefundDue) await issuePendingCafeRefunds(cafeBookingIds).catch(() => {});
 
   // Best-effort cancellation email (outside the tx so a CRM failure can't roll
   // back). Group-aware: booker cancel notifies the whole group; an invited

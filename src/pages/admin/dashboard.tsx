@@ -29,6 +29,7 @@ import {
   BarChart3,
   Trophy,
   ChefHat,
+  Coffee,
   Building2,
   UserPlus,
   ExternalLink,
@@ -101,6 +102,10 @@ const InstructorsTab = dynamic(
 );
 const ClassesTab = dynamic(
   () => import("@/components/admin/dashboard-tabs/ClassesTab").then((m) => m.ClassesTab),
+  { ssr: false, loading: () => <TabLoadingSkeleton /> },
+);
+const CafeTab = dynamic(
+  () => import("@/components/admin/dashboard-tabs/CafeTab").then((m) => m.CafeTab),
   { ssr: false, loading: () => <TabLoadingSkeleton /> },
 );
 const MembersTab = dynamic(
@@ -213,6 +218,7 @@ interface SelectedMemberProfile {
 const ADMIN_TABS = [
   { v: "overview", l: "Overview", I: BarChart3 },
   { v: "finance", l: "Finance", I: DollarSign },
+  { v: "cafe", l: "Café", I: Coffee },
   { v: "meal-waitlist", l: "Meal waitlist", I: ChefHat },
   { v: "rental-inquiries", l: "Rentals", I: Building2 },
   { v: "members", l: "Members", I: Users },
@@ -224,7 +230,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useTabQuery(
-    ["overview", "finance", "meal-waitlist", "rental-inquiries", "members", "instructors", "classes"],
+    ["overview", "finance", "cafe", "meal-waitlist", "rental-inquiries", "members", "instructors", "classes"],
     "overview"
   );
   const [showMemberProfile, setShowMemberProfile] = useState(false);
@@ -686,12 +692,10 @@ export default function AdminDashboard() {
     if (!uid) return;
     void (async () => {
       try {
-        const [snapRes, ordersRes] = await Promise.all([
-          fetch(`/api/admin/members?id=${encodeURIComponent(uid)}`),
-          fetch("/api/cafe/orders"),
-        ]);
-        const orders = ordersRes.ok ? await ordersRes.json() : [];
+        const snapRes = await fetch(`/api/admin/members?id=${encodeURIComponent(uid)}`);
         const snap = snapRes.ok ? await snapRes.json() : null;
+        // Member's own orders; /api/cafe/orders is the kitchen feed (last 48h only).
+        const orders = Array.isArray(snap?.cafe_orders) ? snap.cafe_orders : [];
 
         const now = new Date();
         const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -746,8 +750,7 @@ export default function AdminDashboard() {
           ? String(lastB.check_in_time || schLast?.start_time || lastB.booking_date || "")
           : "";
 
-        const orderHistory = (Array.isArray(orders) ? orders : [])
-          .filter((o: { user_id?: string }) => o.user_id === uid)
+        const orderHistory = orders
           .slice(0, 24)
           .map((o: Record<string, unknown>) => {
             const item = o.cafe_item as { name?: string; price?: unknown } | undefined;
@@ -959,6 +962,11 @@ export default function AdminDashboard() {
               {/* INSTRUCTORS TAB */}
               <TabsContent value="instructors" className="space-y-6">
                 <InstructorsTab />
+              </TabsContent>
+
+              {/* CAFE TAB */}
+              <TabsContent value="cafe" className="space-y-6">
+                <CafeTab />
               </TabsContent>
 
               {/* CLASSES TAB */}

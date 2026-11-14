@@ -580,6 +580,10 @@ export default function AdminCafe() {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderHistory, setOrderHistory] = useState<CafeOrder[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  // History tab pages closed orders of any age (the live feed above is only 48h).
+  const [pastOrders, setPastOrders] = useState<CafeOrder[]>([]);
+  const [pastHasMore, setPastHasMore] = useState(false);
+  const [loadingPast, setLoadingPast] = useState(false);
 
   const categories_display = categories;
 
@@ -668,6 +672,22 @@ export default function AdminCafe() {
         setLoadingOrders(false);
         setLoadingHistory(false);
       }
+    }
+  };
+
+  const fetchPastOrders = async (before?: string) => {
+    setLoadingPast(true);
+    try {
+      const qs = new URLSearchParams({ scope: "history" });
+      if (before) qs.set("before", before);
+      const res = await fetch(`/api/cafe/orders?${qs}`);
+      const page: CafeOrder[] = res.ok ? await res.json() : [];
+      setPastOrders((prev) => (before ? [...prev, ...page] : page));
+      setPastHasMore(page.length === 100);
+    } catch (err) {
+      console.error("Error fetching order history:", err);
+    } finally {
+      setLoadingPast(false);
     }
   };
 
@@ -1208,7 +1228,10 @@ export default function AdminCafe() {
                       )}
                     </button>
                     <button
-                      onClick={() => setOrderHistoryTab("history")}
+                      onClick={() => {
+                        setOrderHistoryTab("history");
+                        fetchPastOrders();
+                      }}
                       aria-pressed={orderHistoryTab === "history"}
                       className={`whitespace-nowrap rounded-full px-5 py-2 font-body text-sm transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-sage ${
                         orderHistoryTab === "history"
@@ -1307,12 +1330,12 @@ export default function AdminCafe() {
                 {/* Order History */}
                 {orderHistoryTab === "history" && (
                   <>
-                    {loadingHistory ? (
+                    {loadingPast && pastOrders.length === 0 ? (
                       <div className="text-center py-12">
                         <Spinner className="mx-auto size-12 text-sage mb-4" />
                         <p className="font-body text-charcoal/60">Loading order history...</p>
                       </div>
-                    ) : orderHistory.length === 0 ? (
+                    ) : pastOrders.length === 0 ? (
                       <Card className="border border-border bg-white-warm shadow-none ring-0">
                         <CardContent className="flex flex-col items-center justify-center py-20">
                           <ImageIcon className="text-sage/40 mb-4" size={64} />
@@ -1321,7 +1344,7 @@ export default function AdminCafe() {
                         </CardContent>
                       </Card>
                     ) : (
-                      orderHistory.map(order => {
+                      pastOrders.map(order => {
                         const cafeItem = order.cafe_item;
                         const userProfile = order.profile;
                         const booking = order.booking;
@@ -1409,6 +1432,17 @@ export default function AdminCafe() {
                           </Card>
                         );
                       })
+                    )}
+                    {pastHasMore && (
+                      <div className="flex justify-center pt-2">
+                        <Button
+                          variant="outline"
+                          disabled={loadingPast}
+                          onClick={() => fetchPastOrders(pastOrders[pastOrders.length - 1]?.id)}
+                        >
+                          {loadingPast ? "Loading..." : "Load older orders"}
+                        </Button>
+                      </div>
                     )}
                   </>
                 )}

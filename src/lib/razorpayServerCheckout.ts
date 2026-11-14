@@ -26,6 +26,7 @@ import {
 import { notifyPackagePurchase } from "@/lib/notifications/notifyPackagePurchase";
 import { dropInPassCredits, provisionDropInPass } from "@/lib/provisionDropInPass";
 import { upsertFriendship } from "@/lib/friendship";
+import { createBookingCafeOrdersTx } from "@/lib/foodCredit";
 import type { Coupon } from "@/generated/prisma/client";
 import type { PendingBookingCheckout, PendingPackageCheckout } from "@/lib/pendingRazorpayCheckout";
 import {
@@ -183,19 +184,11 @@ async function runBookingPostFulfillSideEffects(args: {
 }): Promise<void> {
   const { bookingId, confirmationStatus, pending, userId } = args;
 
-  for (const item of pending.cafe_items) {
-    if (item.quantity <= 0) continue;
-    await prisma.cafeOrder.create({
-      data: {
-        user_id: userId,
-        cafe_item_id: item.id,
-        booking_id: bookingId,
-        quantity: item.quantity,
-        payment_method: "razorpay",
-        order_date: new Date(),
-      },
-    });
-  }
+  // Idempotent per booking: orders written once, food credit debited once. Items come
+  // from the server-stored order notes, not `pending` (which can be client-supplied).
+  await prisma
+    .$transaction((tx) => createBookingCafeOrdersTx(tx, { userId, bookingId }))
+    .catch((e) => logger.error({ err: e, bookingId }, "[booking cafe orders] create failed"));
 
   // Physique 57 bookings notify on instructor confirm, not now.
   if (confirmationStatus !== "pending") {

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Pill, type PillProps } from "@/components/ui/pill";
 import { EmptyState } from "@/components/ui/empty-state";
+import { cafePaymentLabel } from "@/lib/foodCreditMath";
 import { ResponsiveTable } from "@/components/responsive/ResponsiveTable";
 
 export interface OrderRow {
@@ -44,11 +45,7 @@ function formatStatus(status: string) {
   return (status || "pending").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function formatMethod(method: string) {
-  const u = (method || "").toLowerCase();
-  if (u === "pay_at_studio" || u.includes("studio")) return "Pay at studio";
-  return "Paid online";
-}
+const formatMethod = (method: string) => cafePaymentLabel((method || "").toLowerCase());
 
 interface RowViewProps {
   id: string;

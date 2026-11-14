@@ -5,8 +5,12 @@ import {
   BOOKING_CHECKOUT_TAX_RATE,
   expectedBookingCheckoutPaise,
   parseFinanceSnapshot,
+  snapshotTotals,
   snapshotTotalsConsistent,
 } from "@/lib/financeBookingCheckout";
+import { foodCreditBalancePaise, holdFoodCreditTx } from "@/lib/foodCredit";
+import { bookingCreditPaise, toPaise } from "@/lib/foodCreditMath";
+import { reconcileScheduleSeats } from "@/lib/seatCounts";
 import { parsePendingBookingBody } from "@/lib/pendingRazorpayCheckoutServer";
 import { razorpayKeyMode, razorpayKeysMismatch } from "@/lib/razorpayClientHints";
 import { persistRazorpayOrderOnCreate } from "@/lib/razorpayPersistence";
@@ -194,6 +198,16 @@ async function planBookingOrder(userId: string, raw: Record<string, unknown>): P
       adjustedSnap.taxInr = Math.round((total * BOOKING_CHECKOUT_TAX_RATE / (1 + BOOKING_CHECKOUT_TAX_RATE)) * 100) / 100;
     }
   }
+  // Food price is checked against the menu; food credit is always server-computed
+  // (a client-sent foodCreditInr is discarded) and lowers the charge.
+  const menuFoodInr = await menuFoodTotalInr(pendingBody.cafe_items);
+  if (Math.abs(menuFoodInr - adjustedSnap.foodFeeInr) > 0.5) {
+    return { ok: false, status: 409, error: "Café prices changed. Refresh the page and try again." };
+  }
+  delete adjustedSnap.foodCreditInr;
+  const creditPaise = bookingCreditPaise(await foodCreditBalancePaise(prisma, userId), adjustedSnap);
+  if (creditPaise > 0) adjustedSnap.foodCreditInr = creditPaise / 100;
+  Object.assign(adjustedSnap, snapshotTotals(adjustedSnap));
   pendingBody.finance_snapshot = adjustedSnap;
 
   const amount_paise = expectedBookingCheckoutPaise(adjustedSnap.totalInr);
@@ -210,6 +224,17 @@ async function planBookingOrder(userId: string, raw: Record<string, unknown>): P
       dbNotes: { user_id: userId, purpose: PURPOSE_BOOKING, pending_checkout: pendingBody },
     },
   };
+}
+
+async function menuFoodTotalInr(items: { id: string; quantity: number }[]): Promise<number> {
+  const live = items.filter((i) => i.quantity > 0);
+  if (live.length === 0) return 0;
+  const menu = await prisma.cafeItem.findMany({
+    where: { id: { in: live.map((i) => i.id) } },
+    select: { id: true, price: true },
+  });
+  const price = new Map(menu.map((m) => [m.id, Number(m.price)]));
+  return live.reduce((s, i) => s + (price.get(i.id) ?? 0) * i.quantity, 0);
 }
 
 /** Booking coupon context: food-only bookings use `food`; otherwise honor the client's
@@ -335,6 +360,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       log.error({ err: e, userId, classScheduleId }, "createPendingBooking failed");
       return res.status(500).json({ error: "Failed to reserve seat" });
+    }
+
+    // Hold the food credit now (wallet lock + balance check) so two open checkouts
+    // can't both spend it. Released if this hold expires or is cancelled unpaid.
+    const creditPaise = toPaise(
+      Number((pending.finance_snapshot as { foodCreditInr?: unknown } | undefined)?.foodCreditInr ?? 0) || 0,
+    );
+    if (creditPaise > 0 && pendingBookingId) {
+      const bookingId = pendingBookingId;
+      try {
+        await prisma.$transaction((tx) => holdFoodCreditTx(tx, { userId, bookingId, amountPaise: creditPaise }));
+      } catch (e) {
+        await prisma.booking.updateMany({
+          where: { id: bookingId, status: "payment_pending" },
+          data: { status: "expired", hold_expires_at: null },
+        });
+        await reconcileScheduleSeats(classScheduleId).catch(() => {});
+        if (e instanceof Error && e.message === "INSUFFICIENT_FOOD_CREDIT") {
+          return res.status(409).json({ error: "Your food credit balance changed. Refresh the page and try again." });
+        }
+        log.error({ err: e, userId, bookingId }, "food credit hold failed");
+        return res.status(500).json({ error: "Could not apply food credit" });
+      }
     }
   }
 

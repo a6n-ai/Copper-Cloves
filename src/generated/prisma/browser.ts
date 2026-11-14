@@ -188,6 +188,11 @@ export type CafeItem = Prisma.CafeItemModel
  */
 export type CafeOrder = Prisma.CafeOrderModel
 /**
+ * Model FoodCreditTransaction
+ * Food credit wallet ledger. Balance = sum(amount_paise) per user. Never expires.
+ */
+export type FoodCreditTransaction = Prisma.FoodCreditTransactionModel
+/**
  * Model MealSubscription
  * 
  */

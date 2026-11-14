@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStudioSWR } from "@/lib/swr";
+import { bookingCreditPaise } from "@/lib/foodCreditMath";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { requireSessionSSP } from "@/lib/requireSessionSSP";
 
@@ -210,7 +211,11 @@ async function fetchActivePackage(): Promise<{ id?: string; credits_remaining?: 
 }
 
 /** Save a free (no-payment-owed) booking and any café add-ons; returns the booking id. */
-async function runFreeBooking(bookingBody: unknown, cafeLines: CafeOrderLine[]): Promise<void> {
+async function runFreeBooking(
+  bookingBody: unknown,
+  cafeLines: CafeOrderLine[],
+  cafePayment: "counter" | "food_credit",
+): Promise<void> {
   const bookingRes = await fetch("/api/bookings", {
     method: "POST",
     credentials: "include",
@@ -223,7 +228,7 @@ async function runFreeBooking(bookingBody: unknown, cafeLines: CafeOrderLine[]):
     );
   }
   const bookingData = await bookingRes.json();
-  await submitCafeOrders(bookingData.id, cafeLines);
+  await submitCafeOrders(bookingData.id, cafeLines, cafePayment);
 }
 
 /**
@@ -320,7 +325,11 @@ async function runOnlineBookingCheckout(args: {
 }
 
 /** Fire all café orders concurrently for a booking; throws on the first failure. */
-async function submitCafeOrders(bookingId: string, lines: CafeOrderLine[]): Promise<void> {
+async function submitCafeOrders(
+  bookingId: string,
+  lines: CafeOrderLine[],
+  paymentMethod: "counter" | "food_credit",
+): Promise<void> {
   const results = await Promise.all(
     lines.map((item) =>
       fetch("/api/cafe/orders", {
@@ -331,7 +340,7 @@ async function submitCafeOrders(bookingId: string, lines: CafeOrderLine[]): Prom
           cafe_item_id: item.id,
           booking_id: bookingId,
           quantity: item.quantity,
-          payment_method: "pay_at_studio",
+          payment_method: paymentMethod,
         }),
       }),
     ),
@@ -1183,6 +1192,20 @@ export default function BookClass() {
     if (!canCoverGuestsWithCredits && coverGuestsWithCredits) setCoverGuestsWithCredits(false);
   }, [canCoverGuestsWithCredits, coverGuestsWithCredits]);
 
+  const [foodCreditBalancePaise, setFoodCreditBalancePaise] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/user/food-credit", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (alive && d) setFoodCreditBalancePaise(Number(d.balance_paise) || 0);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const calculateTotals = useCallback(() => {
     const totalPeople = 1 + addedMembers.length;
     const classPrice = 945;
@@ -1216,12 +1239,20 @@ export default function BookClass() {
     const subtotal = classTotal + foodTotal;
     const totalAfterDiscount = subtotal - discount;
     const couponDiscount = appliedCoupon?.discountInr ?? 0;
-    const finalTotal = Math.max(0, totalAfterDiscount - couponDiscount);
+    // Same helper as create-order: food only, after pass discount + coupon share.
+    const foodCredit =
+      bookingCreditPaise(foodCreditBalancePaise, {
+        classFeeInr: classTotal,
+        foodFeeInr: foodTotal,
+        foodDiscountInr: discount,
+        couponDiscountInr: couponDiscount,
+      }) / 100;
+    const finalTotal = Math.max(0, totalAfterDiscount - couponDiscount - foodCredit);
     // Prices are tax-inclusive; extract GST for display only
     const taxIncluded = Math.round((finalTotal * TAX_RATE / (1 + TAX_RATE)) * 100) / 100;
 
-    return { classTotal, foodTotal, discount, couponDiscount, subtotal, taxIncluded, finalTotal };
-  }, [addedMembers, userPackage, useCredits, coveringGroup, foodItems, appliedCoupon]);
+    return { classTotal, foodTotal, discount, couponDiscount, foodCredit, subtotal, taxIncluded, finalTotal };
+  }, [addedMembers, userPackage, useCredits, coveringGroup, foodItems, appliedCoupon, foodCreditBalancePaise]);
 
   // Single memoized total used by both the submit handler and JSX (was called twice).
   const totals = useMemo(() => calculateTotals(), [calculateTotals]);
@@ -1353,6 +1384,7 @@ export default function BookClass() {
         foodFeeInr: foodTotal,
         foodDiscountInr: discount,
         couponDiscountInr: owedTotals.couponDiscount,
+        ...(owedTotals.foodCredit > 0 ? { foodCreditInr: owedTotals.foodCredit } : {}),
         taxInr: taxIncluded,
         totalInr: finalTotal,
         dayPassEquivalentCount,
@@ -1460,6 +1492,7 @@ export default function BookClass() {
           credits_to_deduct: usingClassPassCredit ? creditsToDeduct : undefined,
         },
         cafeLines,
+        owedTotals.foodCredit > 0 ? "food_credit" : "counter",
       );
 
       toast({ title: "Booking confirmed", description: "No payment required.", variant: "success" });
@@ -2166,6 +2199,13 @@ export default function BookClass() {
                     <div className="flex justify-between font-body text-sm">
                       <span className="text-sage">Coupon ({appliedCoupon?.code})</span>
                       <span className="text-sage tabular-nums">-₹{totals.couponDiscount.toFixed(0)}</span>
+                    </div>
+                  )}
+
+                  {totals.foodCredit > 0 && (
+                    <div className="flex justify-between font-body text-sm">
+                      <span className="text-sage">Food credit</span>
+                      <span className="text-sage tabular-nums">-₹{totals.foodCredit.toFixed(0)}</span>
                     </div>
                   )}
 

@@ -81,6 +81,7 @@ export const ModelName = {
   Payment: 'Payment',
   CafeItem: 'CafeItem',
   CafeOrder: 'CafeOrder',
+  FoodCreditTransaction: 'FoodCreditTransaction',
   MealSubscription: 'MealSubscription',
   MealSubscriptionInquiry: 'MealSubscriptionInquiry',
   RentalInquiry: 'RentalInquiry',
@@ -705,10 +706,30 @@ export const CafeOrderScalarFieldEnum = {
   updated_at: 'updated_at',
   coupon_id: 'coupon_id',
   discount_inr: 'discount_inr',
-  batch_id: 'batch_id'
+  batch_id: 'batch_id',
+  unit_price_inr: 'unit_price_inr',
+  credit_applied_paise: 'credit_applied_paise',
+  refund_status: 'refund_status',
+  refund_amount_paise: 'refund_amount_paise',
+  razorpay_refund_id: 'razorpay_refund_id'
 } as const
 
 export type CafeOrderScalarFieldEnum = (typeof CafeOrderScalarFieldEnum)[keyof typeof CafeOrderScalarFieldEnum]
+
+
+export const FoodCreditTransactionScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  amount_paise: 'amount_paise',
+  reason: 'reason',
+  cafe_order_id: 'cafe_order_id',
+  booking_id: 'booking_id',
+  idempotency_key: 'idempotency_key',
+  note: 'note',
+  created_at: 'created_at'
+} as const
+
+export type FoodCreditTransactionScalarFieldEnum = (typeof FoodCreditTransactionScalarFieldEnum)[keyof typeof FoodCreditTransactionScalarFieldEnum]
 
 
 export const MealSubscriptionScalarFieldEnum = {

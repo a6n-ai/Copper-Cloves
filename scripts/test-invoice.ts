@@ -43,4 +43,16 @@ import { reconcileLines, InvoiceNotPayableError } from "@/lib/invoice/buildInvoi
   assert.ok(caught, "InvoiceNotPayableError instanceof");
 }
 
+// 5. Tax-inclusive snapshot with pass discount, coupon and food credit → reduction lines.
+{
+  const r = reconcileLines(
+    { classFeeInr: 500, foodFeeInr: 200, taxInr: 20, foodDiscountInr: 20, couponDiscountInr: 50, foodCreditInr: 100 },
+    53000, // 500 + 200 - 20 - 50 - 100
+  );
+  assert.strictEqual(r.lines.length, 5, "class, café, discount, coupon, credit");
+  assert.strictEqual(r.lines.reduce((a, l) => a + l.amountPaise, 0), 53000);
+  assert.strictEqual(r.subtotalPaise + r.taxPaise, 53000);
+  assert.strictEqual(r.taxIncludedPaise, 2000);
+}
+
 console.log("test-invoice: all assertions passed");

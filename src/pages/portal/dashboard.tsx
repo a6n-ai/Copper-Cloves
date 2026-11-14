@@ -309,6 +309,7 @@ export default function Dashboard() {
   const [lastCafeOrder, setLastCafeOrder] = useState<string | null>(null);
   const [movementVitalityData, setMovementVitalityData] = useState<number[]>([]);
   const [cafeOrdersHistory, setCafeOrdersHistory] = useState<CafeOrderRow[]>([]);
+  const [foodCreditPaise, setFoodCreditPaise] = useState(0);
   const [vitalityVsPrev, setVitalityVsPrev] = useState<{
     text: string;
     tone: "neutral" | "up" | "down";
@@ -393,13 +394,16 @@ export default function Dashboard() {
       // bounds the payload by booking_date — 60d for vitality + a 60d buffer for
       // classes booked ahead — instead of pulling up to 500 unordered rows (heavy
       // for power users, and `take` without orderBy could even miss recent ones).
-      const [statsRes, packagesRes, cafeOrdersRes, historyBookingsRes] =
+      const [statsRes, packagesRes, cafeOrdersRes, historyBookingsRes, foodCreditRes] =
         await Promise.all([
           fetch("/api/user-stats"),
           fetch("/api/user-packages?active=true"),
           fetch("/api/cafe/orders"),
           fetch("/api/bookings?days=120"),
+          fetch("/api/user/food-credit"),
         ]);
+      const foodCredit = foodCreditRes.ok ? await foodCreditRes.json() : null;
+      setFoodCreditPaise(Number(foodCredit?.balance_paise) || 0);
 
       const stats = statsRes.ok ? await statsRes.json() : null;
       const packages = packagesRes.ok ? await packagesRes.json() : [];
@@ -1021,7 +1025,12 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <DrawerTitle className="font-body font-semibold text-3xl text-charcoal">Order History</DrawerTitle>
-                    <DrawerDescription className="font-body text-sm text-charcoal/60">Your Nourish café orders</DrawerDescription>
+                    <DrawerDescription className="font-body text-sm text-charcoal/60">
+                      Your Nourish café orders
+                      {foodCreditPaise > 0 && (
+                        <span className="text-sage font-medium"> · Food credit ₹{(foodCreditPaise / 100).toFixed(0)}</span>
+                      )}
+                    </DrawerDescription>
                   </div>
                 </div>
                 <CloseButton onClick={() => setShowOrderHistory(false)} className="rounded-full" />

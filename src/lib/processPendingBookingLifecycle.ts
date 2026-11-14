@@ -8,6 +8,7 @@ import { sendPendingRecoveryEmail } from "@/lib/notifications/sendPendingRecover
 import { logActivity } from "@/lib/activityLog";
 import { logger } from "@/lib/logger";
 import { healBookingFromOrphan } from "@/lib/orphanPayments";
+import { releaseUnusedFoodCreditHoldsTx } from "@/lib/foodCredit";
 
 const log = logger.child({ module: "pendingBookingLifecycle" });
 
@@ -98,6 +99,10 @@ export async function processPendingBookingLifecycle(opts?: { limit?: number }):
           });
           if (upd.count > 0) {
             result.expired += 1;
+            // Give back any food credit held for this checkout at create-order.
+            await prisma
+              .$transaction((tx) => releaseUnusedFoodCreditHoldsTx(tx, [b.id]))
+              .catch((e) => log.error({ err: e, bookingId: b.id }, "food credit hold release failed"));
             // Cascade: expire the whole group held under this booker.
             if (b.class_schedule_id) {
               await prisma.booking.updateMany({

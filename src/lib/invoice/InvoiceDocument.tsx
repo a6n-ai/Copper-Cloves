@@ -99,6 +99,12 @@ export default function InvoiceDocument({ data }: { data: InvoiceData }) {
               <Text>{formatPaiseInr(data.taxPaise)}</Text>
             </View>
           ) : null}
+          {data.taxIncludedPaise ? (
+            <View style={s.totalRow}>
+              <Text>Includes GST</Text>
+              <Text>{formatPaiseInr(data.taxIncludedPaise)}</Text>
+            </View>
+          ) : null}
           <View style={s.grandRow}>
             <Text style={s.grand}>Total</Text>
             <Text style={s.grand}>{formatPaiseInr(data.totalPaise)}</Text>
