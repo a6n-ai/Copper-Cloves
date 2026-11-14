@@ -184,19 +184,34 @@ export async function createBookingCafeOrdersTx(
     // Expired-then-healed: the hold was released, so debit again, but only what is
     // left: the member already paid the reduced price, and the wallet never goes
     // negative. A shortfall (credit spent while the hold was released) is logged.
+    const rehealKey = `spend-reheal:${args.bookingId}`;
     let debitPaise = creditPaise;
     if (released) {
+      // Retried confirm: settled once already (even if short) — never re-debit later credit.
+      if (await tx.foodCreditTransaction.findUnique({ where: { idempotency_key: rehealKey } })) return;
       const balance = await foodCreditBalancePaise(tx, args.userId);
       debitPaise = Math.min(creditPaise, Math.max(0, balance));
       if (debitPaise < creditPaise) {
         log.warn({ bookingId: args.bookingId, creditPaise, debitPaise }, "re-healed booking: food credit short, studio absorbs gap");
       }
+      // Written even at 0 so the key marks this booking as settled.
+      await tx.foodCreditTransaction.create({
+        data: {
+          user_id: args.userId,
+          amount_paise: -debitPaise,
+          reason: "checkout_spend",
+          idempotency_key: rehealKey,
+          booking_id: args.bookingId,
+          note: "Food credit used at class booking checkout",
+        },
+      });
+      return;
     }
     await addLedgerRowOnce(tx, {
       userId: args.userId,
       amountPaise: -debitPaise,
       reason: "checkout_spend",
-      key: released ? `spend-reheal:${args.bookingId}` : spendKey(args.bookingId),
+      key: spendKey(args.bookingId),
       bookingId: args.bookingId,
       note: "Food credit used at class booking checkout",
     });

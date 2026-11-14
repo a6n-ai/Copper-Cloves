@@ -52,6 +52,7 @@
     "test:member-report": "TZ=UTC tsx scripts/test-memberReport.ts",
     "test:cafe-report": "TZ=UTC tsx scripts/test-cafeReport.ts",
     "test:food-credit": "tsx scripts/test-foodCredit.ts",
+    "test:food-credit-db": "tsx --env-file=.env.local scripts/test-foodCreditDb.ts",
     "test:partner-webhooks": "tsx scripts/test-partnerWebhooks.ts",
     "test:auth": "LOG_LEVEL=silent tsx scripts/test-auth-password.ts && LOG_LEVEL=silent tsx scripts/test-auth-roles.ts",
     "test:refund-pills": "tsx scripts/test-refund-pills.ts",
